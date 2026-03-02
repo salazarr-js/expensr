@@ -2,15 +2,11 @@
 
 ## Project
 
-Personal Credit Card Analizer. Tracks multi-currency transactions (ARS, USD, CLP), matches them with user invoices, and calculates debts owed by others. pnpm workspaces monorepo.
+Expensr — Personal Credit Card Analyzer. Tracks multi-currency transactions (ARS, USD, CLP), matches them with user invoices, and calculates debts owed by others. pnpm workspaces monorepo.
 
 ## Commands
 
 ```bash
-pnpm dev       # start API (:3001) + Vite (:5173) concurrently
-pnpm dev:api   # start API only (tsx watch, port 3001)
-pnpm dev:web   # start Vite dev server only (port 5173, proxies /api → :3001)
-pnpm build     # build Vue SPA (vite build)
 pnpm typecheck # typecheck all packages
 ```
 
@@ -18,41 +14,25 @@ pnpm typecheck # typecheck all packages
 
 ```
 packages/
-  shared/
-    src/index.ts        # TypeScript types (Transaction, Invoice, TransactionsFile)
-  api/
-    src/app.ts          # Hono app + error handlers + mounts routes
-    src/server.ts       # Local dev server (@hono/node-server, port 3001)
-    src/routes/
-      transactions.ts   # GET + PATCH /api/transactions
-      invoices.ts       # GET + POST + PUT + DELETE /api/invoices
-    src/lib/
-      data.ts           # JSON read/write helpers + typed loaders
-      schemas.ts        # Zod validation schemas
-    data/
-      transactions.json # 53 transactions extracted from resume.pdf
-      invoices.json     # 40 user-entered invoices linked to transactions
-    vercel.json         # Vercel deployment config
-    public/             # Vue build output (gitignored, populated by Vercel build)
-  web/
-    src/                # Vue 3 + Vite + Tailwind SPA
-    vite.config.ts      # Tailwind plugin + /api proxy → :3001
-  cc-analizer/          # Legacy Vue 3 CDN SPA (kept for reference)
-pnpm-workspace.yaml     # Workspace config
-tsconfig.base.json      # Shared TS config
-resume.pdf              # Original credit card statement
+  shared/              # Shared TypeScript types (empty — to be built)
+  api/                 # Hono API server (empty — to be built)
+  web/                 # Vue 3 + Vite + Tailwind SPA (empty — to be built)
+  cc-analizer/         # Legacy Express + Vue 3 CDN app (reference)
+pnpm-workspace.yaml    # Workspace config
+tsconfig.base.json     # Shared TS config
+resume.pdf             # Original credit card statement
 ```
 
 ## Packages
 
 | Package | Name | Description |
 |---------|------|-------------|
-| `packages/shared` | `@slzr/shared` | Shared TypeScript types |
-| `packages/api` | `@slzr/api` | Hono API server |
-| `packages/web` | `@slzr/web` | Vue 3 + Vite + Tailwind SPA |
-| `packages/cc-analizer` | `@slzr/cc-analizer` | Legacy Vue 3 CDN frontend (reference) |
+| `packages/shared` | — | Shared TypeScript types |
+| `packages/api` | — | Hono API server |
+| `packages/web` | — | Vue 3 + Vite + Tailwind SPA |
+| `packages/cc-analizer` | `@slzr/expensr-cc-analizer` | Legacy Express + Vue 3 CDN app (reference) |
 
-## API
+## API (planned)
 
 - `GET /api/transactions` — list all
 - `PATCH /api/transactions/:id` — update (e.g. category)
@@ -60,16 +40,6 @@ resume.pdf              # Original credit card statement
 - `POST /api/invoices` — create
 - `PUT /api/invoices/:id` — update
 - `DELETE /api/invoices/:id` — delete
-
-## Deployment (Vercel)
-
-- Vercel project root: `packages/api`
-- Hono auto-detected via `export default app` in `src/app.ts`
-- `installCommand`: runs `pnpm install` from monorepo root
-- `buildCommand`: builds Vue SPA → copies to `packages/api/public/`
-- Static files served by Vercel CDN, API routes handled by Hono serverless
-- SPA fallback: non-API routes rewrite to `/index.html`
-- JSON file storage is read-only on Vercel (GET works, mutations need DB migration)
 
 ## Currency & Rates
 
@@ -101,10 +71,6 @@ Names normalized: always capitalized (Wilmer, Johan, Gaby, Gusmeli).
 - **Tx #19** (Mercado Padel 508,780 CLP): Wilmer 286,790 + Johan 221,990 (two invoices, same tx)
 - **Tx #35** (Cruzverde 148,676 CLP): Gaby 113,346 + Gusmeli 11,490 + Jose 23,840
 - **Tx #27** (Almuerzo 91,982 CLP): only half (45,991) is Gusmeli's debt
-
-## CLP Categories (chart in UI)
-
-clothing, food, shopping, fuel, transport, parking, pharmacy — chart excludes favor amounts, shows personal spending only. "Deudas de otros" section below shows per-person bars.
 
 ## UI Stack
 
