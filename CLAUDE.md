@@ -21,8 +21,14 @@ packages/
   shared/
     src/index.ts        # TypeScript types (Transaction, Invoice, TransactionsFile)
   api/
-    src/server.ts       # Hono API app (export default, no listen)
-    src/dev.ts          # Local dev server (@hono/node-server, port 3001)
+    src/app.ts          # Hono app + error handlers + mounts routes
+    src/server.ts       # Local dev server (@hono/node-server, port 3001)
+    src/routes/
+      transactions.ts   # GET + PATCH /api/transactions
+      invoices.ts       # GET + POST + PUT + DELETE /api/invoices
+    src/lib/
+      data.ts           # JSON read/write helpers + typed loaders
+      schemas.ts        # Zod validation schemas
     data/
       transactions.json # 53 transactions extracted from resume.pdf
       invoices.json     # 40 user-entered invoices linked to transactions
@@ -58,7 +64,7 @@ resume.pdf              # Original credit card statement
 ## Deployment (Vercel)
 
 - Vercel project root: `packages/api`
-- Hono auto-detected via `export default app` in `src/server.ts`
+- Hono auto-detected via `export default app` in `src/app.ts`
 - `installCommand`: runs `pnpm install` from monorepo root
 - `buildCommand`: builds Vue SPA → copies to `packages/api/public/`
 - Static files served by Vercel CDN, API routes handled by Hono serverless

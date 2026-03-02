@@ -9,7 +9,8 @@
       "Bash(pnpm *)",
       "Bash(corepack *)",
       "Bash(lsof:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(open:*)"
     ]
   }
 }

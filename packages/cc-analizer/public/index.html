@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finanzas — Statement Tracker</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700;800&family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<div id="app" v-cloak>
+
+  <!-- ====== HEADER ====== -->
+  <header style="position:sticky;top:0;z-index:20;border-bottom:1px solid var(--border);background:var(--bg-header);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);">
+    <div style="max-width:1340px;margin:0 auto;padding:12px 28px;display:flex;align-items:center;justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:24px;">
+        <!-- Logo -->
+        <div style="display:flex;align-items:center;gap:10px;">
+          <svg width="26" height="26" viewBox="0 0 26 26" fill="none" style="flex-shrink:0;">
+            <rect x="1.5" y="1.5" width="23" height="23" rx="5.5" stroke="var(--accent)" stroke-width="1.5" opacity="0.4"/>
+            <rect x="5" y="5" width="16" height="16" rx="3" fill="var(--accent)" opacity="0.1"/>
+            <path d="M9 13h8M13 9v8" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <span style="font-family:var(--font-display);font-weight:700;font-size:1.15rem;letter-spacing:-0.02em;color:var(--text-primary);">Finanzas</span>
+        </div>
+        <!-- Status badges -->
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span class="badge badge-accent">{{ invoices.length }} invoices</span>
+          <span class="badge badge-success">{{ matchedCount }}/{{ transactions.length }} matched</span>
+          <span v-if="unmatchedTransactions.length" class="badge badge-ars">{{ unmatchedTransactions.length }} pending</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <template v-if="saving">
+          <span class="status-dot dot-saving"></span>
+          <span style="font-size:0.78rem;font-weight:600;color:var(--accent);">Saving...</span>
+        </template>
+        <template v-else-if="lastSaved">
+          <span class="status-dot dot-matched"></span>
+          <span style="font-size:0.78rem;font-weight:600;color:var(--success);">Saved</span>
+        </template>
+      </div>
+    </div>
+  </header>
+
+  <main style="max-width:1340px;margin:0 auto;padding:24px 28px;">
+
+    <!-- ====== SUMMARY STRIP ====== -->
+    <section class="card animate-in" style="padding:22px 28px;margin-bottom:20px;">
+      <div class="summary-strip" style="display:flex;align-items:stretch;gap:32px;">
+        <!-- Match progress -->
+        <div style="min-width:170px;">
+          <div class="stat-label" style="margin-bottom:8px;">Match Progress</div>
+          <div style="display:flex;align-items:baseline;gap:8px;">
+            <span class="stat-value" style="color:var(--accent);">{{ matchPercent }}%</span>
+            <span style="font-size:0.78rem;color:var(--text-muted);font-weight:500;">{{ matchedCount }} of {{ transactions.length }}</span>
+          </div>
+          <div class="progress-track" style="margin-top:10px;width:170px;">
+            <div class="progress-fill" :style="{ width: matchPercent + '%' }"></div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- ARS -->
+        <div>
+          <div class="stat-label" style="margin-bottom:8px;">ARS</div>
+          <div class="stat-value" style="color:var(--ars);">{{ fmtNum(summary.ars.total) }}</div>
+          <div style="font-size:0.73rem;color:var(--text-muted);margin-top:3px;font-weight:500;">{{ summary.ars.count }} transactions</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- USD -->
+        <div>
+          <div class="stat-label" style="margin-bottom:8px;">USD</div>
+          <div class="stat-value" style="color:var(--usd);">{{ fmtUsd(summary.usd.total) }}</div>
+          <div style="font-size:0.73rem;color:var(--text-muted);margin-top:3px;font-weight:500;">
+            {{ summary.usd.count }} tx
+            <span style="color:var(--ars);margin-left:6px;">&asymp; {{ fmtNum(summary.usd.total * 1410) }} ARS</span>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- CLP -->
+        <div>
+          <div class="stat-label" style="margin-bottom:8px;">CLP</div>
+          <div class="stat-value" style="color:var(--clp);">{{ fmtClp(summary.clp.total) }}</div>
+          <div style="font-size:0.73rem;color:var(--text-muted);margin-top:3px;font-weight:500;">
+            {{ summary.clp.count }} tx
+            <span style="color:var(--ars);margin-left:6px;">&asymp; {{ fmtNum(summary.clp.totalUsd * 1410) }} ARS</span>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Grand total -->
+        <div>
+          <div class="stat-label" style="margin-bottom:8px;">Total (ARS)</div>
+          <div class="stat-value" style="color:var(--text-primary);">{{ fmtNum(grandTotalArs) }}</div>
+          <div style="font-size:0.73rem;color:var(--text-muted);margin-top:3px;font-weight:500;">at 1,410 ARS/USD</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== CLP SPENDING CHART ====== -->
+    <section class="card animate-in stagger-1" style="padding:22px 28px;margin-bottom:20px;">
+      <div style="margin-bottom:18px;">
+        <span class="section-title">Gastos en Chile (CLP)</span>
+      </div>
+      <!-- Personal spending -->
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <div v-for="cat in clpChart" :key="cat.key">
+          <div class="chart-row" style="cursor:pointer;" @click="toggleChartCat(cat.key)">
+            <span class="chart-label">{{ cat.label }}</span>
+            <div class="chart-bar-track">
+              <div class="chart-bar-fill" :style="{ width: cat.pct + '%', background: cat.color }"></div>
+              <span class="chart-pct" v-if="cat.pct > 8">{{ cat.pct }}%</span>
+            </div>
+            <span class="chart-value">{{ fmtClp(cat.total) }}</span>
+          </div>
+          <div v-if="openChartCats[cat.key]" style="margin:4px 0 10px 0;padding-left:152px;">
+            <div v-for="item in cat.items" :key="item.id"
+              style="display:flex;align-items:center;gap:8px;padding:3px 0;border-bottom:1px solid var(--border-light);">
+              <span class="tx-id">#{{ item.id }}</span>
+              <span style="flex:1;font-size:0.78rem;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ item.name }}</span>
+              <span style="font-family:var(--mono);font-size:0.75rem;font-weight:500;color:var(--text-secondary);">{{ fmtClp(item.amount) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- MIO total -->
+      <div class="chart-row" style="margin-top:10px;">
+        <span class="chart-label" style="font-weight:800;font-size:0.88rem;color:var(--text-primary);">Total</span>
+        <div></div>
+        <span class="chart-value" style="font-size:0.92rem;font-weight:800;color:var(--clp);">{{ fmtClp(clpChartTotal) }}</span>
+      </div>
+
+      <!-- Divider -->
+      <div v-if="clpFavorsByPerson.length" style="margin:24px 0 14px;position:relative;">
+        <div style="border-top:1px dashed var(--border);"></div>
+        <span style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:var(--bg-card);padding:0 12px;font-size:0.68rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;">Deudas de otros</span>
+      </div>
+
+      <!-- Favors by person -->
+      <div v-if="clpFavorsByPerson.length" style="display:flex;flex-direction:column;gap:4px;">
+        <div v-for="person in clpFavorsByPerson" :key="person.name">
+          <div class="chart-row" style="cursor:pointer;" @click="toggleChartCat('favor_' + person.name)">
+            <span class="chart-label" style="color:var(--favor);">{{ person.name }}</span>
+            <div class="chart-bar-track" style="background:var(--favor-bg);">
+              <div class="chart-bar-fill" :style="{ width: person.pct + '%', background: 'var(--favor)', opacity: 0.6 }"></div>
+              <span class="chart-pct" v-if="person.pct > 8" style="color:var(--favor);">{{ person.pct }}%</span>
+            </div>
+            <span class="chart-value" style="color:var(--favor);">{{ fmtClp(person.total) }}</span>
+          </div>
+          <div v-if="openChartCats['favor_' + person.name]" style="margin:4px 0 10px 0;padding-left:152px;">
+            <div v-for="item in person.items" :key="item.id"
+              style="display:flex;align-items:center;gap:8px;padding:3px 0;border-bottom:1px solid var(--border-light);">
+              <span class="tx-id">#{{ item.id }}</span>
+              <span style="flex:1;font-size:0.78rem;color:var(--favor);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ item.name }}</span>
+              <span style="font-family:var(--mono);font-size:0.75rem;font-weight:500;color:var(--favor);">{{ fmtClp(item.amount) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- OTROS total -->
+      <div v-if="clpFavorsByPerson.length" class="chart-row" style="margin-top:10px;">
+        <span class="chart-label" style="font-weight:800;font-size:0.88rem;color:var(--favor);">Total</span>
+        <div></div>
+        <span class="chart-value" style="font-size:0.92rem;font-weight:800;color:var(--favor);">{{ fmtClp(clpFavorsTotal) }}</span>
+      </div>
+    </section>
+
+    <!-- ====== QUICK ENTRY ====== -->
+    <section class="card animate-in stagger-1" style="padding:22px 28px;margin-bottom:20px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <span class="section-title">Quick Entry</span>
+        <span style="font-size:0.72rem;color:var(--text-muted);">
+          <kbd>Tab</kbd> between fields &middot; <kbd>Enter</kbd> to add
+        </span>
+      </div>
+
+      <form @submit.prevent="addInvoice" style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;">
+        <div style="width:144px;">
+          <div class="field-label">Date</div>
+          <input type="date" v-model="form.date" ref="dateInput" style="width:100%;"
+            :class="'glow-' + form.currency.toLowerCase()" />
+        </div>
+        <div style="flex:1;min-width:200px;">
+          <div class="field-label">Store / Description</div>
+          <input type="text" v-model="form.store" placeholder="e.g. O'Neill, Adidas..."
+            @input="onFormChange" autocomplete="off" style="width:100%;"
+            :class="'glow-' + form.currency.toLowerCase()" />
+        </div>
+        <div style="width:134px;">
+          <div class="field-label">Amount</div>
+          <input type="text" v-model="form.amount" placeholder="45467"
+            @input="onFormChange" inputmode="decimal" ref="amountInput"
+            style="width:100%;font-family:var(--mono);"
+            :class="'glow-' + form.currency.toLowerCase()" />
+        </div>
+        <div style="width:90px;">
+          <div class="field-label">Currency</div>
+          <select v-model="form.currency" @change="onFormChange" style="width:100%;font-weight:600;"
+            :style="{ color: currencyColor(form.currency) }">
+            <option value="CLP" style="color:var(--clp)">CLP</option>
+            <option value="USD" style="color:var(--usd)">USD</option>
+            <option value="ARS" style="color:var(--ars)">ARS</option>
+          </select>
+        </div>
+        <div style="width:140px;">
+          <div class="field-label">Favor for</div>
+          <input type="text" v-model="form.favor_for" placeholder="(optional)" style="width:100%;" />
+        </div>
+        <button type="submit" :disabled="!canSubmit" class="btn-primary">Add</button>
+      </form>
+
+      <div v-if="duplicateWarning" class="warning-bar" style="margin-top:12px;">
+        Possible duplicate: "{{ duplicateWarning.store }}" {{ duplicateWarning.currency }} {{ fmtNum(duplicateWarning.amount) }} on {{ duplicateWarning.date }}
+      </div>
+    </section>
+
+    <!-- ====== SUGGESTED MATCHES ====== -->
+    <section v-if="suggestions.length" class="card animate-in stagger-2" style="padding:22px 28px;margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <span class="section-title">Suggested Matches</span>
+        <span style="font-size:0.72rem;color:var(--text-muted);font-weight:500;">click to link</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px;">
+        <div v-for="s in suggestions" :key="s.tx.id"
+          @click="linkAndAdd(s.tx)"
+          class="row-item row-item-interactive"
+          :class="[
+            s.score >= 80 ? 'match-high' : s.score >= 50 ? 'match-med' : 'match-low',
+            'currency-' + s.tx.currency.toLowerCase()
+          ]"
+          style="padding-left:12px;">
+          <span class="score" :class="s.score >= 80 ? 'score-high' : s.score >= 50 ? 'score-med' : 'score-low'">
+            {{ s.score }}%
+          </span>
+          <span class="tx-id">#{{ s.tx.id }}</span>
+          <span style="flex:1;font-size:0.88rem;font-weight:500;">{{ s.tx.description }}</span>
+          <span class="amount" :class="'amount-' + s.tx.currency.toLowerCase()">
+            {{ s.tx.currency }} {{ fmtNum(s.tx.original_amount) }}
+          </span>
+          <span style="font-size:0.75rem;color:var(--text-muted);">{{ s.tx.date }}</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== MAIN GRID ====== -->
+    <div class="main-grid">
+
+      <!-- INVOICES -->
+      <section class="card animate-in stagger-3" style="padding:22px 28px;">
+        <div style="margin-bottom:16px;">
+          <span class="section-title">Invoices</span>
+          <span style="font-size:0.82rem;color:var(--text-muted);margin-left:8px;font-weight:500;">({{ invoices.length }})</span>
+        </div>
+
+        <div v-if="!invoices.length" style="text-align:center;padding:48px 0;color:var(--text-muted);font-size:0.88rem;">
+          No invoices yet. Use the form above to add one.
+        </div>
+
+        <div class="list-scroll" style="display:flex;flex-direction:column;gap:4px;" v-else>
+          <div v-for="inv in sortedInvoices" :key="inv.id"
+            class="row-item"
+            :class="[
+              inv.linked_transaction_id ? 'row-item-matched' : '',
+              'currency-' + inv.currency.toLowerCase()
+            ]"
+            style="padding-left:12px;">
+            <span class="status-dot" :class="inv.linked_transaction_id ? 'dot-matched' : 'dot-unmatched'"></span>
+            <span style="font-size:0.78rem;color:var(--text-muted);min-width:72px;">{{ inv.date }}</span>
+            <span style="flex:1;font-size:0.88rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ inv.store }}</span>
+            <span class="amount" :class="'amount-' + inv.currency.toLowerCase()" style="min-width:100px;text-align:right;">
+              {{ inv.currency }} {{ fmtNum(inv.amount) }}
+            </span>
+            <span v-if="inv.favor_for" class="favor-tag">{{ inv.favor_for }}</span>
+            <span v-if="inv.linked_transaction_id" class="link-arrow">&rarr; #{{ inv.linked_transaction_id }}</span>
+            <button @click="removeInvoice(inv.id)" class="btn-delete" title="Delete">&times;</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- TRANSACTIONS -->
+      <section class="card animate-in stagger-4" style="padding:22px 28px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <div>
+            <span class="section-title">Transactions</span>
+            <span style="font-size:0.82rem;color:var(--text-muted);margin-left:8px;font-weight:500;">({{ transactions.length }})</span>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button @click="txFilter = 'all'" class="filter-pill" :class="{ 'filter-pill-active': txFilter === 'all' }">All</button>
+            <button @click="txFilter = 'unmatched'" class="filter-pill"
+              :class="txFilter === 'unmatched' ? 'filter-pill-warn' : ''">
+              Unmatched
+            </button>
+            <button @click="txFilter = 'matched'" class="filter-pill"
+              :class="txFilter === 'matched' ? 'filter-pill-ok' : ''">
+              Matched
+            </button>
+          </div>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <input type="text" v-model="txSearch" placeholder="Search transactions..." style="width:100%;" />
+        </div>
+
+        <div class="list-scroll" style="display:flex;flex-direction:column;gap:4px;">
+          <div v-for="tx in filteredTransactions" :key="tx.id"
+            @click="prefillFromTransaction(tx)"
+            class="row-item row-item-interactive"
+            :class="[
+              isMatched(tx.id) ? 'row-item-matched' : '',
+              'currency-' + tx.currency.toLowerCase()
+            ]"
+            style="padding-left:12px;">
+            <span class="status-dot" :class="isMatched(tx.id) ? 'dot-matched' : 'dot-unmatched'"></span>
+            <span class="tx-id">#{{ tx.id }}</span>
+            <span style="font-size:0.78rem;color:var(--text-muted);min-width:72px;">{{ tx.date }}</span>
+            <span style="flex:1;font-size:0.88rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ tx.description }}</span>
+            <span class="amount" :class="'amount-' + tx.currency.toLowerCase()" style="min-width:100px;text-align:right;">
+              {{ tx.currency }} {{ fmtNum(tx.original_amount) }}
+            </span>
+            <span v-if="tx.favor_for" class="favor-tag">{{ tx.favor_for }}</span>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<script>
+const { createApp, ref, computed, watch, onMounted, nextTick } = Vue;
+
+createApp({
+  setup() {
+    const transactions = ref([]);
+    const invoices = ref([]);
+    const saving = ref(false);
+    const lastSaved = ref(false);
+    const txFilter = ref('all');
+    const txSearch = ref('');
+    const dateInput = ref(null);
+    const amountInput = ref(null);
+
+    const openChartCats = ref({});
+    function toggleChartCat(key) {
+      openChartCats.value[key] = !openChartCats.value[key];
+    }
+
+    const form = ref({
+      date: new Date().toISOString().slice(0, 10),
+      store: '',
+      amount: '',
+      currency: 'CLP',
+      favor_for: '',
+      _linkedTxId: null,
+    });
+
+    // --- data loading ---
+
+    async function load() {
+      const [txRes, invRes] = await Promise.all([
+        fetch('/api/transactions'),
+        fetch('/api/invoices'),
+      ]);
+      transactions.value = await txRes.json();
+      invoices.value = await invRes.json();
+    }
+
+    onMounted(load);
+
+    // --- formatting ---
+
+    function fmtNum(n) {
+      if (n == null) return '';
+      return Number(n).toLocaleString('es-AR', {
+        minimumFractionDigits: n % 1 ? 2 : 0,
+        maximumFractionDigits: 2,
+      });
+    }
+
+    function fmtUsd(n) {
+      if (n == null) return '';
+      return Number(n).toLocaleString('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
+      });
+    }
+
+    function fmtClp(n) {
+      if (n == null) return '';
+      return Number(n).toLocaleString('es-CL', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      });
+    }
+
+    function currencyColor(cur) {
+      const map = { ARS: 'var(--ars)', USD: 'var(--usd)', CLP: 'var(--clp)' };
+      return map[cur] || 'var(--text-primary)';
+    }
+
+    function parseAmount(str) {
+      if (!str) return 0;
+      const s = String(str).trim();
+      if (/^\d{1,3}(\.\d{3})+$/.test(s)) return Number(s.replace(/\./g, ''));
+      if (/,\d{1,2}$/.test(s)) return Number(s.replace(/\./g, '').replace(',', '.'));
+      return Number(s.replace(/[^\d.]/g, '')) || 0;
+    }
+
+    // --- summary ---
+
+    const summary = computed(() => {
+      const r = {
+        ars: { count: 0, total: 0 },
+        usd: { count: 0, total: 0 },
+        clp: { count: 0, total: 0, totalUsd: 0 },
+      };
+      for (const tx of transactions.value) {
+        if (tx.currency === 'ARS') { r.ars.count++; r.ars.total += tx.original_amount; }
+        else if (tx.currency === 'USD') { r.usd.count++; r.usd.total += tx.original_amount; }
+        else if (tx.currency === 'CLP') { r.clp.count++; r.clp.total += tx.original_amount; r.clp.totalUsd += (tx.usd || 0); }
+      }
+      return r;
+    });
+
+    const grandTotalArs = computed(() => {
+      const s = summary.value;
+      return s.ars.total + (s.usd.total * 1410) + (s.clp.totalUsd * 1410);
+    });
+
+    const matchPercent = computed(() => {
+      if (!transactions.value.length) return 0;
+      return Math.round((matchedCount.value / transactions.value.length) * 100);
+    });
+
+    // --- CLP spending chart ---
+
+    const clpCategoryMap = {
+      clothing:  { label: 'Ropa', color: '#e84393', order: 1 },
+      food:      { label: 'Comida', color: '#10b981', order: 2 },
+      shopping:  { label: 'Compras', color: '#14b8a6', order: 3 },
+      fuel:      { label: 'Gasolina', color: '#f59e0b', order: 4 },
+      transport: { label: 'Uber / Transport', color: '#6366f1', order: 5 },
+      parking:   { label: 'Parking', color: '#94a3b8', order: 6 },
+      pharmacy:  { label: 'Farmacia', color: '#ec4899', order: 7 },
+    };
+
+    // Build map: tx_id → total CLP amount owed by others
+    const favorByTx = computed(() => {
+      const map = {};
+      for (const inv of invoices.value) {
+        if (inv.favor_for && inv.currency === 'CLP' && inv.linked_transaction_id) {
+          map[inv.linked_transaction_id] = (map[inv.linked_transaction_id] || 0) + inv.amount;
+        }
+      }
+      return map;
+    });
+
+    // Map tx_id → invoice store name (user-friendly label)
+    const invoiceNameByTx = computed(() => {
+      const map = {};
+      for (const inv of invoices.value) {
+        if (inv.linked_transaction_id && !inv.favor_for) {
+          map[inv.linked_transaction_id] = inv.store;
+        }
+      }
+      return map;
+    });
+
+    const clpChart = computed(() => {
+      const clpTx = transactions.value.filter(t => t.currency === 'CLP');
+      const favors = favorByTx.value;
+      const names = invoiceNameByTx.value;
+      const groups = {};
+      for (const tx of clpTx) {
+        const favor = favors[tx.id] || 0;
+        const personal = Math.max(0, tx.original_amount - favor);
+        if (personal <= 0) continue;
+        const cat = tx.category || 'other';
+        if (!groups[cat]) groups[cat] = { total: 0, items: [] };
+        groups[cat].total += personal;
+        groups[cat].items.push({
+          id: tx.id,
+          name: names[tx.id] || tx.description,
+          amount: personal,
+        });
+      }
+      const total = Object.values(groups).reduce((s, g) => s + g.total, 0);
+      return Object.entries(groups)
+        .map(([key, g]) => ({
+          key,
+          label: (clpCategoryMap[key] || { label: key }).label,
+          color: (clpCategoryMap[key] || { color: '#94a3b8' }).color,
+          total: g.total,
+          items: g.items.sort((a, b) => b.amount - a.amount),
+          pct: Math.round((g.total / total) * 100),
+        }))
+        .sort((a, b) => b.total - a.total);
+    });
+
+    const clpChartTotal = computed(() => {
+      const clpTx = transactions.value.filter(t => t.currency === 'CLP');
+      const favors = favorByTx.value;
+      return clpTx.reduce((s, t) => s + Math.max(0, t.original_amount - (favors[t.id] || 0)), 0);
+    });
+
+    const clpFavorsTotal = computed(() => {
+      return Object.values(favorByTx.value).reduce((s, v) => s + v, 0);
+    });
+
+    const clpFavorsByPerson = computed(() => {
+      const favorInvs = invoices.value.filter(i => i.favor_for && i.currency === 'CLP');
+      const byPerson = {};
+      for (const inv of favorInvs) {
+        // Handle "gaby, gusmeli" style multi-person favors
+        const people = inv.favor_for.split(',').map(p => p.trim());
+        for (const person of people) {
+          if (!byPerson[person]) byPerson[person] = { total: 0, items: [] };
+          const share = inv.amount / people.length;
+          byPerson[person].total += people.length > 1 ? share : inv.amount;
+          byPerson[person].items.push({
+            id: inv.id,
+            name: inv.store + (people.length > 1 ? ' (split)' : ''),
+            amount: people.length > 1 ? share : inv.amount,
+          });
+        }
+      }
+      const maxTotal = Math.max(...Object.values(byPerson).map(p => p.total), 1);
+      return Object.entries(byPerson)
+        .map(([name, data]) => ({
+          name,
+          total: data.total,
+          items: data.items.sort((a, b) => b.amount - a.amount),
+          pct: Math.round((data.total / maxTotal) * 100),
+        }))
+        .sort((a, b) => b.total - a.total);
+    });
+
+    // --- matching ---
+
+    function normalize(s) {
+      return (s || '').toLowerCase().replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
+    }
+
+    function textScore(a, b) {
+      const na = normalize(a);
+      const nb = normalize(b);
+      if (!na || !nb) return 0;
+      if (na === nb) return 100;
+      if (na.includes(nb) || nb.includes(na)) return 80;
+      const wa = na.split(' ');
+      const wb = nb.split(' ');
+      const common = wa.filter(w => wb.some(w2 => w2.includes(w) || w.includes(w2)));
+      return Math.round((common.length / Math.max(wa.length, wb.length)) * 60);
+    }
+
+    function amountScore(a, aCur, tx) {
+      if (!a) return 0;
+      if (aCur !== tx.currency) return 0;
+      if (a === tx.original_amount) return 100;
+      const diff = Math.abs(a - tx.original_amount) / Math.max(a, tx.original_amount);
+      if (diff < 0.02) return 80;
+      if (diff < 0.05) return 50;
+      if (diff < 0.10) return 25;
+      return 0;
+    }
+
+    function dateScore(d, txDate) {
+      if (!d) return 0;
+      const a = new Date(d);
+      const b = new Date(txDate);
+      const days = Math.abs((a - b) / 86400000);
+      if (days === 0) return 100;
+      if (days <= 1) return 80;
+      if (days <= 3) return 50;
+      if (days <= 7) return 20;
+      return 0;
+    }
+
+    function scoreTransaction(tx) {
+      const amt = parseAmount(form.value.amount);
+      const as = amountScore(amt, form.value.currency, tx);
+      const ts = textScore(form.value.store, tx.description);
+      const ds = dateScore(form.value.date, tx.date);
+      return Math.round(as * 0.50 + ts * 0.35 + ds * 0.15);
+    }
+
+    const matchedTxIds = computed(() => new Set(invoices.value.filter(i => i.linked_transaction_id).map(i => i.linked_transaction_id)));
+
+    const suggestions = computed(() => {
+      const amt = parseAmount(form.value.amount);
+      const store = form.value.store;
+      if (!amt && !store) return [];
+      return transactions.value
+        .filter(tx => !matchedTxIds.value.has(tx.id))
+        .map(tx => ({ tx, score: scoreTransaction(tx) }))
+        .filter(s => s.score > 15)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5);
+    });
+
+    // --- duplicate detection ---
+
+    const duplicateWarning = computed(() => {
+      const amt = parseAmount(form.value.amount);
+      if (!amt || !form.value.store) return null;
+      return invoices.value.find(inv =>
+        inv.currency === form.value.currency &&
+        inv.amount === amt &&
+        Math.abs(new Date(inv.date) - new Date(form.value.date)) < 3 * 86400000
+      ) || null;
+    });
+
+    // --- computed lists ---
+
+    const matchedCount = computed(() => matchedTxIds.value.size);
+    const unmatchedTransactions = computed(() => transactions.value.filter(tx => !matchedTxIds.value.has(tx.id)));
+    const sortedInvoices = computed(() => [...invoices.value].sort((a, b) => b.id - a.id));
+
+    const filteredTransactions = computed(() => {
+      let list = transactions.value;
+      if (txFilter.value === 'matched') list = list.filter(tx => matchedTxIds.value.has(tx.id));
+      if (txFilter.value === 'unmatched') list = list.filter(tx => !matchedTxIds.value.has(tx.id));
+      if (txSearch.value) {
+        const q = normalize(txSearch.value);
+        list = list.filter(tx => normalize(tx.description).includes(q)
+          || String(tx.original_amount).includes(txSearch.value)
+          || tx.date.includes(txSearch.value));
+      }
+      return list;
+    });
+
+    function isMatched(txId) {
+      return matchedTxIds.value.has(txId);
+    }
+
+    // --- actions ---
+
+    const canSubmit = computed(() => form.value.store && parseAmount(form.value.amount) > 0);
+
+    async function saveInvoice(data) {
+      saving.value = true;
+      const res = await fetch('/api/invoices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      const inv = await res.json();
+      invoices.value.push(inv);
+      saving.value = false;
+      lastSaved.value = true;
+      setTimeout(() => lastSaved.value = false, 2000);
+      return inv;
+    }
+
+    function resetForm() {
+      form.value.store = '';
+      form.value.amount = '';
+      form.value.favor_for = '';
+      form.value._linkedTxId = null;
+      nextTick(() => amountInput.value?.focus());
+    }
+
+    async function addInvoice() {
+      if (!canSubmit.value) return;
+      await saveInvoice({
+        date: form.value.date,
+        store: form.value.store,
+        amount: parseAmount(form.value.amount),
+        currency: form.value.currency,
+        favor_for: form.value.favor_for || null,
+        linked_transaction_id: form.value._linkedTxId,
+      });
+      resetForm();
+    }
+
+    async function linkAndAdd(tx) {
+      await saveInvoice({
+        date: form.value.date || tx.date,
+        store: form.value.store || tx.description,
+        amount: parseAmount(form.value.amount) || tx.original_amount,
+        currency: form.value.currency || tx.currency,
+        favor_for: form.value.favor_for || null,
+        linked_transaction_id: tx.id,
+      });
+      resetForm();
+    }
+
+    function prefillFromTransaction(tx) {
+      if (isMatched(tx.id)) return;
+      form.value.date = tx.date;
+      form.value.store = tx.description;
+      form.value.amount = String(tx.original_amount);
+      form.value.currency = tx.currency;
+      form.value._linkedTxId = tx.id;
+      nextTick(() => amountInput.value?.focus());
+    }
+
+    async function removeInvoice(id) {
+      await fetch(`/api/invoices/${id}`, { method: 'DELETE' });
+      invoices.value = invoices.value.filter(i => i.id !== id);
+    }
+
+    function onFormChange() {
+      form.value._linkedTxId = null;
+    }
+
+    return {
+      transactions, invoices, form, saving, lastSaved,
+      txFilter, txSearch, dateInput, amountInput,
+      suggestions, duplicateWarning, matchedCount,
+      unmatchedTransactions, sortedInvoices, filteredTransactions,
+      summary, grandTotalArs, matchPercent, clpChart, clpChartTotal, clpFavorsTotal, clpFavorsByPerson, openChartCats, toggleChartCat,
+      canSubmit, fmtNum, fmtUsd, fmtClp, currencyColor,
+      isMatched, onFormChange,
+      addInvoice, linkAndAdd, prefillFromTransaction, removeInvoice,
+    };
+  },
+}).mount('#app');
+</script>
+</body>
+</html>

@@ -1,12 +1,7 @@
 {
-  "name": "@slzr/finances",
+  "name": "@slzr/expensr",
   "private": true,
   "scripts": {
-    "dev": "pnpm run --parallel --filter @slzr/api --filter @slzr/web dev",
-    "dev:api": "pnpm --filter @slzr/api dev",
-    "dev:web": "pnpm --filter @slzr/web dev",
-    "build": "pnpm --filter @slzr/web build",
-    "typecheck": "pnpm -r run typecheck"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
