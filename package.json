@@ -1,15 +1,16 @@
 {
-  "name": "@slzr/cc-analizer",
-  "version": "1.0.0",
+  "name": "@slzr/finances",
+  "private": true,
   "scripts": {
-    "dev": "tsx watch src/server.ts",
-    "start": "tsx src/server.ts"
+    "dev": "pnpm run --parallel --filter @slzr/api --filter @slzr/web dev",
+    "dev:api": "pnpm --filter @slzr/api dev",
+    "dev:web": "pnpm --filter @slzr/web dev",
+    "build": "pnpm --filter @slzr/web build",
+    "typecheck": "pnpm -r run typecheck"
   },
-  "dependencies": {
-    "@types/express": "^5.0.6",
-    "@types/node": "^25.3.0",
-    "express": "^5.2.1",
-    "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }

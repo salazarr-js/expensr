@@ -2,29 +2,49 @@
 
 ## Project
 
-Personal Credit Card Analizer. Tracks multi-currency transactions (ARS, USD, CLP), matches them with user invoices, and calculates debts owed by others.
+Personal Credit Card Analizer. Tracks multi-currency transactions (ARS, USD, CLP), matches them with user invoices, and calculates debts owed by others. pnpm workspaces monorepo.
 
 ## Commands
 
 ```bash
-npm run dev    # start dev server with watch (tsx watch src/server.ts)
-npm start      # start server (port 3000)
+pnpm dev       # start API (:3001) + Vite (:5173) concurrently
+pnpm dev:api   # start API only (tsx watch, port 3001)
+pnpm dev:web   # start Vite dev server only (port 5173, proxies /api → :3001)
+pnpm build     # build Vue SPA (vite build)
+pnpm typecheck # typecheck all packages
 ```
 
 ## Structure
 
 ```
-public/
-  index.html          # Vue 3 SPA — UI markup + logic
-  styles.css          # All CSS styles (extracted from index.html)
-src/
-  server.ts           # Express 5 API server
-  types.ts            # TypeScript types (Transaction, Invoice)
-data/
-  transactions.json   # 53 transactions extracted from resume.pdf
-  invoices.json       # 40 user-entered invoices linked to transactions
-resume.pdf            # Original credit card statement
+packages/
+  shared/
+    src/index.ts        # TypeScript types (Transaction, Invoice, TransactionsFile)
+  api/
+    src/server.ts       # Hono API app (export default, no listen)
+    src/dev.ts          # Local dev server (@hono/node-server, port 3001)
+    data/
+      transactions.json # 53 transactions extracted from resume.pdf
+      invoices.json     # 40 user-entered invoices linked to transactions
+    vercel.json         # Vercel deployment config
+    public/             # Vue build output (gitignored, populated by Vercel build)
+  web/
+    src/                # Vue 3 + Vite + Tailwind SPA
+    vite.config.ts      # Tailwind plugin + /api proxy → :3001
+  cc-analizer/          # Legacy Vue 3 CDN SPA (kept for reference)
+pnpm-workspace.yaml     # Workspace config
+tsconfig.base.json      # Shared TS config
+resume.pdf              # Original credit card statement
 ```
+
+## Packages
+
+| Package | Name | Description |
+|---------|------|-------------|
+| `packages/shared` | `@slzr/shared` | Shared TypeScript types |
+| `packages/api` | `@slzr/api` | Hono API server |
+| `packages/web` | `@slzr/web` | Vue 3 + Vite + Tailwind SPA |
+| `packages/cc-analizer` | `@slzr/cc-analizer` | Legacy Vue 3 CDN frontend (reference) |
 
 ## API
 
@@ -34,6 +54,16 @@ resume.pdf            # Original credit card statement
 - `POST /api/invoices` — create
 - `PUT /api/invoices/:id` — update
 - `DELETE /api/invoices/:id` — delete
+
+## Deployment (Vercel)
+
+- Vercel project root: `packages/api`
+- Hono auto-detected via `export default app` in `src/server.ts`
+- `installCommand`: runs `pnpm install` from monorepo root
+- `buildCommand`: builds Vue SPA → copies to `packages/api/public/`
+- Static files served by Vercel CDN, API routes handled by Hono serverless
+- SPA fallback: non-API routes rewrite to `/index.html`
+- JSON file storage is read-only on Vercel (GET works, mutations need DB migration)
 
 ## Currency & Rates
 
@@ -72,7 +102,7 @@ clothing, food, shopping, fuel, transport, parking, pharmacy — chart excludes 
 
 ## UI Stack
 
-- Vue 3 (CDN, Composition API) + Express 5 + TypeScript
+- Vue 3 (Vite + Composition API) + Tailwind CSS 4 + Hono + TypeScript
 - Fonts: Bricolage Grotesque + Manrope + JetBrains Mono
 - Cool light theme (blue-gray tones), currency color-coding (ARS=amber, USD=green, CLP=pink, favors=purple)
 
