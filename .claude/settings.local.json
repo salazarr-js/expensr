@@ -10,7 +10,12 @@
       "Bash(corepack *)",
       "Bash(lsof:*)",
       "Bash(curl:*)",
-      "Bash(open:*)"
+      "Bash(open:*)",
+      "Bash(python3:*)",
+      "Bash(pip install:*)",
+      "Bash(pip3 install:*)",
+      "Bash(/tmp/EXCEL_ANALYSIS_SUMMARY.txt:*)",
+      "Bash(ls:*)"
     ]
   }
 }
