@@ -30,6 +30,7 @@ resume.pdf             # Original credit card statement
 | `packages/shared` | — | Shared TypeScript types |
 | `packages/api` | — | Hono API server |
 | `packages/web` | — | Vue 3 + Vite + Tailwind SPA |
+| `packages/accounts-analizer` | `@slzr/expensr-accounts-analizer` | Account statements dashboard (Vue 3 + Vite + Tailwind) |
 | `packages/cc-analizer` | `@slzr/expensr-cc-analizer` | Legacy Express + Vue 3 CDN app (reference) |
 
 ## API (planned)
