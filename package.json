@@ -2,7 +2,18 @@
   "name": "@slzr/expensr",
   "private": true,
   "scripts": {
+    "dev": "pnpm --filter @slzr/expensr-web dev",
+    "build": "pnpm --filter @slzr/expensr-web build",
+    "preview": "pnpm --filter @slzr/expensr-web preview",
+    "deploy:cf": "pnpm --filter @slzr/expensr-web deploy:cf",
+    "typegen:cf": "pnpm --filter @slzr/expensr-api run typegen:cf",
+    "typecheck": "pnpm --filter @slzr/expensr-web type-check",
+    "dev:api": "pnpm --filter @slzr/expensr-api dev"
   },
+  "engines": {
+    "node": "^24.14.0"
+  },
+  "packageManager": "pnpm@10.30.3",
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild"

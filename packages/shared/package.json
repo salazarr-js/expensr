@@ -1,0 +1,12 @@
+{
+  "name": "@slzr/expensr-shared",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./tsconfig.base.json": "./tsconfig.base.json",
+    "./tsconfig.vue.json": "./tsconfig.vue.json",
+    "./tsconfig.node.json": "./tsconfig.node.json"
+  }
+}

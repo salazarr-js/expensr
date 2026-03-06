@@ -1,32 +1,32 @@
 {
-  "name": "web",
-  "version": "0.0.0",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "run-p type-check \"build-only {@}\" --",
-    "preview": "vite preview",
-    "build-only": "vite build",
-    "type-check": "vue-tsc --build"
-  },
-  "dependencies": {
-    "pinia": "^3.0.4",
-    "vue": "^3.5.29",
-    "vue-router": "^5.0.3"
-  },
-  "devDependencies": {
-    "@tsconfig/node24": "^24.0.4",
-    "@types/node": "^24.11.0",
-    "@vitejs/plugin-vue": "^6.0.4",
-    "@vue/tsconfig": "^0.8.1",
-    "npm-run-all2": "^8.0.4",
-    "typescript": "~5.9.3",
-    "vite": "^7.3.1",
-    "vite-plugin-vue-devtools": "^8.0.6",
-    "vue-tsc": "^3.2.5"
-  },
-  "engines": {
-    "node": "^20.19.0 || >=22.12.0"
-  }
+	"name": "@slzr/expensr-web",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "vue-tsc --build && vite build",
+		"preview": "pnpm run build && wrangler dev",
+		"type-check": "vue-tsc --build",
+		"deploy:cf": "pnpm run build && wrangler deploy"
+	},
+	"dependencies": {
+		"@slzr/expensr-api": "workspace:*",
+		"vue": "^3.5.29",
+		"vue-router": "^5.0.3"
+	},
+	"devDependencies": {
+		"@cloudflare/vite-plugin": "^1.26.0",
+		"@slzr/expensr-shared": "workspace:*",
+		"@types/node": "catalog:",
+		"@vitejs/plugin-vue": "^6.0.4",
+		"typescript": "catalog:",
+		"vite": "^7.3.1",
+		"vite-plugin-vue-devtools": "^8.0.6",
+		"vue-tsc": "^3.2.5",
+		"wrangler": "catalog:"
+	},
+	"engines": {
+		"node": "^20.19.0 || >=22.12.0"
+	}
 }

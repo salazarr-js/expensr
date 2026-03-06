@@ -1,0 +1,20 @@
+{
+	"name": "@slzr/expensr-api",
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"scripts": {
+		"dev": "wrangler dev",
+		"deploy:cf": "wrangler deploy --minify",
+		"typegen:cf": "wrangler types --env-interface CloudflareBindings"
+	},
+	"dependencies": {
+		"hono": "^4.12.5"
+	},
+	"devDependencies": {
+		"@slzr/expensr-shared": "workspace:*",
+		"@types/node": "catalog:",
+		"wrangler": "catalog:"
+	}
+}

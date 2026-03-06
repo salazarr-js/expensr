@@ -4,49 +4,56 @@
 
 Expensr — Personal Credit Card Analyzer. Tracks multi-currency transactions (ARS, USD, CLP), matches them with user invoices, and calculates debts owed by others. pnpm workspaces monorepo.
 
+## Ignore
+
+Always ignore `packages/legacy/` and its contents. Do not read, modify, reference, or suggest changes to any file under that directory. It exists only as archived reference and is not part of the active codebase.
+
 ## Commands
 
 ```bash
-pnpm typecheck # typecheck all packages
+pnpm dev            # Vue SPA + Hono API (single Vite process)
+pnpm build          # Production build
+pnpm preview        # Build + local wrangler dev
+pnpm deploy:cf      # Build + deploy to Cloudflare Workers
+pnpm typecheck      # TypeScript check
+pnpm dev:api        # Standalone API dev via wrangler
+pnpm typegen:cf     # Regenerate Cloudflare binding types
 ```
 
 ## Structure
 
 ```
 packages/
-  shared/              # Shared TypeScript types (empty — to be built)
-  api/                 # Hono API server (empty — to be built)
-  web/                 # Vue 3 + Vite + Tailwind SPA (empty — to be built)
-  cc-analizer/         # Legacy Express + Vue 3 CDN app (reference)
-pnpm-workspace.yaml    # Workspace config
-tsconfig.base.json     # Shared TS config
-resume.pdf             # Original credit card statement
+  shared/              # Shared TS types + tsconfig presets
+  api/                 # Hono API (pure route library)
+  web/                 # Vue 3 SPA + Cloudflare deployment seat
+  legacy/              # Archived (ignored)
+pnpm-workspace.yaml    # Workspace config + dependency catalog
 ```
 
 ## Packages
 
 | Package | Name | Description |
 |---------|------|-------------|
-| `packages/shared` | — | Shared TypeScript types |
-| `packages/api` | — | Hono API server |
-| `packages/web` | — | Vue 3 + Vite + Tailwind SPA |
-| `packages/accounts-analizer` | `@slzr/expensr-accounts-analizer` | Account statements dashboard (Vue 3 + Vite + Tailwind) |
-| `packages/cc-analizer` | `@slzr/expensr-cc-analizer` | Legacy Express + Vue 3 CDN app (reference) |
+| `packages/shared` | `@slzr/expensr-shared` | Shared types + tsconfig presets |
+| `packages/api` | `@slzr/expensr-api` | Hono API (Cloudflare Workers) |
+| `packages/web` | `@slzr/expensr-web` | Vue 3 SPA + deployment seat |
 
-## API (planned)
+## Architecture
 
-- `GET /api/transactions` — list all
-- `PATCH /api/transactions/:id` — update (e.g. category)
-- `GET /api/invoices` — list all
-- `POST /api/invoices` — create
-- `PUT /api/invoices/:id` — update
-- `DELETE /api/invoices/:id` — delete
+Single Cloudflare Worker serves Vue SPA + Hono API. `packages/web/server/index.ts` imports the Hono app from `packages/api` (thin bridge pattern). `@cloudflare/vite-plugin` builds both frontend + worker.
+
+## API
+
+Hono app with `.basePath("/api")`. Current routes:
+
+- `GET /api/name` — test endpoint
 
 ## Currency & Rates
 
 - **ARS:** direct, no conversion
 - **USD→ARS:** 1,410 (blue compra rate, Jose sold 5,325 USD to pay card)
-- **CLP→USD:** per-transaction rate from bank statement (avg ~896 CLP/USD). See memory/rates.md
+- **CLP→USD:** per-transaction rate from bank statement (avg ~896 CLP/USD)
 - **CLP→ARS path:** CLP → USD (bank rate) → ARS (×1,410)
 
 ## Taxes

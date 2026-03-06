@@ -1,0 +1,8 @@
+{
+  "extends": "@slzr/expensr-shared/tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ESNext"],
+    "types": ["./worker-configuration.d.ts", "node"]
+  },
+  "include": ["src"]
+}
