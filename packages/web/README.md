@@ -43,3 +43,16 @@ Uses project references with three tsconfig zones:
 - [Vite](https://vite.dev/)
 - [@cloudflare/vite-plugin](https://developers.cloudflare.com/workers/vite-plugin/)
 - [Cloudflare Workers Static Assets](https://developers.cloudflare.com/workers/static-assets/)
+
+
+---
+
+## Templates
+- https://github.com/nuxt-ui-templates/starter-vue
+- https://github.com/nuxt-ui-templates/dashboard-vue/tree/main/src
+
+## Skills
+- https://github.com/vuejs-ai/skills
+- https://github.com/onmax/nuxt-skills
+- https://github.com/antfu/skills
+- https://github.com/nuxt/ui/tree/v4/skills

@@ -1,12 +1,24 @@
 {
   "files.associations": {
+    "*.css": "tailwindcss",
     "wrangler.json": "jsonc"
   },
+
+  "editor.quickSuggestions": {
+    "strings": "on"
+  },
+
   "explorer.fileNesting.enabled": true,
+
   "explorer.fileNesting.patterns": {
     "tsconfig.json": "tsconfig.*.json, env.d.ts, typed-router.d.ts",
     "vite.config.*": "jsconfig*, vitest.config.*, cypress.config.*, playwright.config.*",
     "package.json": "package-lock.json, pnpm*, .yarnrc*, yarn*, .eslint*, eslint*, .oxlint*, oxlint*, .oxfmt*, .prettier*, prettier*, .editorconfig",
     "wrangler.jsonc": "worker-configuration.d.ts"
-  }
+  },
+
+  "tailwindCSS.classAttributes": ["class", "ui"],
+  "tailwindCSS.experimental.classRegex": [
+    ["ui:\\s*{([^)]*)\\s*}", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+  ]
 }
