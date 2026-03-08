@@ -47,9 +47,15 @@ Uses project references with three tsconfig zones:
 
 ---
 
+## Resources
+
+- https://ui.nuxt.com/
+- https://dashboard-vue-template.nuxt.dev/
+
 ## Templates
 - https://github.com/nuxt-ui-templates/starter-vue
-- https://github.com/nuxt-ui-templates/dashboard-vue/tree/main/src
+- https://github.com/nuxt-ui-templates/dashboard-vue
+
 
 ## Skills
 - https://github.com/vuejs-ai/skills

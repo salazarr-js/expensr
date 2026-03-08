@@ -11,6 +11,9 @@
 		"deploy:cf": "pnpm run build && wrangler deploy"
 	},
 	"dependencies": {
+		"@fontsource-variable/bricolage-grotesque": "^5.2.10",
+		"@fontsource-variable/jetbrains-mono": "^5.2.8",
+		"@fontsource-variable/manrope": "^5.2.8",
 		"@nuxt/ui": "^4.5.1",
 		"@slzr/expensr-api": "workspace:*",
 		"tailwindcss": "^4.2.1",

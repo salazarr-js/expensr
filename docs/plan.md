@@ -23,14 +23,18 @@ Currency is user-defined on accounts (visual only). No hardcoded rates — amoun
 
 - [x] Tailwind CSS 4 setup (via `@nuxt/ui/vite` plugin)
 - [x] Nuxt UI 4 installed + registered as Vue plugin (light-only, `colorMode: false`)
-- [x] App shell: UApp > UHeader + UMain + UFooter
-- [x] Vue Router with pages (Dashboard, NotFound)
-- [x] Base UI components provided by Nuxt UI (UButton, UContainer, etc.)
-- [ ] Theme: fonts (Bricolage Grotesque, Manrope, JetBrains Mono), color palette
-- [ ] Header navigation links (dashboard, records, accounts, people, settings)
-- [ ] Remaining placeholder pages (records, accounts, people, settings)
+- [x] Dashboard layout: UDashboardGroup + UDashboardSidebar + UDashboardPanel
+- [x] Multi-layout system via Vue Router nested routes (DashboardLayout, BaseLayout)
+- [x] Sidebar navigation (Dashboard, Records, Accounts, People, Settings)
+- [x] Sidebar user menu with dropdown (Profile, Settings, Log out)
+- [x] UDashboardSidebarCollapse on sidebar header + all page navbars
+- [x] All placeholder pages with empty states (Records, Accounts, People, Settings)
+- [x] Two 404 pages: DashboardNotFound (with sidebar) + NotFound (public)
+- [x] Public Home page at `/`, dashboard routes under `/dashboard/`
+- [x] Quick record button on dashboard navbar
+- [x] Theme: fonts (Bricolage Grotesque, Manrope, JetBrains Mono) via Fontsource
 
-**Test:** `pnpm dev` shows styled layout with header nav. Click links, pages switch.
+**Test:** `pnpm dev` shows dashboard layout with sidebar nav. Click links, pages switch. `/` shows home. `/dashboard/xyz` shows 404 with sidebar.
 
 ---
 
