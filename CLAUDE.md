@@ -56,6 +56,7 @@ To add a new layout: create `src/layouts/NewLayout.vue` with `<RouterView />`, a
 - `/dashboard` — Dashboard
 - `/dashboard/records` — Records
 - `/dashboard/accounts` — Accounts
+- `/dashboard/categories` — Categories
 - `/dashboard/people` — People
 - `/dashboard/settings` — Settings
 - `/dashboard/*` — 404 with sidebar (DashboardNotFound)

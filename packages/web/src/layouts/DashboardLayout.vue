@@ -20,6 +20,11 @@ const items = computed<NavigationMenuItem[]>(() => [
     to: '/dashboard/accounts',
   },
   {
+    label: 'Categories',
+    icon: 'i-lucide-tags',
+    to: '/dashboard/categories',
+  },
+  {
     label: 'People',
     icon: 'i-lucide-users',
     to: '/dashboard/people',

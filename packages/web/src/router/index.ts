@@ -6,24 +6,25 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: () => import('@/pages/Home.vue'),
+      component: () => import('@/pages/HomePage.vue'),
     },
     {
       path: '/dashboard',
       component: () => import('@/layouts/DashboardLayout.vue'),
       children: [
-        { path: '', name: 'dashboard', component: () => import('@/pages/Dashboard.vue') },
-        { path: 'records', name: 'records', component: () => import('@/pages/Records.vue') },
-        { path: 'accounts', name: 'accounts', component: () => import('@/pages/Accounts.vue') },
-        { path: 'people', name: 'people', component: () => import('@/pages/People.vue') },
-        { path: 'settings', name: 'settings', component: () => import('@/pages/Settings.vue') },
-        { path: ':pathMatch(.*)*', name: 'dashboard-not-found', component: () => import('@/pages/DashboardNotFound.vue') },
+        { path: '', name: 'dashboard', component: () => import('@/pages/DashboardPage.vue') },
+        { path: 'records', name: 'records', component: () => import('@/pages/RecordsPage.vue') },
+        { path: 'accounts', name: 'accounts', component: () => import('@/pages/AccountsPage.vue') },
+        { path: 'categories', name: 'categories', component: () => import('@/pages/CategoriesPage.vue') },
+        { path: 'people', name: 'people', component: () => import('@/pages/PeoplePage.vue') },
+        { path: 'settings', name: 'settings', component: () => import('@/pages/SettingsPage.vue') },
+        { path: ':pathMatch(.*)*', name: 'dashboard-not-found', component: () => import('@/pages/DashboardNotFoundPage.vue') },
       ],
     },
     {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
-      component: () => import('@/pages/NotFound.vue'),
+      component: () => import('@/pages/NotFoundPage.vue'),
     },
   ],
 })
