@@ -2,7 +2,7 @@
   "extends": "@slzr/expensr-shared/tsconfig.base.json",
   "compilerOptions": {
     "lib": ["ESNext"],
-    "types": ["./worker-configuration.d.ts", "node"]
+    "types": ["@cloudflare/workers-types", "node"]
   },
-  "include": ["src"]
+  "include": ["src", "drizzle.config.ts"]
 }

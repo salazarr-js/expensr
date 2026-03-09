@@ -1,0 +1,16 @@
+INSERT OR IGNORE INTO `categories` (`name`, `icon`) VALUES
+  ('Food', 'i-lucide-utensils'),
+  ('Transport', 'i-lucide-car'),
+  ('Housing', 'i-lucide-house'),
+  ('Utilities', 'i-lucide-zap'),
+  ('Subscriptions', 'i-lucide-repeat'),
+  ('Shopping', 'i-lucide-shopping-bag'),
+  ('Health', 'i-lucide-heart-pulse'),
+  ('Entertainment', 'i-lucide-gamepad-2'),
+  ('Travel', 'i-lucide-plane'),
+  ('Personal', 'i-lucide-user'),
+  ('Education', 'i-lucide-graduation-cap'),
+  ('Finance', 'i-lucide-landmark'),
+  ('Debt', 'i-lucide-hand-coins'),
+  ('Gifts', 'i-lucide-gift'),
+  ('Other', 'i-lucide-ellipsis');

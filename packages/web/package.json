@@ -8,7 +8,10 @@
 		"build": "vue-tsc --build && vite build",
 		"preview": "pnpm run build && wrangler dev",
 		"type-check": "vue-tsc --build",
-		"deploy:cf": "pnpm run build && wrangler deploy"
+		"deploy:cf": "pnpm run build && wrangler deploy",
+		"typegen:cf": "wrangler types --env-interface CloudflareBindings",
+		"db:migrate": "wrangler d1 migrations apply expensr-db --local",
+		"db:migrate:remote": "wrangler d1 migrations apply expensr-db --remote"
 	},
 	"dependencies": {
 		"@fontsource-variable/bricolage-grotesque": "^5.2.10",
@@ -22,6 +25,7 @@
 	},
 	"devDependencies": {
 		"@cloudflare/vite-plugin": "^1.26.0",
+		"@cloudflare/workers-types": "^4.20260307.1",
 		"@slzr/expensr-shared": "workspace:*",
 		"@types/node": "catalog:",
 		"@vitejs/plugin-vue": "^6.0.4",

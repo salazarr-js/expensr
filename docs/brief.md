@@ -99,7 +99,7 @@ name, avatar (optional)
 - **API:** Hono on Cloudflare Workers
 - **Frontend:** Vue 3 + Nuxt UI 4 + Tailwind CSS 4 + TypeScript
 - **Deploy:** Single Cloudflare Worker (SPA + API)
-- **Storage:** KV initially, D1 later
+- **Storage:** Cloudflare D1 (SQLite)
 - **Design:** Light-only theme (no dark mode)
 - **Fonts:** Bricolage Grotesque, Manrope, JetBrains Mono
 

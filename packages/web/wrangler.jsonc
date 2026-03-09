@@ -4,16 +4,29 @@
 	"compatibility_date": "2025-09-27",
 	"main": "server/index.ts",
 	"routes": [
-		{ "pattern": "expensr.salazarjs.dev", "custom_domain": true }
+		{
+			"pattern": "expensr.salazarjs.dev",
+			"custom_domain": true
+		}
 	],
 	"assets": {
 		"not_found_handling": "single-page-application",
-		"run_worker_first": ["/api/*"]
+		"run_worker_first": [
+			"/api/*"
+		]
 	},
 	"observability": {
 		"enabled": true
 	},
 	"compatibility_flags": [
 		"nodejs_compat"
+	],
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "expensr-db",
+			"database_id": "02cd108b-7b72-471e-869e-ee8af1fe5fe9",
+			"migrations_dir": "../api/drizzle"
+		}
 	]
 }

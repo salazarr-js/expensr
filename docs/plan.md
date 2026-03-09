@@ -1,8 +1,10 @@
 # expensr — Implementation Plan
 
-Feature-driven. Each feature builds its own types, API, and UI together.
+Feature-driven. Each feature builds its own types, migrations, API, and UI together.
 
 Currency is user-defined on accounts (visual only). No hardcoded rates — amounts and accounts are what matter.
+
+**Storage:** Cloudflare D1 (SQLite) with Drizzle ORM (`drizzle-orm/d1`). Schema-as-TypeScript in `packages/api/src/db/schema/`. Migrations generated via `drizzle-kit` into `packages/api/drizzle/`, applied via wrangler from `packages/web/`. Default categories seeded via hand-written SQL migration (`INSERT OR IGNORE`).
 
 ---
 
@@ -16,6 +18,13 @@ Currency is user-defined on accounts (visual only). No hardcoded rates — amoun
 - [x] `pnpm dev` runs Vue HMR + API together
 - [x] Root scripts: dev, build, preview, deploy:cf, typecheck
 - [x] Editor config, node version, VS Code settings
+- [x] Drizzle ORM + D1 database setup
+- [x] DB schema: accounts, categories, tags, people, records (all tables + indexes + FKs)
+- [x] D1 binding in `packages/web/wrangler.jsonc`, migrations dir points to `../api/drizzle`
+- [x] `createDb(d1)` factory in `packages/api/src/db/index.ts`
+- [x] Initial migration generated + seed migration for default categories
+- [x] Scripts: `pnpm db:generate`, `pnpm db:migrate`, `pnpm db:migrate:remote`
+- [x] Removed standalone API dev (`dev:api`, api wrangler.jsonc); `typegen:cf` moved to web
 
 ---
 
@@ -40,6 +49,9 @@ Currency is user-defined on accounts (visual only). No hardcoded rates — amoun
 
 ## 2. Accounts
 
+### D1 Migration
+- [x] `accounts` table created (id, name, code, type, currency, color, icon, starting_balance, created_at, updated_at)
+
 ### Types (shared)
 - [ ] Account interface (id, name, code, type, currency, color, icon, startingBalance)
 - [ ] Account Zod schemas (create, update)
@@ -63,6 +75,11 @@ Currency is user-defined on accounts (visual only). No hardcoded rates — amoun
 
 ## 3. Categories & Tags
 
+### D1 Migration
+- [x] `categories` table created (id, name, color, icon, created_at, updated_at)
+- [x] `tags` table created (id, name, category_id FK, color, icon, created_at, updated_at)
+- [x] Default categories seeded via SQL migration (Food, Transport, Housing, Utilities, Subscriptions, Shopping, Health, Entertainment, Travel, Personal, Education, Finance, Debt, Gifts, Other)
+
 ### Types (shared)
 - [ ] Category interface (id, name, color, icon)
 - [ ] Tag interface (id, name, categoryId, color, icon)
@@ -85,6 +102,9 @@ Currency is user-defined on accounts (visual only). No hardcoded rates — amoun
 
 ## 4. People
 
+### D1 Migration
+- [x] `people` table created (id, name, avatar, created_at, updated_at)
+
 ### Types (shared)
 - [ ] Person interface (id, name, avatar?)
 - [ ] Zod schemas
@@ -102,6 +122,10 @@ Currency is user-defined on accounts (visual only). No hardcoded rates — amoun
 ---
 
 ## 5. Records
+
+### D1 Migration
+- [x] `records` table created (id, type, amount, date, account_id FK, tag_id FK?, category_id FK?, person_id FK?, linked_record_id FK?, note, created_at, updated_at)
+- [x] Indexes on account_id, date, category_id, tag_id, person_id
 
 ### Types (shared)
 - [ ] FinancialRecord interface (id, type, amount, date, accountId, tagId?, categoryId?, personId?, linkedRecordId?, note?)
@@ -143,6 +167,9 @@ Currency is user-defined on accounts (visual only). No hardcoded rates — amoun
 ---
 
 ## 7. Smart Categorization
+
+### D1 Migration
+- [ ] Create `tag_category_associations` table (tag_id FK, category_id FK, usage_count, last_used_at) or extend tags table — decided at implementation
 
 - [ ] Tag-to-category learning: store association when tag is used with a category
 - [ ] Auto-assign category when a known tag is used
@@ -234,7 +261,6 @@ Currency is user-defined on accounts (visual only). No hardcoded rates — amoun
 
 ## Future (out of scope for v1)
 
-- D1 database migration
 - Invoice photo upload + OCR
 - Multi-user auth
 - Recurring records
