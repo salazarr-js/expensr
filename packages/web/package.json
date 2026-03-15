@@ -17,8 +17,12 @@
 		"@fontsource-variable/bricolage-grotesque": "^5.2.10",
 		"@fontsource-variable/jetbrains-mono": "^5.2.8",
 		"@fontsource-variable/manrope": "^5.2.8",
+		"@iconify/vue": "^5.0.0",
 		"@nuxt/ui": "^4.5.1",
 		"@slzr/expensr-api": "workspace:*",
+		"@vueuse/core": "^14.2.1",
+		"fuse.js": "^7.1.0",
+		"pinia": "^3.0.4",
 		"tailwindcss": "^4.2.1",
 		"vue": "^3.5.29",
 		"vue-router": "^5.0.3"
@@ -26,6 +30,7 @@
 	"devDependencies": {
 		"@cloudflare/vite-plugin": "^1.26.0",
 		"@cloudflare/workers-types": "^4.20260307.1",
+		"@iconify-json/simple-icons": "^1.2.73",
 		"@slzr/expensr-shared": "workspace:*",
 		"@types/node": "catalog:",
 		"@vitejs/plugin-vue": "^6.0.4",

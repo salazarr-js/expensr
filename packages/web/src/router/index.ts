@@ -1,5 +1,14 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
+/**
+ * App router — multi-layout system via nested routes.
+ *
+ * - `/` — public home (no layout)
+ * - `/dashboard/*` — authenticated pages wrapped in DashboardLayout (sidebar + panels)
+ * - `/*` — global 404 (no layout)
+ *
+ * All page components are lazy-loaded.
+ */
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -9,6 +18,7 @@ const router = createRouter({
       component: () => import('@/pages/HomePage.vue'),
     },
     {
+      // DashboardLayout provides sidebar + panel chrome for all child routes
       path: '/dashboard',
       component: () => import('@/layouts/DashboardLayout.vue'),
       children: [
@@ -22,6 +32,7 @@ const router = createRouter({
       ],
     },
     {
+      // Global catch-all 404 — no layout wrapper
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: () => import('@/pages/NotFoundPage.vue'),

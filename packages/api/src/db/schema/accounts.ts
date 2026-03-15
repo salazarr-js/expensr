@@ -3,7 +3,7 @@ import { sql } from "drizzle-orm";
 
 export const accounts = sqliteTable("accounts", {
   id: integer().primaryKey({ autoIncrement: true }),
-  name: text().notNull(),
+  name: text().notNull().unique(),
   code: text().notNull().unique(),
   type: text().notNull(),
   currency: text().notNull(),

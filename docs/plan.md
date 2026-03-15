@@ -53,23 +53,30 @@ Currency is user-defined on accounts (visual only). No hardcoded rates — amoun
 - [x] `accounts` table created (id, name, code, type, currency, color, icon, starting_balance, created_at, updated_at)
 
 ### Types (shared)
-- [ ] Account interface (id, name, code, type, currency, color, icon, startingBalance)
-- [ ] Account Zod schemas (create, update)
+- [x] Account interface (id, name, code, type, currency, color, icon, startingBalance)
+- [x] Account Zod schemas (create, update)
 
 ### API
-- [ ] `GET /api/accounts` — list all
-- [ ] `POST /api/accounts` — create (Zod validated)
-- [ ] `GET /api/accounts/:id` — get one
-- [ ] `PUT /api/accounts/:id` — update
-- [ ] `DELETE /api/accounts/:id` — delete
+- [x] `GET /api/accounts` — list all (sorted by name)
+- [x] `POST /api/accounts` — create (Zod validated, unique name, auto-slug code)
+- [x] `GET /api/accounts/currencies` — distinct currencies ordered by usage
+- [x] `GET /api/accounts/:id` — get one
+- [x] `PUT /api/accounts/:id` — update (re-slugs code on rename)
+- [x] `DELETE /api/accounts/:id` — delete
 
 ### Web
-- [ ] Accounts list page with currency badge, color, icon
-- [ ] Create/edit account form (name, code, type, currency, color, icon, starting balance)
-- [ ] Delete with confirmation
-- [ ] API client for accounts
+- [x] Accounts list page with color-coded icons, type labels, currency + balance
+- [x] Type filter toolbar (USelectMenu with "All" + individual types, auto-collapse)
+- [x] Create/edit account modal (name, type, currency, color, icon, starting balance)
+- [x] Delete with alert dialog confirmation
+- [x] Duplicate name error shown on name input field
+- [x] Error state with retry on fetch failure
+- [x] Pinia store with fetch error handling + toasts
+- [x] API client (useApi composable with ApiError class)
+- [x] IconPicker with fuzzy search (Lucide + Simple Icons)
+- [x] ColorPicker with 19 app colors
 
-**Test:** Create account "Banco Galicia" (ARS). See it in list. Edit name. Delete it.
+**Test:** Create account "Banco Galicia" (ARS). See it in list. Edit name. Delete it. Filter by type. Try duplicate name — field error.
 
 ---
 

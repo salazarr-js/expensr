@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import type { NavigationMenuItem, DropdownMenuItem } from '@nuxt/ui'
 
+/** Sidebar navigation links for the dashboard. */
 const items = computed<NavigationMenuItem[]>(() => [
   {
     label: 'Dashboard',
@@ -36,6 +37,7 @@ const items = computed<NavigationMenuItem[]>(() => [
   },
 ])
 
+/** Dropdown menu items for the user avatar button in the sidebar footer. */
 const userMenuItems = computed<DropdownMenuItem[][]>(() => [
   [{ type: 'label', label: 'User' }],
   [
@@ -53,17 +55,14 @@ const userMenuItems = computed<DropdownMenuItem[][]>(() => [
     <UDashboardSidebar
       id="default"
       collapsible
-      class="bg-elevated/25"
-      :ui="{ footer: 'lg:border-t lg:border-default' }"
     >
       <template #header="{ collapsed }">
-        <div class="flex items-center w-full" :class="collapsed ? 'justify-center' : 'justify-between'">
+        <div class="flex items-center gap-2">
+          <div class="flex items-center justify-center size-8 rounded-lg bg-primary shrink-0">
+            <UIcon name="i-lucide-wallet" class="size-5 text-white" />
+          </div>
           <span v-if="!collapsed" class="font-heading text-lg font-bold text-highlighted">
             Expensr
-          </span>
-
-          <span v-else class="font-heading text-lg font-bold text-highlighted">
-            E
           </span>
         </div>
       </template>
@@ -73,8 +72,6 @@ const userMenuItems = computed<DropdownMenuItem[][]>(() => [
           :collapsed="collapsed"
           :items="items"
           orientation="vertical"
-          tooltip
-          popover
         />
       </template>
 

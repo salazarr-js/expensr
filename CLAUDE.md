@@ -27,15 +27,22 @@ pnpm db:studio        # Open Drizzle Studio (local DB browser)
 
 ```
 packages/
-  shared/              # Shared TS types + tsconfig presets
+  shared/              # Shared TS types, Zod schemas, utilities
+    src/accounts.ts    # Account types + validation schemas
+    src/utils.ts       # Shared utilities (slugify)
   api/                 # Hono API (pure route library)
     src/db/schema/     # Drizzle table definitions
     src/db/index.ts    # createDb() factory
+    src/routes/        # Route modules (accounts.ts, etc.)
     drizzle/           # Generated SQL migrations (committed)
     drizzle.config.ts  # Drizzle Kit config
   web/                 # Vue 3 SPA + Cloudflare deployment seat
     src/layouts/       # Layout components (DashboardLayout, BaseLayout)
     src/pages/         # Page components
+    src/components/    # Custom components (IconPicker, ColorPicker, AlertDialog, AccountFormModal)
+    src/composables/   # Composables (useApi, useAlertDialog)
+    src/stores/        # Pinia stores (accounts)
+    src/utils/         # Utilities (colors, money)
     src/router/        # Vue Router config (nested routes per layout)
     server/            # CF Worker bridge (imports Hono app)
   legacy/              # Archived (ignored)
@@ -88,6 +95,14 @@ Hono app with `.basePath("/api")`. Current routes:
 
 - `GET /api/name` — test endpoint
 - `GET /api/categories` — list all categories
+- `GET /api/accounts` — list all accounts (sorted by name)
+- `POST /api/accounts` — create account (code auto-generated as slug from name, unique name enforced)
+- `GET /api/accounts/currencies` — distinct currency codes ordered by usage count
+- `GET /api/accounts/:id` — get single account
+- `PUT /api/accounts/:id` — update account (re-slugs code on name change)
+- `DELETE /api/accounts/:id` — delete account
+
+Error responses include a `code` field for machine-readable errors (e.g., `DUPLICATE_NAME`). The frontend `ApiError` class in `useApi` preserves this code.
 
 ## UI Stack
 
@@ -96,6 +111,32 @@ Hono app with `.basePath("/api")`. Current routes:
 - Light-only theme (`colorMode: false` in Nuxt UI vite plugin)
 - Fonts: Bricolage Grotesque (heading), Manrope (body), JetBrains Mono (mono) via Fontsource
 
+## UI Rules
+
+- **No custom components that replicate Nuxt UI components.** Use Nuxt UI components as-is. Do not create wrappers or replacements for existing Nuxt UI components (e.g., do not build a custom SidebarNav to replace UNavigationMenu).
+- **No global theme overrides via the `ui()` Vite plugin options** (e.g., dashboardPanel, dashboardNavbar slot overrides). Use components with their default styles.
+- **No `:ui` prop overrides** on Nuxt UI components to customize their internal slots/variants.
+- **No custom CSS transitions/animations** on Nuxt UI components (sidebar, panels, navbar, etc.).
+- **Custom components are allowed only** when no Nuxt UI equivalent exists (e.g., IconPicker, ColorPicker, AlertDialog, AccountFormModal). Dead/unused components should be deleted.
+- Focus on shipping primary features first. Visual polish and custom styling come later.
+
+## Conventions
+
+- **Store naming**: Use descriptive names like `const accountsStore = useAccountsStore()`, not `const store = ...`. This avoids collisions when using multiple stores in one component.
+- **Component folders**: Each component lives in `ComponentName/ComponentName.vue` + `index.ts` barrel export.
+- **Alert dialogs**: Use `useAlertDialog()` composable for confirmations. Three variants: `alert.destructive()` (red, delete), `alert.warning()` (amber, caution), `alert.confirm()` (primary, neutral). All invoke the same `AlertDialog` component via `useOverlay`.
+- **Validation messages**: Short and consistent — `"Too short"`, `"Too long"`, `"Must be at least 3 characters"`, `"Must be a number"`, `"Select one"`, `"Required"`.
+- **Account code**: Auto-generated server-side as slug from name (`Banco Galicia` → `banco-galicia`). Re-slugged on rename. Not editable in forms. Unique name constraint enforced at DB level.
+- **Defaults**: When no color/icon selected on account create, the frontend applies defaults at submit time: `Slate` color and a type-based icon (bank → landmark, credit_card → credit-card, cash → banknote, digital_wallet → smartphone, crypto → bitcoin). The API stores whatever the frontend sends.
+- **Icons**: Lucide icons work out of the box via Nuxt UI. Simple Icons require the `i-simple-icons:name` format (colon, not dash) and preloading via `src/icons.ts` which calls `addCollection` with a subset JSON (`src/icons-simple-icons.json`, ~17KB). To add new simple-icons: add the icon data to the JSON subset and reference as `i-simple-icons:icon-name`.
+
+## Error Handling
+
+- **Store fetches** (read operations): Catch errors in the store, show toast, set `error` ref for UI error states. Components show error state with retry button.
+- **Store mutations** (create/update/delete): Let errors bubble to the component. Components handle context-specific errors (e.g., `DUPLICATE_NAME` → field error, generic → toast).
+- **API errors**: `useApi` throws `ApiError` with optional `code` field. Components check `e instanceof ApiError && e.code === "..."` for specific handling.
+- **Store loading**: Only tracks fetch operations. Mutation loading is handled by component-local `loading` refs.
+
 ## Currency
 
-User-defined on each account (visual only). No hardcoded rates.
+User-defined on each account (visual only). No hardcoded rates. Currency field uses `UInputMenu` with fuzzy search — shows existing currencies from other accounts, allows typing new ones (auto-uppercased).

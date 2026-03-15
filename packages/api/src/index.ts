@@ -1,7 +1,7 @@
 import { Hono } from "hono";
-import { createDb } from "./db";
-import { categories } from "./db/schema";
+import accountsRoute from "./routes/accounts";
 
+/** Hono API app — all routes are prefixed with `/api`. */
 const app = new Hono<{ Bindings: CloudflareBindings }>().basePath("/api");
 
 app.get("/name", (c) => {
@@ -10,11 +10,7 @@ app.get("/name", (c) => {
   });
 });
 
-app.get("/categories", async (c) => {
-  const db = createDb(c.env.DB);
-  const rows = await db.select().from(categories);
-  return c.json(rows);
-});
+app.route("/accounts", accountsRoute);
 
 export default app;
 export { createDb, type Database } from "./db";
