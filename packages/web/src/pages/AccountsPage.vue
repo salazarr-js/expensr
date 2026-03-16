@@ -23,8 +23,8 @@ const TYPE_LABELS: Record<AccountType, string> = {
   crypto: "Crypto",
 };
 
-const typeFilterOptions = [
-  { label: "All", value: "all" as const },
+const typeFilterOptions: { label: string; value: string }[] = [
+  { label: "All", value: "all" },
   ...ACCOUNT_TYPES.map((t) => ({ label: TYPE_LABELS[t], value: t })),
 ];
 
