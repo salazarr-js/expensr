@@ -53,7 +53,7 @@ docs/
 
 ## Architecture
 
-Single Cloudflare Worker serves Vue SPA + Hono API. `packages/web/server/index.ts` imports the Hono app from `packages/api` (thin bridge pattern). `@cloudflare/vite-plugin` builds both frontend + worker.
+Single Cloudflare Worker serves Vue SPA + Hono API. `packages/web/server/index.ts` imports the Hono app from `packages/api` (thin bridge pattern). `@cloudflare/vite-plugin` builds both frontend + worker. Deployed to `expensr.salazarjs.dev`, protected by Cloudflare Access (email OTP).
 
 ## Layouts
 
