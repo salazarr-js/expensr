@@ -21,10 +21,17 @@ catalogs:
 
 importers:
 
-  .: {}
+  .:
+    devDependencies:
+      tsx:
+        specifier: ^4.21.0
+        version: 4.21.0
 
   packages/api:
     dependencies:
+      '@slzr/expensr-shared':
+        specifier: workspace:*
+        version: link:../shared
       drizzle-orm:
         specifier: ^0.45.1
         version: 0.45.1(@cloudflare/workers-types@4.20260307.1)(better-sqlite3@12.6.2)
@@ -38,9 +45,6 @@ importers:
       '@cloudflare/workers-types':
         specifier: ^4.20260307.1
         version: 4.20260307.1
-      '@slzr/expensr-shared':
-        specifier: workspace:*
-        version: link:../shared
       '@types/node':
         specifier: 'catalog:'
         version: 25.3.3
@@ -5894,7 +5898,6 @@ snapshots:
       get-tsconfig: 4.13.6
     optionalDependencies:
       fsevents: 2.3.3
-    optional: true
 
   tunnel-agent@0.6.0:
     dependencies:

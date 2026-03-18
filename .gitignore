@@ -47,6 +47,9 @@ __screenshots__/
 # data
 documents/
 
+# db-sync
+scripts/.sync-tmp.sql
+
 # misc
 *.local
 *.timestamp-*-*.mjs

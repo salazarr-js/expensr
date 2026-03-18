@@ -21,6 +21,9 @@ pnpm db:generate      # Generate migration SQL from Drizzle schema
 pnpm db:migrate       # Apply migrations to local D1
 pnpm db:migrate:remote # Apply migrations to production D1
 pnpm db:studio        # Open Drizzle Studio (local DB browser)
+pnpm db:push <group>  # Push local data to production D1
+pnpm db:pull <group>  # Pull production data to local D1
+# Groups: categories (+ tags), accounts, people, records (all deps), all
 ```
 
 ## Structure
