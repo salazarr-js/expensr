@@ -84,26 +84,29 @@ Currency is user-defined on accounts (visual only). No hardcoded rates — amoun
 
 ### D1 Migration
 - [x] `categories` table created (id, name, color, icon, created_at, updated_at)
-- [x] `tags` table created (id, name, category_id FK, color, icon, created_at, updated_at)
-- [x] Default categories seeded via SQL migration (Food, Transport, Housing, Utilities, Subscriptions, Shopping, Health, Entertainment, Travel, Personal, Education, Finance, Debt, Gifts, Other)
+- [x] `tags` table created (id, name, category_id FK, icon, created_at, updated_at) — color removed, tags inherit category color
+- [x] 12 categories seeded (Transport, Housing, Health, Pets, Income, Shopping, Dining, Leisure, Personal, Finance, Digital, Travel)
 
 ### Types (shared)
-- [ ] Category interface (id, name, color, icon)
-- [ ] Tag interface (id, name, categoryId, color, icon)
-- [ ] Zod schemas for both
+- [x] Category, CategoryWithTagCount, CategoryWithTags interfaces
+- [x] Tag, TagWithCategory interfaces
+- [x] Zod schemas (createCategorySchema, updateCategorySchema, createTagSchema, updateTagSchema)
 
 ### API
-- [ ] CRUD for categories (`/api/categories`)
-- [ ] CRUD for tags (`/api/tags`) with category relation
-- [ ] Default categories seeded on first use
+- [x] CRUD for categories (`/api/categories`) with tag count, unique name, cascade delete
+- [x] CRUD for tags as sub-routes (`/api/categories/:categoryId/tags`, `/api/categories/tags/:id`)
+- [x] `isUniqueViolation` utility extracted to `packages/api/src/utils.ts`
 
 ### Web
-- [ ] Categories page: list with color/icon, nested tags
-- [ ] Create/edit category form
-- [ ] Create/edit tag form (name, category picker, color, icon)
-- [ ] API client for categories and tags
+- [x] Categories page: grid with color-coded icons, tag count, inline tag badges
+- [x] Category form modal with inline tag management (add, edit, delete tags)
+- [x] Tags editable inline — click tag to edit in shared input row
+- [x] Duplicate name detection for both categories and tags
+- [x] Error/loading/empty states matching accounts pattern
+- [x] Keyboard accessible cards (tab, enter)
+- [x] Delete category cascades with tag chips shown in confirmation dialog
 
-**Test:** Default categories load. Create tag "uber" under Transport. Tag shows nested under its category.
+**Test:** Categories load with tags. Click category to edit. Add/edit/delete tags inline. Delete category shows affected tags. Create new category with tags.
 
 ---
 
@@ -148,12 +151,18 @@ Currency is user-defined on accounts (visual only). No hardcoded rates — amoun
 
 ### Web
 - [ ] Records page: table view with filters
+- [ ] Filters driven by URL query params (e.g. `/dashboard/records?account=1&category=3`) — shareable, bookmarkable
 - [ ] Amount display respects account currency (visual formatting)
 - [ ] Create/edit record form
 - [ ] Record detail view
 - [ ] API client for records
 
-**Test:** Create expense on ARS account and USD account. Filter by account. Amounts display with correct currency format.
+### Account → Records integration
+- [ ] Account cards show last N records and current balance (starting balance + sum of records)
+- [ ] "View records" link on each account card → navigates to `/dashboard/records?account={id}`
+- [ ] Records page reads filters from URL query params on mount
+
+**Test:** Create expense on ARS account and USD account. Filter by account. Amounts display with correct currency format. Click account card → opens records filtered by that account. Copy URL → paste → same filters applied.
 
 ---
 
@@ -254,7 +263,29 @@ Currency is user-defined on accounts (visual only). No hardcoded rates — amoun
 
 ---
 
-## 13. Polish & Deploy
+## 13. Settings
+
+### Storage
+- [ ] `settings` table (key-value, single row per user) or JSON blob in D1
+- [ ] Default settings applied when no user settings exist
+
+### API
+- [ ] `GET /api/settings` — get current settings
+- [ ] `PUT /api/settings` — update settings
+
+### Web
+- [ ] Settings page with grouped sections
+- [ ] **Display**: Number format (comma separator `,` vs `.`), date format
+- [ ] **Appearance**: Light / dark theme toggle
+- [ ] **Defaults**: Default account, default currency
+- [ ] Settings persisted to D1, loaded on app start
+- [ ] Pinia settings store consumed by formatters and theme
+
+**Test:** Change number separator to `.`, amounts update across the app. Toggle dark theme, UI switches. Refresh — settings persist.
+
+---
+
+## 14. Polish & Deploy
 
 - [ ] Responsive design (mobile-first)
 - [ ] Loading states, error handling, empty states
@@ -268,6 +299,9 @@ Currency is user-defined on accounts (visual only). No hardcoded rates — amoun
 
 ## Future (out of scope for v1)
 
+- Account ordering by usage (sort by record count, most used accounts first) — depends on records feature
+- Category ordering by usage (sort by record count, most used categories first) — depends on records feature
+- FK cascade behavior: tag/category deletion should SET NULL on records (record stays, loses tag/category). Account deletion should be blocked if it has records. Needs schema migration with ON DELETE actions.
 - Invoice photo upload + OCR
 - Multi-user auth
 - Recurring records

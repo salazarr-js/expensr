@@ -29,19 +29,21 @@ pnpm db:studio        # Open Drizzle Studio (local DB browser)
 packages/
   shared/              # Shared TS types, Zod schemas, utilities
     src/accounts.ts    # Account types + validation schemas
+    src/categories.ts  # Category + Tag types + validation schemas
     src/utils.ts       # Shared utilities (slugify)
   api/                 # Hono API (pure route library)
     src/db/schema/     # Drizzle table definitions
     src/db/index.ts    # createDb() factory
-    src/routes/        # Route modules (accounts.ts, etc.)
+    src/routes/        # Route modules (accounts.ts, categories.ts)
+    src/utils.ts       # Shared API utilities (isUniqueViolation, parseId)
     drizzle/           # Generated SQL migrations (committed)
     drizzle.config.ts  # Drizzle Kit config
   web/                 # Vue 3 SPA + Cloudflare deployment seat
     src/layouts/       # Layout components (DashboardLayout, BaseLayout)
     src/pages/         # Page components
-    src/components/    # Custom components (IconPicker, ColorPicker, AlertDialog, AccountFormModal)
+    src/components/    # Custom components (IconPicker, ColorPicker, AlertDialog, AccountFormModal, CategoryFormModal)
     src/composables/   # Composables (useApi, useAlertDialog)
-    src/stores/        # Pinia stores (accounts)
+    src/stores/        # Pinia stores (accounts, categories)
     src/utils/         # Utilities (colors, money)
     src/router/        # Vue Router config (nested routes per layout)
     server/            # CF Worker bridge (imports Hono app)
@@ -49,6 +51,8 @@ packages/
 docs/
   brief.md             # Product vision and concepts
   plan.md              # Implementation timeline
+  categories.md        # Category & tag system design decisions
+  database.md          # DB schema, relationships, D1 CLI commands
 ```
 
 ## Architecture
@@ -94,13 +98,21 @@ Workflow: edit schema → `pnpm db:generate` → `pnpm db:migrate` → dev & tes
 Hono app with `.basePath("/api")`. Current routes:
 
 - `GET /api/name` — test endpoint
-- `GET /api/categories` — list all categories
 - `GET /api/accounts` — list all accounts (sorted by name)
 - `POST /api/accounts` — create account (code auto-generated as slug from name, unique name enforced)
 - `GET /api/accounts/currencies` — distinct currency codes ordered by usage count
 - `GET /api/accounts/:id` — get single account
 - `PUT /api/accounts/:id` — update account (re-slugs code on name change)
 - `DELETE /api/accounts/:id` — delete account
+- `GET /api/categories` — list all categories with tag count
+- `GET /api/categories/tags` — list all tags with category name
+- `POST /api/categories` — create category (unique name enforced)
+- `GET /api/categories/:id` — get category with its tags
+- `PUT /api/categories/:id` — update category
+- `DELETE /api/categories/:id` — cascade delete category + all its tags
+- `POST /api/categories/:categoryId/tags` — create tag under category
+- `PUT /api/categories/tags/:id` — update tag
+- `DELETE /api/categories/tags/:id` — delete tag
 
 Error responses include a `code` field for machine-readable errors (e.g., `DUPLICATE_NAME`). The frontend `ApiError` class in `useApi` preserves this code.
 
@@ -108,8 +120,10 @@ Error responses include a `code` field for machine-readable errors (e.g., `DUPLI
 
 - Vue 3 (Composition API) + Nuxt UI 4 + Tailwind CSS 4 + TypeScript
 - Dashboard components: UDashboardGroup, UDashboardSidebar, UDashboardPanel, UDashboardNavbar, UDashboardToolbar
-- Light-only theme (`colorMode: false` in Nuxt UI vite plugin)
+- Colors: Teal primary, Zinc neutral (configured in `vite.config.ts` via `ui({ ui: { colors } })`)
+- Light/dark/system theme via sidebar footer (`UColorModeSelect` expanded, `UColorModeButton` collapsed)
 - Fonts: Bricolage Grotesque (heading), Manrope (body), JetBrains Mono (mono) via Fontsource
+- Color picker: 22 Tailwind colors (all hue colors + Slate, Gray, Zinc, Neutral, Stone)
 
 ## UI Rules
 
@@ -127,7 +141,11 @@ Error responses include a `code` field for machine-readable errors (e.g., `DUPLI
 - **Alert dialogs**: Use `useAlertDialog()` composable for confirmations. Three variants: `alert.destructive()` (red, delete), `alert.warning()` (amber, caution), `alert.confirm()` (primary, neutral). All invoke the same `AlertDialog` component via `useOverlay`.
 - **Validation messages**: Short and consistent — `"Too short"`, `"Too long"`, `"Must be at least 3 characters"`, `"Must be a number"`, `"Select one"`, `"Required"`.
 - **Account code**: Auto-generated server-side as slug from name (`Banco Galicia` → `banco-galicia`). Re-slugged on rename. Not editable in forms. Unique name constraint enforced at DB level.
-- **Defaults**: When no color/icon selected on account create, the frontend applies defaults at submit time: `Slate` color and a type-based icon (bank → landmark, credit_card → credit-card, cash → banknote, digital_wallet → smartphone, crypto → bitcoin). The API stores whatever the frontend sends.
+- **Defaults**: When no color/icon selected on create, the frontend applies `DEFAULT_COLOR` (`"Slate"`, exported from `utils/colors.ts`) and a type-based icon. The API stores whatever the frontend sends.
+- **Categories**: 12 seeded categories (Transport, Housing, Health, Pets, Income, Shopping, Dining, Leisure, Personal, Finance, Digital, Travel). See `docs/categories.md` for design decisions.
+- **Tags**: Belong to a category. Inherit category color, keep optional icon (fallback: `#`). Managed inline inside the category modal. Tag names are capitalized (first letter uppercase).
+- **Category defaults**: When no color/icon selected on category create, frontend applies: `Slate` color and `i-lucide-tag` icon.
+- **Theme**: Light/dark/system via `UColorModeSelect` (expanded sidebar) and `UColorModeButton` (collapsed sidebar) in the sidebar footer.
 - **Icons**: Lucide icons work out of the box via Nuxt UI. Simple Icons require the `i-simple-icons:name` format (colon, not dash) and preloading via `src/icons.ts` which calls `addCollection` with a subset JSON (`src/icons-simple-icons.json`, ~17KB). To add new simple-icons: add the icon data to the JSON subset and reference as `i-simple-icons:icon-name`.
 
 ## Error Handling
@@ -136,6 +154,8 @@ Error responses include a `code` field for machine-readable errors (e.g., `DUPLI
 - **Store mutations** (create/update/delete): Let errors bubble to the component. Components handle context-specific errors (e.g., `DUPLICATE_NAME` → field error, generic → toast).
 - **API errors**: `useApi` throws `ApiError` with optional `code` field. Components check `e instanceof ApiError && e.code === "..."` for specific handling.
 - **Store loading**: Only tracks fetch operations. Mutation loading is handled by component-local `loading` refs.
+- **Route param validation**: All API route handlers use `parseId()` from `packages/api/src/utils.ts` to validate numeric params. Returns 400 on invalid IDs.
+- **`getColor()` returns fallback**: Never returns null — returns Slate palette when color name is not found. No need for `??` fallbacks at call sites.
 
 ## Currency
 

@@ -6,7 +6,6 @@ export const tags = sqliteTable("tags", {
   id: integer().primaryKey({ autoIncrement: true }),
   name: text().notNull().unique(),
   categoryId: integer("category_id").references(() => categories.id),
-  color: text(),
   icon: text(),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()

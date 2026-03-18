@@ -12,7 +12,12 @@ export default defineConfig({
 	plugins: [
 		vue(),
     ui({
-      colorMode: false,
+      ui: {
+        colors: {
+          primary: 'teal',   // accent color for buttons, links, active states
+          neutral: 'zinc'    // base gray for text, borders, backgrounds
+        }
+      }
     }),
 
 		vueDevTools(),

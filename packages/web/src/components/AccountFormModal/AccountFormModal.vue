@@ -7,6 +7,7 @@ import { useAccountsStore } from "@/stores/accounts";
 import { ApiError } from "@/composables/useApi";
 import { IconPicker } from "@/components/IconPicker";
 import { ColorPicker } from "@/components/ColorPicker";
+import { DEFAULT_COLOR } from "@/utils/colors";
 
 const props = defineProps<{
   account?: Account;
@@ -51,7 +52,6 @@ const DEFAULT_ICONS: Record<string, string> = {
   crypto: "i-lucide-bitcoin",
 };
 
-const DEFAULT_COLOR = "Slate";
 
 function getDefaultIcon(type: string): string {
   return DEFAULT_ICONS[type] ?? "i-lucide-wallet";

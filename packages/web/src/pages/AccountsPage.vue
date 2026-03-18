@@ -156,13 +156,16 @@ onMounted(accountsStore.fetchAccounts);
         <UCard
           v-for="account in filteredAccounts"
           :key="account.id"
-          class="cursor-pointer hover:ring-1 hover:ring-default-border transition-shadow"
+          tabindex="0"
+          role="button"
+          class="cursor-pointer hover:ring-1 hover:ring-default-border focus:ring-1 focus:ring-primary focus:outline-none transition-shadow"
           @click="openEdit(account)"
+          @keydown.enter="openEdit(account)"
         >
           <div class="flex items-center gap-3">
             <div
               class="flex items-center justify-center size-10 rounded-lg shrink-0"
-              :style="{ backgroundColor: getColor(account.color)?.[100] ?? '#f3f4f6', color: getColor(account.color)?.[500] ?? '#9ca3af' }"
+              :style="{ backgroundColor: getColor(account.color)[100], color: getColor(account.color)[500] }"
             >
               <UIcon :name="getAccountIcon(account)" class="size-5" />
             </div>

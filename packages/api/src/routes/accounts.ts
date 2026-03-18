@@ -4,16 +4,7 @@ import { z } from "zod";
 import { createAccountSchema, updateAccountSchema, slugify } from "@slzr/expensr-shared";
 import { createDb } from "../db";
 import { accounts } from "../db/schema";
-
-/** Checks the error and its nested causes for a UNIQUE constraint violation. */
-function isUniqueViolation(e: unknown): boolean {
-  let current: unknown = e;
-  while (current instanceof Error) {
-    if (current.message.includes("UNIQUE")) return true;
-    current = (current as Error & { cause?: unknown }).cause;
-  }
-  return false;
-}
+import { isUniqueViolation, parseId } from "../utils";
 
 const route = new Hono<{ Bindings: CloudflareBindings }>();
 
@@ -64,7 +55,8 @@ route.post("/", async (ctx) => {
 
 /** Get a single account by ID. */
 route.get("/:id", async (ctx) => {
-  const id = Number(ctx.req.param("id"));
+  const id = parseId(ctx.req.param("id"));
+  if (isNaN(id)) return ctx.json({ error: "Invalid ID" }, 400);
   const db = createDb(ctx.env.DB);
 
   const row = await db.select().from(accounts).where(eq(accounts.id, id)).get();
@@ -112,7 +104,8 @@ route.put("/:id", async (ctx) => {
 
 /** Delete an account by ID. */
 route.delete("/:id", async (ctx) => {
-  const id = Number(ctx.req.param("id"));
+  const id = parseId(ctx.req.param("id"));
+  if (isNaN(id)) return ctx.json({ error: "Invalid ID" }, 400);
   const db = createDb(ctx.env.DB);
 
   const [row] = await db

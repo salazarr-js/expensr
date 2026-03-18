@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { NavigationMenuItem, DropdownMenuItem } from '@nuxt/ui'
+import type { NavigationMenuItem } from '@nuxt/ui'
 
 /** Sidebar navigation links for the dashboard. */
 const items = computed<NavigationMenuItem[]>(() => [
@@ -37,17 +37,6 @@ const items = computed<NavigationMenuItem[]>(() => [
   },
 ])
 
-/** Dropdown menu items for the user avatar button in the sidebar footer. */
-const userMenuItems = computed<DropdownMenuItem[][]>(() => [
-  [{ type: 'label', label: 'User' }],
-  [
-    { label: 'Profile', icon: 'i-lucide-user' },
-    { label: 'Settings', icon: 'i-lucide-settings', to: '/dashboard/settings' },
-  ],
-  [
-    { label: 'Log out', icon: 'i-lucide-log-out' },
-  ],
-])
 </script>
 
 <template>
@@ -72,30 +61,16 @@ const userMenuItems = computed<DropdownMenuItem[][]>(() => [
           :collapsed="collapsed"
           :items="items"
           orientation="vertical"
+          tooltip
+          popover
         />
       </template>
 
       <template #footer="{ collapsed }">
-        <UDropdownMenu
-          :items="userMenuItems"
-          :content="{ align: 'center', collisionPadding: 12 }"
-          :ui="{ content: collapsed ? 'w-48' : 'w-(--reka-dropdown-menu-trigger-width)' }"
-        >
-          <UButton
-            :label="collapsed ? undefined : 'User'"
-            :trailing-icon="collapsed ? undefined : 'i-lucide-chevrons-up-down'"
-            color="neutral"
-            variant="ghost"
-            block
-            :square="collapsed"
-            class="data-[state=open]:bg-elevated"
-            :ui="{ trailingIcon: 'text-dimmed' }"
-          >
-            <template #leading>
-              <UAvatar src="" alt="User" icon="i-lucide-user" size="2xs" />
-            </template>
-          </UButton>
-        </UDropdownMenu>
+        <div v-if="collapsed" class="flex justify-center">
+          <UColorModeButton />
+        </div>
+        <UColorModeSelect v-else class="w-full" />
       </template>
     </UDashboardSidebar>
 

@@ -10,11 +10,13 @@ const fuse = new Fuse(ALL_ICONS, {
   threshold: 0.4,
 });
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     placeholder?: string;
+    /** When true, shows only the icon with no label text. */
+    compact?: boolean;
   }>(),
-  { placeholder: "Pick icon" }
+  { placeholder: "Pick icon", compact: false }
 );
 
 const modelValue = defineModel<string | null>({ default: null });
@@ -68,14 +70,15 @@ function clear() {
   <UPopover v-model:open="open" :content="{ side: 'bottom', align: 'start' }">
     <UButton
       :icon="modelValue ?? 'i-lucide-image-plus'"
-      :label="selectedLabel ?? placeholder"
+      :label="compact ? undefined : (selectedLabel ?? placeholder)"
+      :square="compact"
       color="neutral"
       variant="outline"
-      class="w-full justify-start"
+      :class="compact ? '' : 'w-full justify-start'"
     />
 
     <template #content>
-      <div class="w-[280px] p-2">
+      <div class="w-[320px] p-2">
         <UInput
           ref="searchInputRef"
           v-model="searchInput"
@@ -88,8 +91,8 @@ function clear() {
         <div class="max-h-56 overflow-y-auto">
           <!-- Search results (flat) -->
           <template v-if="isSearching">
-            <div v-if="searchResults.length" class="grid grid-cols-6 gap-1">
-              <UTooltip v-for="icon in searchResults" :key="icon.name" :text="icon.label">
+            <div v-if="searchResults.length" class="grid grid-cols-6 gap-1 justify-items-center">
+              <UTooltip v-for="icon in searchResults" :key="icon.name" :text="icon.label" :portal="false">
                 <UButton
                   :icon="icon.name"
                   square
@@ -107,8 +110,8 @@ function clear() {
           <template v-else>
             <div v-for="(section, idx) in ICON_SECTIONS" :key="section.title">
               <USeparator v-if="idx > 0" :label="section.title" class="my-2" />
-              <div class="grid grid-cols-6 gap-1">
-                <UTooltip v-for="icon in section.icons" :key="icon.name" :text="icon.label">
+              <div class="grid grid-cols-6 gap-1 justify-items-center">
+                <UTooltip v-for="icon in section.icons" :key="icon.name" :text="icon.label" :portal="false">
                   <UButton
                     :icon="icon.name"
                     square
