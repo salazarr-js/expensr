@@ -5,8 +5,8 @@ const formatter = new Intl.NumberFormat(undefined, {
 });
 
 /** Splits a formatted amount into integer and decimal parts for styled rendering. */
-export function formatMoneyParts(amount: number): { integer: string; decimal: string } {
-  const parts = formatter.formatToParts(amount);
+export function formatMoneyParts(amount: number | null | undefined): { integer: string; decimal: string } {
+  const parts = formatter.formatToParts(amount || 0);
   const decIdx = parts.findIndex((p) => p.type === "decimal");
   const integer = parts.slice(0, decIdx).map((p) => p.value).join("");
   const decimal = parts.slice(decIdx).map((p) => p.value).join("");

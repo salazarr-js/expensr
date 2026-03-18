@@ -4,6 +4,12 @@
 
 Expensr — Modern personal expense tracker. Frictionless recording, multi-currency accounts, shared expenses, smart categorization. pnpm workspaces monorepo.
 
+## Workflow Rules
+
+- **NEVER commit, push, or deploy without explicit user request.** Always stop and let the user review the code first.
+- The user will run `/simplify` manually before committing.
+- Only run `git commit`, `git push`, `pnpm deploy:cf`, or `pnpm db:migrate:remote` when the user explicitly asks.
+
 ## Ignore
 
 Always ignore `packages/legacy/` and its contents.

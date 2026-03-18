@@ -108,9 +108,13 @@ function openCreate() {
   showFormModal.value = true;
 }
 
-function onSelectRow(_e: Event, row: { original: RecordWithRelations }) {
-  selectedRecord.value = row.original;
+function openEdit(record: RecordWithRelations) {
+  selectedRecord.value = record;
   showFormModal.value = true;
+}
+
+function onSelectRow(_e: Event, row: { original: RecordWithRelations }) {
+  openEdit(row.original);
 }
 
 async function deleteRecord(record: RecordWithRelations) {
@@ -179,7 +183,7 @@ onMounted(() => {
             multiple
             icon="i-lucide-wallet"
             placeholder="All accounts"
-            class="w-56"
+            class="w-full sm:w-56"
             @update:model-value="onAccountFilterUpdate"
           >
             <template #default>
@@ -200,14 +204,14 @@ onMounted(() => {
             v-model="filterDateFrom"
             type="date"
             placeholder="From"
-            class="w-40"
+            class="w-full sm:w-40"
           />
 
           <UInput
             v-model="filterDateTo"
             type="date"
             placeholder="To"
-            class="w-40"
+            class="w-full sm:w-40"
           />
         </template>
       </UDashboardToolbar>
@@ -235,72 +239,113 @@ onMounted(() => {
         <UButton icon="i-lucide-plus" label="New record" class="mt-6" @click="openCreate" />
       </div>
 
-      <!-- Records table -->
-      <UTable
-        v-else
-        :columns="columns"
-        :data="records"
-        class="w-full overflow-visible!"
-        @select="onSelectRow"
-      >
-        <template #reorder-cell="{ row }">
-          <div class="flex items-center gap-0.5" @click.stop>
-            <UButton
-              icon="i-lucide-chevron-up"
-              variant="ghost"
-              color="neutral"
-              size="xs"
-              :disabled="row.index === 0"
-              @click="moveUp(row.index)"
-            />
-            <UButton
-              icon="i-lucide-chevron-down"
-              variant="ghost"
-              color="neutral"
-              size="xs"
-              :disabled="row.index === records.length - 1"
-              @click="moveDown(row.index)"
-            />
-          </div>
-        </template>
-
-        <template #date-cell="{ row }">
-          {{ formatDate(row.original.date) }}
-        </template>
-
-        <template #category-name-cell="{ row }">
-          <div v-if="row.original.categoryName" class="flex items-center gap-1.5">
+      <!-- Records: card list on mobile, table on md+ -->
+      <template v-else>
+        <!-- Mobile card list -->
+        <div class="md:hidden divide-y divide-zinc-200 dark:divide-zinc-800">
+          <div
+            v-for="(record, index) in records"
+            :key="record.id"
+            class="flex items-center gap-3 px-4 py-3 cursor-pointer active:bg-default-50"
+            @click="openEdit(record)"
+          >
+            <!-- Category icon -->
             <div
-              class="flex items-center justify-center size-5 rounded shrink-0"
+              class="flex items-center justify-center size-9 rounded-lg shrink-0"
               :style="{
-                backgroundColor: getColor(row.original.categoryColor)[100],
-                color: getColor(row.original.categoryColor)[500],
+                backgroundColor: getColor(record.categoryColor)[100],
+                color: getColor(record.categoryColor)[500],
               }"
             >
-              <UIcon :name="row.original.categoryIcon || 'i-lucide-tag'" class="size-3" />
+              <UIcon :name="record.categoryIcon || 'i-lucide-receipt'" class="size-4" />
             </div>
-            <span>{{ row.original.categoryName }}</span>
+
+            <!-- Info -->
+            <div class="min-w-0 flex-1">
+              <p class="text-sm font-medium text-highlighted truncate">
+                {{ record.tagName || record.categoryName || record.note || 'Record' }}
+              </p>
+              <p class="text-xs text-muted truncate">
+                {{ formatDate(record.date) }} · {{ record.accountName }}
+              </p>
+            </div>
+
+            <!-- Amount -->
+            <div class="text-right shrink-0 font-mono">
+              <p class="text-sm font-semibold" :class="record.type === 'income' ? 'text-green-600 dark:text-green-400' : 'text-highlighted'">
+                {{ record.type === 'income' ? '+' : '-' }}{{ formatMoneyParts(record.amount).integer }}<span class="text-xs text-muted">{{ formatMoneyParts(record.amount).decimal }}</span>
+              </p>
+              <p class="text-[11px] text-muted">{{ record.accountCurrency }}</p>
+            </div>
           </div>
-          <span v-else class="text-muted">—</span>
-        </template>
+        </div>
 
-        <template #tag-name-cell="{ row }">
-          {{ row.original.tagName ?? "—" }}
-        </template>
+        <!-- Desktop table -->
+        <UTable
+          :columns="columns"
+          :data="records"
+          class="w-full overflow-visible! hidden md:table"
+          @select="onSelectRow"
+        >
+          <template #reorder-cell="{ row }">
+            <div class="flex items-center gap-0.5" @click.stop>
+              <UButton
+                icon="i-lucide-chevron-up"
+                variant="ghost"
+                color="neutral"
+                size="xs"
+                :disabled="row.index === 0"
+                @click="moveUp(row.index)"
+              />
+              <UButton
+                icon="i-lucide-chevron-down"
+                variant="ghost"
+                color="neutral"
+                size="xs"
+                :disabled="row.index === records.length - 1"
+                @click="moveDown(row.index)"
+              />
+            </div>
+          </template>
 
-        <template #note-cell="{ row }">
-          <span class="truncate max-w-48 inline-block">{{ row.original.note ?? "—" }}</span>
-        </template>
+          <template #date-cell="{ row }">
+            {{ formatDate(row.original.date) }}
+          </template>
 
-        <template #amount-cell="{ row }">
-          <div class="text-right font-mono">
-            <span :class="row.original.type === 'income' ? 'text-green-600 dark:text-green-400' : ''">
-              {{ row.original.type === 'income' ? '+' : '-' }}{{ formatMoneyParts(row.original.amount).integer }}<span class="text-muted">{{ formatMoneyParts(row.original.amount).decimal }}</span>
-            </span>
-            <span class="ml-1 text-xs text-muted">{{ row.original.accountCurrency }}</span>
-          </div>
-        </template>
-      </UTable>
+          <template #category-name-cell="{ row }">
+            <div v-if="row.original.categoryName" class="flex items-center gap-1.5">
+              <div
+                class="flex items-center justify-center size-5 rounded shrink-0"
+                :style="{
+                  backgroundColor: getColor(row.original.categoryColor)[100],
+                  color: getColor(row.original.categoryColor)[500],
+                }"
+              >
+                <UIcon :name="row.original.categoryIcon || 'i-lucide-tag'" class="size-3" />
+              </div>
+              <span>{{ row.original.categoryName }}</span>
+            </div>
+            <span v-else class="text-muted">—</span>
+          </template>
+
+          <template #tag-name-cell="{ row }">
+            {{ row.original.tagName ?? "—" }}
+          </template>
+
+          <template #note-cell="{ row }">
+            <span class="truncate max-w-48 inline-block">{{ row.original.note ?? "—" }}</span>
+          </template>
+
+          <template #amount-cell="{ row }">
+            <div class="text-right font-mono">
+              <span :class="row.original.type === 'income' ? 'text-green-600 dark:text-green-400' : ''">
+                {{ row.original.type === 'income' ? '+' : '-' }}{{ formatMoneyParts(row.original.amount).integer }}<span class="text-muted">{{ formatMoneyParts(row.original.amount).decimal }}</span>
+              </span>
+              <span class="ml-1 text-xs text-muted">{{ row.original.accountCurrency }}</span>
+            </div>
+          </template>
+        </UTable>
+      </template>
     </template>
   </UDashboardPanel>
 
