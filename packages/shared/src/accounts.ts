@@ -21,6 +21,8 @@ export interface Account {
   color: string | null;
   icon: string | null;
   startingBalance: number;
+  balance: number;
+  recordCount: number;
   createdAt: string;
   updatedAt: string;
 }

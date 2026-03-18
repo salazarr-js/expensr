@@ -138,29 +138,43 @@ Currency is user-defined on accounts (visual only). No hardcoded rates — amoun
 - [x] Indexes on account_id, date, category_id, tag_id, person_id
 
 ### Types (shared)
-- [ ] FinancialRecord interface (id, type, amount, date, accountId, tagId?, categoryId?, personId?, linkedRecordId?, note?)
-- [ ] Record type enum: expense, shared, transfer, exchange, fee
-- [ ] Zod schemas (create, update)
+- [x] FinancialRecord + RecordWithRelations interfaces
+- [x] Record type enum: expense, income (more types later: shared, transfer, exchange, fee)
+- [x] Zod schemas (create, update, reorder)
 
 ### API
-- [ ] `GET /api/records` — list with filters (account, date range, category, tag, person, type)
-- [ ] `POST /api/records` — create (partial allowed: amount + date + account minimum)
-- [ ] `GET /api/records/:id` — detail
-- [ ] `PUT /api/records/:id` — update
-- [ ] `DELETE /api/records/:id` — delete
+- [x] `GET /api/records` — list with filters (?accountId supports comma-separated, ?dateFrom, ?dateTo), joins account/category/tag names
+- [x] `POST /api/records` — create (auto-appends current time to date)
+- [x] `GET /api/records/:id` — detail with joined relations
+- [x] `PUT /api/records/:id` — update (preserves time when only date changes)
+- [x] `DELETE /api/records/:id` — delete
+- [x] `POST /api/records/reorder` — reorder by adjusting datetime (afterId/beforeId)
+- [x] `GET /api/accounts?sort=usage` — accounts sorted by record count
+
+### D1 Migration (datetime)
+- [x] `0003_records_date_to_datetime.sql` — convert date-only values to datetime (noon default)
+- [x] New records auto-get current time on create
 
 ### Web
-- [ ] Records page: table view with filters
-- [ ] Filters driven by URL query params (e.g. `/dashboard/records?account=1&category=3`) — shareable, bookmarkable
-- [ ] Amount display respects account currency (visual formatting)
-- [ ] Create/edit record form
-- [ ] Record detail view
-- [ ] API client for records
+- [x] Records page: UTable with account multi-select + date range filters
+- [x] Filters driven by URL query params (`/dashboard/records?account=18,19&dateFrom=...`) — shareable, bookmarkable
+- [x] Amount display with currency, income highlighted green with + prefix
+- [x] Create/edit record form modal (amount, date, account, category, tag, note)
+- [x] Tag selector shows all tags; selecting a tag auto-picks its category
+- [x] Category/tag/account dropdowns show color-coded icons
+- [x] Accounts sorted by usage (most records first) in form
+- [x] Type auto-assigned based on category (Income → income, else expense)
+- [x] Reorder records with up/down arrows (cross-date support)
+- [x] Delete with alert dialog confirmation
+- [x] Loading/error/empty states
+- [x] Pinia store with filter support
+- [x] Record detail/edit via modal (no separate detail page needed)
 
 ### Account → Records integration
-- [ ] Account cards show last N records and current balance (starting balance + sum of records)
-- [ ] "View records" link on each account card → navigates to `/dashboard/records?account={id}`
-- [ ] Records page reads filters from URL query params on mount
+- [x] Account cards show live balance (starting balance + income - expenses)
+- [x] Record count shown on each account card
+- [x] "View records" link on each account card → navigates to `/dashboard/records?account={id}`
+- [x] API always returns balance + recordCount on accounts list
 
 **Test:** Create expense on ARS account and USD account. Filter by account. Amounts display with correct currency format. Click account card → opens records filtered by that account. Copy URL → paste → same filters applied.
 
@@ -299,7 +313,9 @@ Currency is user-defined on accounts (visual only). No hardcoded rates — amoun
 
 ## Future (out of scope for v1)
 
-- Account ordering by usage (sort by record count, most used accounts first) — depends on records feature
+- ~~Account ordering by usage (sort by record count, most used accounts first) — depends on records feature~~ ✅ Done (GET /api/accounts?sort=usage)
+- Note auto-complete: suggest previous notes as the user types in the record form (query distinct notes from records table, fuzzy match)
+- Records drag-and-drop reorder: replace up/down arrow buttons with drag-and-drop (e.g., vue-draggable or @dnd-kit). Reorder API already exists (`POST /api/records/reorder`), just needs a better UI
 - Category ordering by usage (sort by record count, most used categories first) — depends on records feature
 - FK cascade behavior: tag/category deletion should SET NULL on records (record stays, loses tag/category). Account deletion should be blocked if it has records. Needs schema migration with ON DELETE actions.
 - Invoice photo upload + OCR

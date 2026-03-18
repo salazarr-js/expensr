@@ -101,7 +101,7 @@ Workflow: edit schema → `pnpm db:generate` → `pnpm db:migrate` → dev & tes
 Hono app with `.basePath("/api")`. Current routes:
 
 - `GET /api/name` — test endpoint
-- `GET /api/accounts` — list all accounts (sorted by name)
+- `GET /api/accounts` — list all accounts (sorted by name, ?sort=usage for record count order)
 - `POST /api/accounts` — create account (code auto-generated as slug from name, unique name enforced)
 - `GET /api/accounts/currencies` — distinct currency codes ordered by usage count
 - `GET /api/accounts/:id` — get single account
@@ -116,6 +116,12 @@ Hono app with `.basePath("/api")`. Current routes:
 - `POST /api/categories/:categoryId/tags` — create tag under category
 - `PUT /api/categories/tags/:id` — update tag
 - `DELETE /api/categories/tags/:id` — delete tag
+- `GET /api/records` — list records with filters (?accountId=1,2, ?dateFrom, ?dateTo), joins account/category/tag names
+- `POST /api/records` — create record (auto-appends current time, type based on category)
+- `GET /api/records/:id` — get single record with joined relations
+- `PUT /api/records/:id` — update record (preserves time when only date changes)
+- `DELETE /api/records/:id` — delete record
+- `POST /api/records/reorder` — reorder record via datetime adjustment ({id, afterId?, beforeId?})
 
 Error responses include a `code` field for machine-readable errors (e.g., `DUPLICATE_NAME`). The frontend `ApiError` class in `useApi` preserves this code.
 

@@ -1,19 +1,46 @@
 import { Hono } from "hono";
-import { eq, count, desc } from "drizzle-orm";
+import { eq, count, desc, sum, sql } from "drizzle-orm";
 import { z } from "zod";
 import { createAccountSchema, updateAccountSchema, slugify } from "@slzr/expensr-shared";
 import { createDb } from "../db";
 import { accounts } from "../db/schema";
+import { records } from "../db/schema";
 import { isUniqueViolation, parseId } from "../utils";
 
 const route = new Hono<{ Bindings: CloudflareBindings }>();
 
-/** List all accounts, sorted alphabetically. */
+/** Account fields with computed balance (startingBalance + income - expenses). */
+function accountsWithBalance(db: ReturnType<typeof createDb>) {
+  return db
+    .select({
+      id: accounts.id,
+      name: accounts.name,
+      code: accounts.code,
+      type: accounts.type,
+      currency: accounts.currency,
+      color: accounts.color,
+      icon: accounts.icon,
+      startingBalance: accounts.startingBalance,
+      createdAt: accounts.createdAt,
+      updatedAt: accounts.updatedAt,
+      balance: sql<number>`${accounts.startingBalance} + coalesce(sum(case when ${records.type} = 'income' then ${records.amount} else -${records.amount} end), 0)`.as("balance"),
+      recordCount: count(records.id).as("recordCount"),
+    })
+    .from(accounts)
+    .leftJoin(records, eq(accounts.id, records.accountId))
+    .groupBy(accounts.id);
+}
+
+/** List all accounts with computed balance. ?sort=usage orders by record count. */
 route.get("/", async (ctx) => {
   const db = createDb(ctx.env.DB);
+  const sort = ctx.req.query("sort");
 
-  const rows = await db.select().from(accounts).orderBy(accounts.name);
+  const order = sort === "usage"
+    ? [desc(count(records.id)), accounts.name]
+    : [accounts.name];
 
+  const rows = await accountsWithBalance(db).orderBy(...order);
   return ctx.json(rows);
 });
 

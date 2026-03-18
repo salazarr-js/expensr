@@ -176,11 +176,17 @@ onMounted(accountsStore.fetchAccounts);
           </div>
 
           <div class="mt-3 flex items-end justify-between">
-            <div />
+            <RouterLink
+              :to="{ name: 'records', query: { account: String(account.id) } }"
+              class="text-xs text-muted hover:text-highlighted transition-colors"
+              @click.stop
+            >
+              {{ account.recordCount }} {{ account.recordCount === 1 ? 'record' : 'records' }} →
+            </RouterLink>
             <div class="text-right">
               <p class="text-[11px] uppercase tracking-wider text-muted font-medium">{{ account.currency }}</p>
               <p class="text-2xl font-heading font-bold text-highlighted tracking-tight">
-                {{ formatMoneyParts(account.startingBalance).integer }}<span class="text-base font-medium text-muted">{{ formatMoneyParts(account.startingBalance).decimal }}</span>
+                {{ formatMoneyParts(account.balance).integer }}<span class="text-base font-medium text-muted">{{ formatMoneyParts(account.balance).decimal }}</span>
               </p>
             </div>
           </div>

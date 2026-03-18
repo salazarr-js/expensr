@@ -24,6 +24,15 @@ export const useAccountsStore = defineStore("accounts", () => {
     }
   }
 
+  /** Loads all accounts sorted by record count (most used first). */
+  async function fetchAccountsByUsage() {
+    try {
+      accounts.value = await api.get<Account[]>("/accounts?sort=usage");
+    } catch {
+      // Fallback: if usage sort fails, at least keep whatever we have
+    }
+  }
+
   /** Fetches distinct currencies across all accounts, ordered by usage count. */
   async function fetchCurrencies() {
     loading.value = true;
@@ -57,5 +66,5 @@ export const useAccountsStore = defineStore("accounts", () => {
     accounts.value = accounts.value.filter((a) => a.id !== id);
   }
 
-  return { accounts, currencies, loading, error, fetchAccounts, fetchCurrencies, createAccount, updateAccount, deleteAccount };
+  return { accounts, currencies, loading, error, fetchAccounts, fetchAccountsByUsage, fetchCurrencies, createAccount, updateAccount, deleteAccount };
 });
