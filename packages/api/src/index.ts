@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import accountsRoute from "./routes/accounts";
 import categoriesRoute from "./routes/categories";
+import peopleRoute from "./routes/people";
 import recordsRoute from "./routes/records";
 
 /** Hono API app — all routes are prefixed with `/api`. */
@@ -14,6 +15,7 @@ app.get("/name", (c) => {
 
 app.route("/accounts", accountsRoute);
 app.route("/categories", categoriesRoute);
+app.route("/people", peopleRoute);
 app.route("/records", recordsRoute);
 
 export default app;

@@ -8,6 +8,8 @@ import { records } from "../db/schema";
 import { accounts } from "../db/schema";
 import { categories } from "../db/schema";
 import { tags } from "../db/schema";
+import { people } from "../db/schema";
+import { recordPeople } from "../db/schema";
 import { parseCorrections } from "../db/schema";
 import { keywordMappings } from "../db/schema";
 import { parseId } from "../utils";
@@ -53,7 +55,6 @@ function recordsWithRelations(db: ReturnType<typeof createDb>) {
       accountId: records.accountId,
       tagId: records.tagId,
       categoryId: records.categoryId,
-      personId: records.personId,
       linkedRecordId: records.linkedRecordId,
       note: records.note,
       needsReview: records.needsReview,
@@ -72,10 +73,40 @@ function recordsWithRelations(db: ReturnType<typeof createDb>) {
     .leftJoin(tags, eq(records.tagId, tags.id));
 }
 
-/** GET / — list records. Filters: ?accountId=1,2 ?dateFrom ?dateTo. Newest first. */
+/** Attach people to a list of records via record_people junction table. */
+async function attachPeople<T extends { id: number }>(
+  db: ReturnType<typeof createDb>,
+  rows: T[],
+): Promise<(T & { people: { id: number; name: string }[] })[]> {
+  if (!rows.length) return rows.map((r) => ({ ...r, people: [] }));
+  const recordIds = rows.map((r) => r.id);
+  const links = await db
+    .select({ recordId: recordPeople.recordId, personId: people.id, personName: people.name })
+    .from(recordPeople)
+    .innerJoin(people, eq(recordPeople.personId, people.id))
+    .where(inArray(recordPeople.recordId, recordIds));
+
+  const byRecord = new Map<number, { id: number; name: string }[]>();
+  for (const link of links) {
+    const list = byRecord.get(link.recordId) ?? [];
+    list.push({ id: link.personId, name: link.personName });
+    byRecord.set(link.recordId, list);
+  }
+  return rows.map((r) => ({ ...r, people: byRecord.get(r.id) ?? [] }));
+}
+
+/** Sync record_people links for a record. */
+async function syncRecordPeople(db: ReturnType<typeof createDb>, recordId: number, personIds: number[]) {
+  await db.delete(recordPeople).where(eq(recordPeople.recordId, recordId));
+  if (personIds.length) {
+    await db.insert(recordPeople).values(personIds.map((personId) => ({ recordId, personId })));
+  }
+}
+
+/** GET / — list records. Filters: ?accountId=1,2 ?dateFrom ?dateTo ?personId. Newest first. */
 route.get("/", async (ctx) => {
   const db = createDb(ctx.env.DB);
-  const { accountId, dateFrom, dateTo } = ctx.req.query();
+  const { accountId, dateFrom, dateTo, personId } = ctx.req.query();
 
   const conditions = [];
   if (accountId) {
@@ -86,12 +117,29 @@ route.get("/", async (ctx) => {
   if (dateFrom) conditions.push(gte(records.date, filterDateFrom(dateFrom)));
   if (dateTo) conditions.push(lte(records.date, filterDateTo(dateTo)));
 
+  // Filter by person — only records linked to this person via record_people
+  if (personId) {
+    const pid = Number(personId);
+    if (!isNaN(pid)) {
+      const personRecordIds = await db
+        .select({ recordId: recordPeople.recordId })
+        .from(recordPeople)
+        .where(eq(recordPeople.personId, pid));
+      const ids = personRecordIds.map((r) => r.recordId);
+      if (ids.length) {
+        conditions.push(inArray(records.id, ids));
+      } else {
+        return ctx.json([]);
+      }
+    }
+  }
+
   const query = recordsWithRelations(db);
   const rows = conditions.length
     ? await query.where(and(...conditions)).orderBy(desc(records.date), desc(records.id))
     : await query.orderBy(desc(records.date), desc(records.id));
 
-  return ctx.json(rows);
+  return ctx.json(await attachPeople(db, rows));
 });
 
 /** POST / — create record. Appends current time if only date given. */
@@ -104,9 +152,12 @@ route.post("/", async (ctx) => {
   }
 
   const db = createDb(ctx.env.DB);
-  const data = { ...parsed.data, date: ensureDatetime(parsed.data.date) };
+  const { personIds, ...data } = parsed.data;
 
-  const [row] = await db.insert(records).values(data).returning();
+  const [row] = await db.insert(records).values({ ...data, date: ensureDatetime(data.date) }).returning();
+  if (personIds?.length) {
+    await syncRecordPeople(db, row.id, personIds);
+  }
   return ctx.json(row, 201);
 });
 
@@ -378,6 +429,18 @@ Output format: {"tagName":string|null,"type":"expense"|"income"}`;
     );
   }
 
+  // --- Person detection: match note keywords against people names ---
+  const allPeople = await db.select({ id: people.id, name: people.name }).from(people);
+  const matchedPeople: { id: number; name: string }[] = [];
+  if (keywords.length && allPeople.length) {
+    for (const person of allPeople) {
+      const personLower = person.name.toLowerCase();
+      if (keywords.some((kw) => personLower.includes(kw) || kw.includes(personLower))) {
+        matchedPeople.push(person);
+      }
+    }
+  }
+
   const result: ParsedRecord = {
     amount,
     tagId: finalTag?.id ?? null,
@@ -388,6 +451,8 @@ Output format: {"tagName":string|null,"type":"expense"|"income"}`;
     accountName: resolvedAccount?.name ?? null,
     note,
     date,
+    personIds: matchedPeople.map((p) => p.id),
+    personNames: matchedPeople.map((p) => p.name),
     type: matchedCategory?.name === "Income" ? "income" : "expense",
     needsReview,
   };
@@ -404,7 +469,8 @@ route.get("/:id", async (ctx) => {
   const row = await recordsWithRelations(db).where(eq(records.id, id)).get();
 
   if (!row) return ctx.json({ error: "Record not found" }, 404);
-  return ctx.json(row);
+  const [withPeople] = await attachPeople(db, [row]);
+  return ctx.json(withPeople);
 });
 
 /** PUT /:id — partial update. Preserves time when only date changes. */
@@ -420,7 +486,7 @@ route.put("/:id", async (ctx) => {
 
   const db = createDb(ctx.env.DB);
 
-  const updates = { ...parsed.data, updatedAt: new Date() };
+  const { personIds, ...updates } = { ...parsed.data, updatedAt: new Date() };
 
   if (updates.date && !updates.date.includes("T")) {
     const existing = await db.select({ date: records.date }).from(records).where(eq(records.id, id)).get();
@@ -439,6 +505,12 @@ route.put("/:id", async (ctx) => {
     .returning();
 
   if (!row) return ctx.json({ error: "Record not found" }, 404);
+
+  // Sync people links if personIds was provided
+  if (personIds !== undefined) {
+    await syncRecordPeople(db, id, personIds ?? []);
+  }
+
   return ctx.json(row);
 });
 

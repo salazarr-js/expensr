@@ -57,6 +57,20 @@
       "when": 1774233773042,
       "tag": "0007_loose_bloodstrike",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1774240151446,
+      "tag": "0008_lame_penance",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1774241045326,
+      "tag": "0009_people_color_drop_avatar",
+      "breakpoints": true
     }
   ]
 }

@@ -110,32 +110,48 @@ Currency is user-defined on accounts (visual only). No hardcoded rates — amoun
 
 ---
 
-## 4. People
+## 4. People — Shared Expenses ✅
+
+**Detailed plan:** [docs/people-plan.md](people-plan.md)
+
+People you share expenses with. Multi-person per record (junction table `record_people`), equal split by default (amount / (people + you)), debt tracking per person. Only YOUR expenses are tracked — not other people's.
 
 ### D1 Migration
-- [x] `people` table created (id, name, avatar, created_at, updated_at)
+- [x] `people` table (id, name, color, created_at, updated_at)
+- [x] `record_people` junction table (record_id, person_id, unique constraint, cascade delete)
+- [x] Dropped `person_id` column from records (replaced by junction table)
 
 ### Types (shared)
-- [ ] Person interface (id, name, avatar?)
-- [ ] Zod schemas
+- [x] Person interface (id, name, color, balance, recordCount)
+- [x] Zod schemas (createPersonSchema, updatePersonSchema)
+- [x] Records types: `personIds: number[]`, `people: {id, name}[]` on RecordWithRelations, `personIds/personNames` on ParsedRecord
 
 ### API
-- [ ] CRUD for people (`/api/people`)
+- [x] CRUD for people (`/api/people`) with computed debt balance + record count
+- [x] Records: accept `personIds[]` on create/update, join people on list/detail, filter `?personId`
+- [x] Parse: detect person names in input text
 
 ### Web
-- [ ] People page: list with name and avatar
-- [ ] Create/edit person form
-- [ ] API client for people
+- [x] People page: grid with colored initial circles, debt balance (green/red), record count link
+- [x] PersonFormModal: name + color picker
+- [x] RecordFormModal: multi-person select with colored initials + None option
+- [x] Records page: people column (overlapping colored circles), person filter dropdown
+- [x] Records table: horizontal scroll with sticky Amount column, category/tag icons with colors
+- [x] Mobile: people shown as small colored circles in record cards
 
-**Test:** Create person "Wilmer". Shows in list. Edit avatar. Delete.
+### Next steps (not yet implemented)
+- [ ] **Settlements** — "Angy paid me 37200" record type to reduce debt balance. Partial settlements supported.
+- [ ] **Spending calculations** — shared records count as `amount / (people + 1)` in totals/charts instead of full amount. Your real spend, not cash flow.
+- [ ] **Dashboard widgets** — total debt others owe you, settlement history, how much others spent on you vs you on them
 
 ---
 
 ## 5. Records
 
 ### D1 Migration
-- [x] `records` table created (id, type, amount, date, account_id FK, tag_id FK?, category_id FK?, person_id FK?, linked_record_id FK?, note, created_at, updated_at)
-- [x] Indexes on account_id, date, category_id, tag_id, person_id
+- [x] `records` table created (id, type, amount, date, account_id FK, tag_id FK?, category_id FK?, linked_record_id FK?, note, needs_review, created_at, updated_at)
+- [x] Indexes on account_id, date, category_id, tag_id
+- [x] `person_id` removed — replaced by `record_people` junction table (step 4)
 
 ### Types (shared)
 - [x] FinancialRecord + RecordWithRelations interfaces
@@ -180,33 +196,25 @@ Currency is user-defined on accounts (visual only). No hardcoded rates — amoun
 
 ---
 
-## 6. Quick Record
+## 6. Quick Record + Smart Parse ✅
 
-### API
-- [ ] `POST /api/records/quick` — parse input string, create record
-- [ ] Parser: extract amount, tag, person from text ("45 sushi", "30 beer wilmer")
+Shipped. See [docs/smart-parse.md](smart-parse.md) for full algorithm.
 
-### Web
-- [ ] Global command bar (accessible from any page)
-- [ ] Input parsing preview before confirm
-- [ ] Account selector (default or last used)
-- [ ] Keyboard shortcut to open
+- [x] `POST /api/records/parse` — smart parse: tag name match (exact → partial) → keyword dictionary → Workers AI fallback
+- [x] `POST /api/records/parse/feedback` — stores corrections, builds keyword→tag/account mappings
+- [x] Account resolution: aliases (exact) → name (partial) → keyword map → default (isDefault or most records)
+- [x] Account aliases + isDefault column on accounts
+- [x] Amounts always absolute (type handles direction)
+- [x] `??`/`???` needsReview markers, DD/MM/YY date parsing
+- [x] QuickRecordModal — natural language input, opens form pre-filled with parse results
+- [x] `keyword_mappings` + `parse_corrections` tables
+- [ ] Person detection in parse (pending People feature)
+- [ ] Keyboard shortcut to open QuickRecordModal
+- [ ] Auto-save for high-confidence matches (after training phase)
 
-**Test:** Type "45 sushi" — creates expense with tag "sushi". Type "30 beer wilmer" — creates shared record linked to Wilmer.
+## 7. Smart Categorization ✅
 
----
-
-## 7. Smart Categorization
-
-### D1 Migration
-- [ ] Create `tag_category_associations` table (tag_id FK, category_id FK, usage_count, last_used_at) or extend tags table — decided at implementation
-
-- [ ] Tag-to-category learning: store association when tag is used with a category
-- [ ] Auto-assign category when a known tag is used
-- [ ] Category auto-fills in forms when typing a known tag
-- [ ] Prompt to confirm/correct for new tags
-
-**Test:** Record with tag "sushi" + category Food. Next "sushi" record auto-gets Food.
+Covered by Smart Parse. Tags already belong to categories — selecting a tag auto-assigns its category. No separate `tag_category_associations` table needed.
 
 ---
 

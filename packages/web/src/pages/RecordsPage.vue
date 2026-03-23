@@ -7,6 +7,7 @@ import type { TableColumn } from "@nuxt/ui";
 import { useRecordsStore, type RecordFilters } from "@/stores/records";
 import { useAccountsStore } from "@/stores/accounts";
 import { useCategoriesStore } from "@/stores/categories";
+import { usePeopleStore } from "@/stores/people";
 import { formatMoneyParts } from "@/utils/money";
 import { getColor } from "@/utils/colors";
 import { RecordFormModal } from "@/components/RecordFormModal";
@@ -18,10 +19,12 @@ const router = useRouter();
 const recordsStore = useRecordsStore();
 const accountsStore = useAccountsStore();
 const categoriesStore = useCategoriesStore();
+const peopleStore = usePeopleStore();
 const alert = useAlertDialog();
 
 const { records, loading, error } = storeToRefs(recordsStore);
 const { accounts } = storeToRefs(accountsStore);
+const { people } = storeToRefs(peopleStore);
 
 const showFormModal = ref(false);
 const showQuickRecord = ref(false);
@@ -31,6 +34,18 @@ const selectedRecord = ref<RecordWithRelations | undefined>();
 
 const filterDateFrom = ref(route.query.dateFrom as string ?? "");
 const filterDateTo = ref(route.query.dateTo as string ?? "");
+const personFilterOptions = computed(() => [
+  { label: "All people", value: "all", color: null as string | null },
+  ...people.value.map((p) => ({ label: p.name, value: String(p.id), color: p.color })),
+]);
+
+const selectedPerson = ref(route.query.person ? String(route.query.person) : "all");
+
+const filterPersonId = computed(() => {
+  const val = selectedPerson.value;
+  if (val === "all") return undefined;
+  return Number(val);
+});
 
 const accountFilterOptions = computed(() => [
   { label: "All", value: "all", icon: null as string | null, color: null as string | null },
@@ -76,6 +91,7 @@ const currentFilters = computed<RecordFilters>(() => {
   const idsOnly = selectedAccounts.value.filter((v) => v !== "all").map(Number);
   return {
     accountIds: idsOnly.length ? idsOnly : undefined,
+    personId: filterPersonId.value,
     dateFrom: filterDateFrom.value || undefined,
     dateTo: filterDateTo.value || undefined,
   };
@@ -85,6 +101,7 @@ const currentFilters = computed<RecordFilters>(() => {
 watch(currentFilters, (filters) => {
   const query: Record<string, string> = {};
   if (filters.accountIds?.length) query.account = filters.accountIds.join(",");
+  if (filters.personId) query.person = String(filters.personId);
   if (filters.dateFrom) query.dateFrom = filters.dateFrom;
   if (filters.dateTo) query.dateTo = filters.dateTo;
   router.replace({ query });
@@ -93,14 +110,17 @@ watch(currentFilters, (filters) => {
 
 // ── Table columns ───────────────────────────────────────────────────
 
+// Amount pinned right so it's always visible on horizontal scroll
+const pinRight = "sticky right-0 bg-white dark:bg-zinc-900 z-10 shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.05)]";
 const columns: TableColumn<RecordWithRelations>[] = [
   { id: "reorder", header: "", size: 60, enableSorting: false },
   { accessorKey: "date", header: "Date", enableSorting: false },
   { accessorKey: "accountName", header: "Account", enableSorting: false },
-  { accessorKey: "categoryName", header: "Category", enableSorting: false },
-  { accessorKey: "tagName", header: "Tag", enableSorting: false },
+  { id: "category", accessorKey: "categoryName", header: "Category", enableSorting: false },
+  { id: "tag", accessorKey: "tagName", header: "Tag", enableSorting: false },
+  { id: "people", header: "People", enableSorting: false, size: 100 },
   { accessorKey: "note", header: "Note", enableSorting: false },
-  { accessorKey: "amount", header: "Amount", enableSorting: false, meta: { class: { th: "text-right", td: "text-right" } } },
+  { accessorKey: "amount", header: "Amount", enableSorting: false, meta: { class: { th: `text-right ${pinRight}`, td: `text-right ${pinRight}` } } },
 ];
 
 // ── Actions ─────────────────────────────────────────────────────────
@@ -147,6 +167,10 @@ async function moveDown(index: number) {
   await recordsStore.reorderRecord(record.id, { afterId: next.id });
 }
 
+function getPersonColor(personId: number): string | null {
+  return people.value.find((p) => p.id === personId)?.color ?? null;
+}
+
 function formatDate(date: string): string {
   const dateOnly = date.split("T")[0];
   return new Date(dateOnly + "T00:00:00").toLocaleDateString(undefined, {
@@ -159,6 +183,7 @@ function formatDate(date: string): string {
 onMounted(() => {
   accountsStore.fetchAccounts();
   categoriesStore.fetchAll();
+  peopleStore.fetchPeople();
   recordsStore.fetchRecords(currentFilters.value);
 });
 </script>
@@ -218,6 +243,24 @@ onMounted(() => {
             placeholder="To"
             class="w-full sm:w-40"
           />
+
+          <USelectMenu
+            v-model="selectedPerson"
+            :items="personFilterOptions"
+            value-key="value"
+            icon="i-lucide-users"
+            class="w-full sm:w-44"
+          >
+            <template #item-leading="{ item }">
+              <div
+                v-if="item.color"
+                class="flex items-center justify-center size-5 rounded-full shrink-0 text-[10px] font-semibold"
+                :style="{ backgroundColor: getColor(item.color)[100], color: getColor(item.color)[500] }"
+              >
+                {{ item.label.charAt(0) }}
+              </div>
+            </template>
+          </USelectMenu>
         </template>
       </UDashboardToolbar>
     </template>
@@ -271,9 +314,19 @@ onMounted(() => {
                 <UIcon v-if="record.needsReview" name="i-lucide-circle-alert" class="size-3.5 text-amber-500 align-text-bottom mr-0.5" />
                 {{ record.tagName || record.categoryName || record.note || 'Record' }}
               </p>
-              <p class="text-xs text-muted truncate">
-                {{ formatDate(record.date) }} · {{ record.accountName }}
-              </p>
+              <div class="flex items-center gap-1 text-xs text-muted truncate">
+                <span>{{ formatDate(record.date) }} · {{ record.accountName }}</span>
+                <div v-if="record.people?.length" class="flex items-center -space-x-1 ml-1">
+                  <div
+                    v-for="person in record.people"
+                    :key="person.id"
+                    class="flex items-center justify-center size-4 rounded-full text-[8px] font-semibold ring-1 ring-white dark:ring-zinc-900"
+                    :style="{ backgroundColor: getColor(getPersonColor(person.id))[100], color: getColor(getPersonColor(person.id))[500] }"
+                  >
+                    {{ person.name.charAt(0) }}
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- Amount -->
@@ -290,7 +343,7 @@ onMounted(() => {
         <UTable
           :columns="columns"
           :data="records"
-          class="w-full overflow-visible! hidden md:table"
+          class="w-full overflow-x-auto hidden md:block"
           @select="onSelectRow"
         >
           <template #reorder-cell="{ row }">
@@ -318,7 +371,7 @@ onMounted(() => {
             {{ formatDate(row.original.date) }}
           </template>
 
-          <template #category-name-cell="{ row }">
+          <template #category-cell="{ row }">
             <div v-if="row.original.categoryName" class="flex items-center gap-1.5">
               <div
                 class="flex items-center justify-center size-5 rounded shrink-0"
@@ -334,8 +387,27 @@ onMounted(() => {
             <span v-else class="text-muted">—</span>
           </template>
 
-          <template #tag-name-cell="{ row }">
-            {{ row.original.tagName ?? "—" }}
+          <template #tag-cell="{ row }">
+            <div v-if="row.original.tagName" class="flex items-center gap-1.5">
+              <UIcon name="i-lucide-hash" class="size-3.5 text-muted shrink-0" />
+              <span>{{ row.original.tagName }}</span>
+            </div>
+            <span v-else class="text-muted">—</span>
+          </template>
+
+          <template #people-cell="{ row }">
+            <div v-if="row.original.people?.length" class="flex items-center -space-x-1">
+              <div
+                v-for="person in row.original.people"
+                :key="person.id"
+                class="flex items-center justify-center size-6 rounded-full text-[10px] font-semibold ring-2 ring-white dark:ring-zinc-900"
+                :style="{ backgroundColor: getColor(getPersonColor(person.id))[100], color: getColor(getPersonColor(person.id))[500] }"
+                :title="person.name"
+              >
+                {{ person.name.charAt(0) }}
+              </div>
+            </div>
+            <span v-else class="text-muted">—</span>
           </template>
 
           <template #note-cell="{ row }">

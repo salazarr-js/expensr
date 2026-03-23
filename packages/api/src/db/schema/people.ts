@@ -4,7 +4,7 @@ import { sql } from "drizzle-orm";
 export const people = sqliteTable("people", {
   id: integer().primaryKey({ autoIncrement: true }),
   name: text().notNull(),
-  avatar: text(),
+  color: text(),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),

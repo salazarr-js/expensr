@@ -3,7 +3,6 @@ import { sql } from "drizzle-orm";
 import { accounts } from "./accounts";
 import { tags } from "./tags";
 import { categories } from "./categories";
-import { people } from "./people";
 
 /** Core entity. Sorted by date DESC (ISO "YYYY-MM-DDTHH:MM:SS" text, not Unix). */
 export const records = sqliteTable(
@@ -18,7 +17,6 @@ export const records = sqliteTable(
       .references(() => accounts.id),
     tagId: integer("tag_id").references(() => tags.id),
     categoryId: integer("category_id").references(() => categories.id),
-    personId: integer("person_id").references(() => people.id),
     linkedRecordId: integer("linked_record_id"), // counterpart record for transfers
     note: text(),
     needsReview: integer("needs_review", { mode: "boolean" }).notNull().default(false), // flagged via ?? in smart parse
@@ -34,6 +32,5 @@ export const records = sqliteTable(
     index("records_date_idx").on(table.date),
     index("records_category_id_idx").on(table.categoryId),
     index("records_tag_id_idx").on(table.tagId),
-    index("records_person_id_idx").on(table.personId),
   ]
 );

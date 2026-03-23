@@ -6,6 +6,7 @@ import { createRecordSchema } from "@slzr/expensr-shared";
 import { useRecordsStore } from "@/stores/records";
 import { useAccountsStore } from "@/stores/accounts";
 import { useCategoriesStore } from "@/stores/categories";
+import { usePeopleStore } from "@/stores/people";
 import { ApiError } from "@/composables/useApi";
 import { getColor } from "@/utils/colors";
 
@@ -19,8 +20,10 @@ const open = defineModel<boolean>("open", { required: true });
 const recordsStore = useRecordsStore();
 const accountsStore = useAccountsStore();
 const categoriesStore = useCategoriesStore();
+const peopleStore = usePeopleStore();
 const { accounts } = storeToRefs(accountsStore);
 const { categories, tagsByCategory } = storeToRefs(categoriesStore);
+const { people } = storeToRefs(peopleStore);
 
 const INCOME_CATEGORY = "Income";
 
@@ -82,6 +85,26 @@ const tagOptions = computed(() => {
   ];
 });
 
+const peopleOptions = computed(() => [
+  { label: "None", value: 0, color: null as string | null },
+  ...people.value.map((p) => ({
+    label: p.name,
+    value: p.id,
+    color: p.color as string | null,
+  })),
+]);
+
+/** Handle "None" toggle: selecting None clears others, selecting a person removes None. */
+function onPeopleUpdate(value: number[]) {
+  const hadNone = state.personIds?.includes(0);
+  const hasNone = value.includes(0);
+  if (hasNone && !hadNone) {
+    state.personIds = [];
+  } else {
+    state.personIds = value.filter((v) => v !== 0);
+  }
+}
+
 function todayISO(): string {
   return new Date().toISOString().slice(0, 10);
 }
@@ -93,7 +116,7 @@ const defaultState = (): CreateRecord => ({
   accountId: accounts.value[0]?.id ?? 0,
   tagId: null,
   categoryId: null,
-  personId: null,
+  personIds: [],
   note: null,
 });
 
@@ -103,6 +126,7 @@ watch(open, (isOpen) => {
   if (!isOpen) return;
   accountsStore.fetchAccountsByUsage();
   categoriesStore.fetchAll();
+  peopleStore.fetchPeople();
   if (props.record) {
     suppressTagWatch = true;
     suppressCategoryWatch = true;
@@ -113,7 +137,7 @@ watch(open, (isOpen) => {
       accountId: props.record.accountId,
       tagId: props.record.tagId,
       categoryId: props.record.categoryId,
-      personId: props.record.personId,
+      personIds: props.record.people?.map((p) => p.id) ?? [],
       note: props.record.note,
     });
   } else if (props.initialData) {
@@ -173,7 +197,7 @@ async function onSubmit() {
       type,
       categoryId: state.categoryId || null,
       tagId: state.tagId || null,
-      personId: state.personId || null,
+      personIds: state.personIds?.length ? state.personIds : undefined,
       note: state.note?.trim() || null,
     };
 
@@ -283,6 +307,29 @@ async function onSubmit() {
 
         <UFormField label="Note" name="note">
           <UTextarea :model-value="state.note ?? undefined" placeholder="Optional note..." :rows="2" class="w-full" @update:model-value="state.note = $event || null" />
+        </UFormField>
+
+        <UFormField v-if="people.length" label="People" name="personIds">
+          <USelectMenu
+            :model-value="state.personIds?.length ? state.personIds : [0]"
+            :items="peopleOptions"
+            value-key="value"
+            multiple
+            placeholder="Shared with..."
+            class="w-full"
+            @update:model-value="onPeopleUpdate"
+          >
+            <template #item-leading="{ item }">
+              <div
+                v-if="item.color"
+                class="flex items-center justify-center size-5 rounded-full shrink-0 text-[10px] font-semibold"
+                :style="{ backgroundColor: getCategoryColor(item.color)[100], color: getCategoryColor(item.color)[500] }"
+              >
+                {{ item.label.charAt(0) }}
+              </div>
+              <UIcon v-else name="i-lucide-x" class="size-4 text-muted shrink-0" />
+            </template>
+          </USelectMenu>
         </UFormField>
 
         <button type="submit" hidden />

@@ -5,6 +5,7 @@ import { useApi } from "@/composables/useApi";
 
 export interface RecordFilters {
   accountIds?: number[];
+  personId?: number;
   dateFrom?: string;
   dateTo?: string;
 }
@@ -22,6 +23,7 @@ export const useRecordsStore = defineStore("records", () => {
     try {
       const params = new URLSearchParams();
       if (filters?.accountIds?.length) params.set("accountId", filters.accountIds.join(","));
+      if (filters?.personId) params.set("personId", String(filters.personId));
       if (filters?.dateFrom) params.set("dateFrom", filters.dateFrom);
       if (filters?.dateTo) params.set("dateTo", filters.dateTo);
 

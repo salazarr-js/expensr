@@ -33,11 +33,14 @@ Flowchart: [smart-parse-flowchart.excalidraw](smart-parse-flowchart.excalidraw)
 1. **Tag name match** — exact first, then partial (contains). "uber" → Uber, "super" → Supermercado, "farm" → Farmacia. Brand names like "carrefour" won't match (no tag with that name).
 2. **Keyword mappings** → learned tagId from feedback (e.g. "carrefour" → Supermercado)
 3. If tag found → auto-assign its parent category
-4. <!-- TODO: people detection → match note words against people table, use defaultTagId if set -->
-5. If no tag found → **AI fallback** (tag/category only, account already resolved)
+4. If no tag found → **AI fallback** (tag/category only, account already resolved)
    - AI receives keyword dictionary as compact context
 
-### 4. Result
+### 4. Person Detection
+After tag resolution, note keywords are matched against people names (case-insensitive partial).
+"uber angy 3500" → detects Angy. Multiple people can match. Returns `personIds[]` + `personNames[]`.
+
+### 5. Result
 All parsed records open the edit/review modal (training phase). Once keyword dictionary has enough data, auto-save can be re-enabled for high-confidence matches.
 
 ## Keyword Dictionary
@@ -56,11 +59,9 @@ Amount + Date + needsReview       (deterministic extraction, amount always absol
 Account: (parens) → note words → keyword map → default (isDefault or most records)
          matches aliases first, then names
          ↓
-Tag:     tag name (exact → partial) → keyword map → [people w/ defaultTag] → AI fallback
+Tag:     tag name (exact → partial) → keyword map → AI fallback
          ↓
-Person:  [match against people table, even without defaultTag]
-
-[ ] = planned, not yet implemented
+Person:  match note keywords against people names (partial)
 ```
 
 ## Examples

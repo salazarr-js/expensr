@@ -15,7 +15,6 @@ export interface FinancialRecord {
   accountId: number;
   tagId: number | null;
   categoryId: number | null;
-  personId: number | null;
   linkedRecordId: number | null;
   note: string | null;
   needsReview: boolean;
@@ -31,6 +30,7 @@ export interface RecordWithRelations extends FinancialRecord {
   categoryColor: string | null;
   categoryIcon: string | null;
   tagName: string | null;
+  people: { id: number; name: string }[];
 }
 
 /** Validation for creating a record. Shared by frontend forms and API. */
@@ -41,7 +41,7 @@ export const createRecordSchema = z.object({
   accountId: z.number({ message: "Required" }),
   tagId: z.number().nullable().optional(),
   categoryId: z.number().nullable().optional(),
-  personId: z.number().nullable().optional(),
+  personIds: z.array(z.number()).optional(),
   note: z.string().max(500, "Too long").nullable().optional(),
   needsReview: z.boolean().optional(),
 });
@@ -72,6 +72,8 @@ export interface ParsedRecord {
   accountName: string | null;
   note: string | null;
   date: string | null;
+  personIds: number[];
+  personNames: string[];
   type: RecordType;
   needsReview: boolean;
 }
