@@ -1,0 +1,4414 @@
+{
+  "_meta": {
+    "description": "Expensr - Merged financial data from all xlsx documents",
+    "source_files": [
+      "Extracto_00096002931.xlsx",
+      "account_statement_c8ab9348.xlsx",
+      "account_statement_1ef72b81.xlsx",
+      "account_statement_d1cdb333.xlsx",
+      "jose_expenses_long_2024-2026.xlsx"
+    ],
+    "generated": "2026-03-03"
+  },
+  "mercadopago": {
+    "account": "MercadoPago",
+    "periods": [
+      "Dec 2025",
+      "Jan 2026",
+      "Feb 2026"
+    ],
+    "summaries": [
+      {
+        "period": "Dec 2025",
+        "initial_balance": "3.647,72",
+        "credits": "2.853.098,46",
+        "debits": "-2.856.071,29",
+        "final_balance": "674,89"
+      },
+      {
+        "period": "Jan 2026",
+        "initial_balance": "674,89",
+        "credits": "191.700,28",
+        "debits": "-190.173,08",
+        "final_balance": "2.202,09"
+      },
+      {
+        "period": "Feb 2026",
+        "initial_balance": "2.202,09",
+        "credits": "640.848,54",
+        "debits": "-640.065,01",
+        "final_balance": "2.985,62"
+      }
+    ],
+    "transactions": [
+      {
+        "date": "01-12-2025",
+        "description": "Débito por deuda Créditos de Mercado Pago",
+        "reference_id": "2596582040",
+        "amount": "-3.647,72",
+        "balance": "0,00",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "02-12-2025",
+        "description": "Transferencia recibida Agustin Mariano Pagotto",
+        "reference_id": "136231985098",
+        "amount": "2.258.294,60",
+        "balance": "2.258.294,60",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "02-12-2025",
+        "description": "Débito por deuda Créditos de Mercado Pago",
+        "reference_id": "2602388006",
+        "amount": "-45.742,05",
+        "balance": "2.212.552,55",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "03-12-2025",
+        "description": "Transferencia enviada Keila Ketsa Fernandez Hernandez",
+        "reference_id": "135666000297",
+        "amount": "-18.100,00",
+        "balance": "2.194.452,55",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "03-12-2025",
+        "description": "Transferencia recibida Melissa Jennifer Campbell Gonzalez",
+        "reference_id": "135670333723",
+        "amount": "43.325,00",
+        "balance": "2.237.777,55",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "03-12-2025",
+        "description": "Transferencia enviada Jose Manuel Salazar Rodriguez",
+        "reference_id": "136291426216",
+        "amount": "-1.000.000,00",
+        "balance": "1.237.777,55",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "03-12-2025",
+        "description": "Transferencia recibida Angelys Klisbelys Rodriguez Aray",
+        "reference_id": "135672833237",
+        "amount": "9.800,00",
+        "balance": "1.247.577,55",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "03-12-2025",
+        "description": "Transferencia recibida RENZO SAMUEL SUNIAGA GARCIA",
+        "reference_id": "136293930200",
+        "amount": "21.700,00",
+        "balance": "1.269.277,55",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "03-12-2025",
+        "description": "Transferencia enviada Melida Del Valle Rodriguez",
+        "reference_id": "136296059726",
+        "amount": "-25.000,00",
+        "balance": "1.244.277,55",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "03-12-2025",
+        "description": "Transferencia enviada Edesur",
+        "reference_id": "136325254278",
+        "amount": "-46.462,57",
+        "balance": "1.197.814,98",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "03-12-2025",
+        "description": "Transferencia enviada Jose Manuel Salazar Rodriguez",
+        "reference_id": "136344057400",
+        "amount": "-233.000,00",
+        "balance": "964.814,98",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "03-12-2025",
+        "description": "Pago EBANX S.A.",
+        "reference_id": "135736042175",
+        "amount": "-9.615,00",
+        "balance": "955.199,98",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "03-12-2025",
+        "description": "Pago EBANX S.A.",
+        "reference_id": "135741416083",
+        "amount": "-182,00",
+        "balance": "955.017,98",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "03-12-2025",
+        "description": "Pago Diego Alejandro Tebele",
+        "reference_id": "135758555677",
+        "amount": "-5.000,00",
+        "balance": "950.017,98",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "03-12-2025",
+        "description": "Transferencia enviada CASA LUPULO",
+        "reference_id": "135759281569",
+        "amount": "-4.000,00",
+        "balance": "946.017,98",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "03-12-2025",
+        "description": "Pago EBANX S.A.",
+        "reference_id": "135759309813",
+        "amount": "-13.369,00",
+        "balance": "932.648,98",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "04-12-2025",
+        "description": "Pago Carrefour",
+        "reference_id": "135808778387",
+        "amount": "-14.117,86",
+        "balance": "918.531,12",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "04-12-2025",
+        "description": "Transferencia enviada Melida Del Valle Rodriguez",
+        "reference_id": "135813361253",
+        "amount": "-50.000,00",
+        "balance": "868.531,12",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "04-12-2025",
+        "description": "Pago PASCO TENIS PADDLE SA",
+        "reference_id": "136507028050",
+        "amount": "-10.000,00",
+        "balance": "858.531,12",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "05-12-2025",
+        "description": "Transferencia enviada Peon Ramiro Alfredo",
+        "reference_id": "135972951191",
+        "amount": "-6.000,00",
+        "balance": "852.531,12",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "05-12-2025",
+        "description": "Pago EBANX S.A.",
+        "reference_id": "136665506456",
+        "amount": "-31.322,00",
+        "balance": "821.209,12",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "05-12-2025",
+        "description": "Pago EBANX S.A.",
+        "reference_id": "136667034344",
+        "amount": "-28.945,00",
+        "balance": "792.264,12",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "05-12-2025",
+        "description": "Transferencia enviada Melida Del Valle Rodriguez",
+        "reference_id": "136677408458",
+        "amount": "-15.000,00",
+        "balance": "777.264,12",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "05-12-2025",
+        "description": "Pago Zhiyong Zheng",
+        "reference_id": "136055541497",
+        "amount": "-21.700,00",
+        "balance": "755.564,12",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "06-12-2025",
+        "description": "Pago cancelado EBANX S.A.",
+        "reference_id": "136665506456",
+        "amount": "31.322,00",
+        "balance": "786.886,12",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "06-12-2025",
+        "description": "Devolución de dinero EBANX S.A.",
+        "reference_id": "136667034344",
+        "amount": "6,00",
+        "balance": "786.892,12",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "06-12-2025",
+        "description": "Pago EBANX S.A.",
+        "reference_id": "136779548306",
+        "amount": "-20.932,00",
+        "balance": "765.960,12",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "06-12-2025",
+        "description": "Transferencia enviada Pasco Tenis Paddle S.a.",
+        "reference_id": "136168372003",
+        "amount": "-46.000,00",
+        "balance": "719.960,12",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "06-12-2025",
+        "description": "Transferencia enviada Pasco Tenis Paddle S.a.",
+        "reference_id": "136810458782",
+        "amount": "-2.500,00",
+        "balance": "717.460,12",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "06-12-2025",
+        "description": "Pago Dlo*didi",
+        "reference_id": "136813873816",
+        "amount": "-6.590,00",
+        "balance": "710.870,12",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "06-12-2025",
+        "description": "Pago Carrefour",
+        "reference_id": "136816127478",
+        "amount": "-34.154,20",
+        "balance": "676.715,92",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "06-12-2025",
+        "description": "Devolución de dinero EBANX S.A.",
+        "reference_id": "136779548306",
+        "amount": "3.324,00",
+        "balance": "680.039,92",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "06-12-2025",
+        "description": "Pago Posho Fried Chicken",
+        "reference_id": "136821650372",
+        "amount": "-91.150,00",
+        "balance": "588.889,92",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "07-12-2025",
+        "description": "Pago Cueva Bohemia Café",
+        "reference_id": "136226250979",
+        "amount": "-40.000,00",
+        "balance": "548.889,92",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "07-12-2025",
+        "description": "Débito por deuda Impuesto a los IIBB de CABA",
+        "reference_id": "2616440690",
+        "amount": "-138,28",
+        "balance": "548.751,64",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "07-12-2025",
+        "description": "Pago EBANX S.A.",
+        "reference_id": "136897625328",
+        "amount": "-9.195,00",
+        "balance": "539.556,64",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "07-12-2025",
+        "description": "Pago Meraki Food",
+        "reference_id": "136280094489",
+        "amount": "-100.900,00",
+        "balance": "438.656,64",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "07-12-2025",
+        "description": "Pago Meraki Food",
+        "reference_id": "136280091367",
+        "amount": "-10.090,00",
+        "balance": "428.566,64",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "07-12-2025",
+        "description": "Pago Alparamis",
+        "reference_id": "136283336579",
+        "amount": "-42.550,02",
+        "balance": "386.016,62",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "07-12-2025",
+        "description": "Pago EBANX S.A.",
+        "reference_id": "136908170142",
+        "amount": "-8.348,00",
+        "balance": "377.668,62",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "07-12-2025",
+        "description": "Pago EBANX S.A.",
+        "reference_id": "136911479632",
+        "amount": "-182,00",
+        "balance": "377.486,62",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "07-12-2025",
+        "description": "Devolución de dinero EBANX S.A.",
+        "reference_id": "136897625328",
+        "amount": "932,00",
+        "balance": "378.418,62",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "07-12-2025",
+        "description": "Transferencia enviada Xiaolan Zhang",
+        "reference_id": "136308823637",
+        "amount": "-14.000,00",
+        "balance": "364.418,62",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "08-12-2025",
+        "description": "Transferencia enviada estela",
+        "reference_id": "136982749492",
+        "amount": "-2.000,00",
+        "balance": "362.418,62",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "08-12-2025",
+        "description": "Transferencia enviada Raul Santiago Astudillo",
+        "reference_id": "136370661863",
+        "amount": "-44.000,00",
+        "balance": "318.418,62",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "09-12-2025",
+        "description": "Transferencia enviada Melida Del Valle Rodriguez",
+        "reference_id": "137084354282",
+        "amount": "-35.000,00",
+        "balance": "283.418,62",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "09-12-2025",
+        "description": "Transferencia enviada Melida Del Valle Rodriguez",
+        "reference_id": "136513880889",
+        "amount": "-20.000,00",
+        "balance": "263.418,62",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "09-12-2025",
+        "description": "Pago EBANX S.A.",
+        "reference_id": "136531894127",
+        "amount": "-7.009,00",
+        "balance": "256.409,62",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "10-12-2025",
+        "description": "Transferencia enviada Consorcio Propietarios Edificio Calle La",
+        "reference_id": "137298951572",
+        "amount": "-142.500,39",
+        "balance": "113.909,23",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "10-12-2025",
+        "description": "Pago Eduardo Alfonso Ferrer Boada",
+        "reference_id": "137361317216",
+        "amount": "-36.520,00",
+        "balance": "77.389,23",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "11-12-2025",
+        "description": "Transferencia enviada Roberto Carlos Maciel",
+        "reference_id": "136805009113",
+        "amount": "-30.000,00",
+        "balance": "47.389,23",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "11-12-2025",
+        "description": "Pago Carrefour",
+        "reference_id": "137438470816",
+        "amount": "-1.657,50",
+        "balance": "45.731,73",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "11-12-2025",
+        "description": "Pago con QR estela",
+        "reference_id": "137519244414",
+        "amount": "-17.700,00",
+        "balance": "28.031,73",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "11-12-2025",
+        "description": "Pago Carrefour",
+        "reference_id": "137521160256",
+        "amount": "-11.588,90",
+        "balance": "16.442,83",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "12-12-2025",
+        "description": "Transferencia enviada Consorcio Propietarios Edificio Calle La",
+        "reference_id": "137602760246",
+        "amount": "-13.000,00",
+        "balance": "3.442,83",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "12-12-2025",
+        "description": "Transferencia recibida Gabriela Mercedes Castro Tamaronis",
+        "reference_id": "137672589866",
+        "amount": "30.000,00",
+        "balance": "33.442,83",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "12-12-2025",
+        "description": "Transferencia enviada Jose Anibal Dekmak Asseff",
+        "reference_id": "137673273850",
+        "amount": "-18.000,00",
+        "balance": "15.442,83",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "12-12-2025",
+        "description": "Transferencia enviada Sarah Sa",
+        "reference_id": "137679925432",
+        "amount": "-3.000,00",
+        "balance": "12.442,83",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "13-12-2025",
+        "description": "Débito por deuda Facturas vencidas de Mercado Libre",
+        "reference_id": "2631501067",
+        "amount": "-282,80",
+        "balance": "12.160,03",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "13-12-2025",
+        "description": "Transferencia recibida",
+        "reference_id": "137172103823",
+        "amount": "375.394,86",
+        "balance": "387.554,89",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "13-12-2025",
+        "description": "Pago con QR AUTOSERVICIO ORIANA",
+        "reference_id": "137806039902",
+        "amount": "-7.225,00",
+        "balance": "380.329,89",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "13-12-2025",
+        "description": "Pago Carrefour",
+        "reference_id": "137808390910",
+        "amount": "-24.540,00",
+        "balance": "355.789,89",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "14-12-2025",
+        "description": "Transferencia enviada Claudia Paola Gonzalez Barrios",
+        "reference_id": "137857109262",
+        "amount": "-76.055,00",
+        "balance": "279.734,89",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "14-12-2025",
+        "description": "Transferencia enviada Gustavo Manuel Salazar Rodriguez",
+        "reference_id": "137889257554",
+        "amount": "-39.000,00",
+        "balance": "240.734,89",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "14-12-2025",
+        "description": "Pago SUBE",
+        "reference_id": "137900363738",
+        "amount": "-5.000,00",
+        "balance": "235.734,89",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "14-12-2025",
+        "description": "Pago SUBE",
+        "reference_id": "137266037389",
+        "amount": "-5.000,00",
+        "balance": "230.734,89",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "14-12-2025",
+        "description": "Pago cancelado SUBE",
+        "reference_id": "137900363738",
+        "amount": "5.000,00",
+        "balance": "235.734,89",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "14-12-2025",
+        "description": "Pago cancelado SUBE",
+        "reference_id": "137266037389",
+        "amount": "5.000,00",
+        "balance": "240.734,89",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "14-12-2025",
+        "description": "Pago EMOVA SUBTE",
+        "reference_id": "137903708450",
+        "amount": "-1.206,00",
+        "balance": "239.528,89",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "14-12-2025",
+        "description": "Pago EMOVA SUBTE",
+        "reference_id": "137903658090",
+        "amount": "-1.206,00",
+        "balance": "238.322,89",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "14-12-2025",
+        "description": "Pago con QR Guerrin",
+        "reference_id": "137280646417",
+        "amount": "-126.900,00",
+        "balance": "111.422,89",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "14-12-2025",
+        "description": "Pago EBANX S.A.",
+        "reference_id": "137283983423",
+        "amount": "-9.772,00",
+        "balance": "101.650,89",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "14-12-2025",
+        "description": "Pago EBANX S.A.",
+        "reference_id": "137283999529",
+        "amount": "-8.263,00",
+        "balance": "93.387,89",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "14-12-2025",
+        "description": "Pago EBANX S.A.",
+        "reference_id": "137286351683",
+        "amount": "-1.064,00",
+        "balance": "92.323,89",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "15-12-2025",
+        "description": "Transferencia enviada Roberto Carlos Maciel",
+        "reference_id": "137959371374",
+        "amount": "-20.000,00",
+        "balance": "72.323,89",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "15-12-2025",
+        "description": "Transferencia enviada La Original",
+        "reference_id": "137346820111",
+        "amount": "-10.000,00",
+        "balance": "62.323,89",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "15-12-2025",
+        "description": "Transferencia enviada Miguel Leguizamon",
+        "reference_id": "137983493260",
+        "amount": "-20.000,00",
+        "balance": "42.323,89",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "15-12-2025",
+        "description": "Transferencia enviada Xiaolan Zhang",
+        "reference_id": "137428437041",
+        "amount": "-17.250,00",
+        "balance": "25.073,89",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "17-12-2025",
+        "description": "Transferencia enviada Claudia Paola Gonzalez Barrios",
+        "reference_id": "138302454922",
+        "amount": "-20.199,00",
+        "balance": "4.874,89",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "21-12-2025",
+        "description": "Transferencia enviada Pasco Tenis Paddle S.a.",
+        "reference_id": "138888877838",
+        "amount": "-2.500,00",
+        "balance": "2.374,89",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "23-12-2025",
+        "description": "Ingreso de dinero Cuenta Banco de Galicia",
+        "reference_id": "138549959179",
+        "amount": "30.000,00",
+        "balance": "32.374,89",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "23-12-2025",
+        "description": "Transferencia enviada Melida Del Valle Rodriguez",
+        "reference_id": "138549959179",
+        "amount": "-30.000,00",
+        "balance": "2.374,89",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "23-12-2025",
+        "description": "Ingreso de dinero Cuenta Banco de Galicia",
+        "reference_id": "139223570440",
+        "amount": "20.000,00",
+        "balance": "22.374,89",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "23-12-2025",
+        "description": "Transferencia enviada Gustavo Manuel Salazar Rodriguez",
+        "reference_id": "139223570440",
+        "amount": "-20.000,00",
+        "balance": "2.374,89",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "24-12-2025",
+        "description": "Transferencia enviada Cecilia Carlo Flores",
+        "reference_id": "138683680845",
+        "amount": "-1.700,00",
+        "balance": "674,89",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "24-12-2025",
+        "description": "Ingreso de dinero Cuenta Banco de Galicia",
+        "reference_id": "138703480205",
+        "amount": "19.000,00",
+        "balance": "19.674,89",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "24-12-2025",
+        "description": "Transferencia enviada Frescos del tigre",
+        "reference_id": "138703480205",
+        "amount": "-19.000,00",
+        "balance": "674,89",
+        "period": "Dec 2025"
+      },
+      {
+        "date": "02-01-2026",
+        "description": "Débito por deuda Créditos de Mercado Pago",
+        "reference_id": "2703884598",
+        "amount": "-674,89",
+        "balance": "0,00",
+        "period": "Jan 2026"
+      },
+      {
+        "date": "10-01-2026",
+        "description": "Ingreso de dinero Cuenta Banco de Galicia",
+        "reference_id": "140808527599",
+        "amount": "17.900,00",
+        "balance": "17.900,00",
+        "period": "Jan 2026"
+      },
+      {
+        "date": "10-01-2026",
+        "description": "Transferencia enviada Federico Romano",
+        "reference_id": "140808527599",
+        "amount": "-17.900,00",
+        "balance": "0,00",
+        "period": "Jan 2026"
+      },
+      {
+        "date": "10-01-2026",
+        "description": "Ingreso de dinero Cuenta Banco de Galicia",
+        "reference_id": "141478301334",
+        "amount": "25.000,00",
+        "balance": "25.000,00",
+        "period": "Jan 2026"
+      },
+      {
+        "date": "10-01-2026",
+        "description": "Transferencia enviada Gustavo Manuel Salazar Rodriguez",
+        "reference_id": "141478301334",
+        "amount": "-25.000,00",
+        "balance": "0,00",
+        "period": "Jan 2026"
+      },
+      {
+        "date": "13-01-2026",
+        "description": "Ingreso de dinero Cuenta Banco de Galicia",
+        "reference_id": "141193132737",
+        "amount": "30.159,99",
+        "balance": "30.159,99",
+        "period": "Jan 2026"
+      },
+      {
+        "date": "13-01-2026",
+        "description": "Compra de Contenedor De Tela Plegable Organizador Canasto Multiuso X4 Mercado Libr...",
+        "reference_id": "141193132737",
+        "amount": "-30.159,99",
+        "balance": "0,00",
+        "period": "Jan 2026"
+      },
+      {
+        "date": "15-01-2026",
+        "description": "Ingreso de dinero Cuenta Banco de Galicia",
+        "reference_id": "141534257671",
+        "amount": "23.298,20",
+        "balance": "23.298,20",
+        "period": "Jan 2026"
+      },
+      {
+        "date": "15-01-2026",
+        "description": "Pago de servicio Movistar Línea Móvil",
+        "reference_id": "141534257671",
+        "amount": "-23.298,20",
+        "balance": "0,00",
+        "period": "Jan 2026"
+      },
+      {
+        "date": "24-01-2026",
+        "description": "Transferencia recibida Amir Mukahel",
+        "reference_id": "142730251929",
+        "amount": "95.342,09",
+        "balance": "95.342,09",
+        "period": "Jan 2026"
+      },
+      {
+        "date": "24-01-2026",
+        "description": "Pago Eduardo Alfonso Ferrer Boada",
+        "reference_id": "143406862780",
+        "amount": "-27.240,00",
+        "balance": "68.102,09",
+        "period": "Jan 2026"
+      },
+      {
+        "date": "24-01-2026",
+        "description": "Transferencia enviada Eduardo Alfonso Ferrer Boada",
+        "reference_id": "142735916503",
+        "amount": "-3.500,00",
+        "balance": "64.602,09",
+        "period": "Jan 2026"
+      },
+      {
+        "date": "25-01-2026",
+        "description": "Transferencia enviada Franco Padel",
+        "reference_id": "142794312315",
+        "amount": "-11.000,00",
+        "balance": "53.602,09",
+        "period": "Jan 2026"
+      },
+      {
+        "date": "26-01-2026",
+        "description": "Transferencia enviada Roberto Carlos Maciel",
+        "reference_id": "143553157624",
+        "amount": "-23.000,00",
+        "balance": "30.602,09",
+        "period": "Jan 2026"
+      },
+      {
+        "date": "26-01-2026",
+        "description": "Pago Eduardo Alfonso Ferrer Boada",
+        "reference_id": "143558027610",
+        "amount": "-28.400,00",
+        "balance": "2.202,09",
+        "period": "Jan 2026"
+      },
+      {
+        "date": "01-02-2026",
+        "description": "Transferencia recibida Gaston Vilar Carrizo",
+        "reference_id": "143695781327",
+        "amount": "225.875,54",
+        "balance": "228.077,63",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "01-02-2026",
+        "description": "Transferencia enviada Franco Padel",
+        "reference_id": "144387603974",
+        "amount": "-90.000,00",
+        "balance": "138.077,63",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "01-02-2026",
+        "description": "Transferencia recibida Melissa Jennifer Campbell Gonzalez",
+        "reference_id": "143708431091",
+        "amount": "33.600,00",
+        "balance": "171.677,63",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "01-02-2026",
+        "description": "Transferencia enviada Johan Arturo Martin Castillo",
+        "reference_id": "143716786617",
+        "amount": "-68.750,00",
+        "balance": "102.927,63",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "01-02-2026",
+        "description": "Transferencia enviada Xiaolan Zhang",
+        "reference_id": "143720952649",
+        "amount": "-16.300,00",
+        "balance": "86.627,63",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "02-02-2026",
+        "description": "Transferencia enviada Helados Ziade Muñiz",
+        "reference_id": "144446277556",
+        "amount": "-13.400,00",
+        "balance": "73.227,63",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "02-02-2026",
+        "description": "Transferencia recibida JOSE MANUEL SALAZAR RODRIGUEZ",
+        "reference_id": "144448371352",
+        "amount": "19.900,00",
+        "balance": "93.127,63",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "02-02-2026",
+        "description": "Transferencia recibida Gabriela Mercedes Castro Tamaronis",
+        "reference_id": "144448342064",
+        "amount": "5.000,00",
+        "balance": "98.127,63",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "02-02-2026",
+        "description": "Pago RAPPI ARG SAS",
+        "reference_id": "144448646648",
+        "amount": "-95.342,00",
+        "balance": "2.785,63",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "06-02-2026",
+        "description": "Transferencia recibida Angelys Klisbelys Rodriguez Aray",
+        "reference_id": "145190753042",
+        "amount": "12.800,00",
+        "balance": "15.585,63",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "06-02-2026",
+        "description": "Transferencia recibida ESTEBAN JESUS SALAZAR ENIS",
+        "reference_id": "145190737886",
+        "amount": "12.800,00",
+        "balance": "28.385,63",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "06-02-2026",
+        "description": "Transferencia recibida Wilmer Jesus Salazar Enis",
+        "reference_id": "144505611667",
+        "amount": "12.800,00",
+        "balance": "41.185,63",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "07-02-2026",
+        "description": "Pago Eduardo Alfonso Ferrer Boada",
+        "reference_id": "144538454815",
+        "amount": "-23.620,00",
+        "balance": "17.565,63",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "07-02-2026",
+        "description": "Ingreso de dinero",
+        "reference_id": "145225183944",
+        "amount": "100.000,00",
+        "balance": "117.565,63",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "07-02-2026",
+        "description": "Transferencia enviada Gustavo Manuel Salazar Rodriguez",
+        "reference_id": "145225183944",
+        "amount": "-100.000,00",
+        "balance": "17.565,63",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "09-02-2026",
+        "description": "Pago EMOVA SUBTE",
+        "reference_id": "145515606792",
+        "amount": "-1.320,00",
+        "balance": "16.245,63",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "09-02-2026",
+        "description": "Transferencia recibida Melissa Jennifer Campbell Gonzalez",
+        "reference_id": "145592057620",
+        "amount": "26.150,00",
+        "balance": "42.395,63",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "09-02-2026",
+        "description": "Pago EMOVA SUBTE",
+        "reference_id": "144906687651",
+        "amount": "-1.320,00",
+        "balance": "41.075,63",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "13-02-2026",
+        "description": "Pago PASCO TENIS PADDLE SA",
+        "reference_id": "145502006791",
+        "amount": "-15.000,00",
+        "balance": "26.075,63",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "13-02-2026",
+        "description": "Pago PASCO TENIS PADDLE SA",
+        "reference_id": "146196222844",
+        "amount": "-15.000,00",
+        "balance": "11.075,63",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "14-02-2026",
+        "description": "Ingreso de dinero",
+        "reference_id": "145599289605",
+        "amount": "30.000,00",
+        "balance": "41.075,63",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "14-02-2026",
+        "description": "Extracción de efectivo Carrefour",
+        "reference_id": "145598373383",
+        "amount": "-30.000,00",
+        "balance": "11.075,63",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "14-02-2026",
+        "description": "Pago Carrefour",
+        "reference_id": "146292570616",
+        "amount": "-0,01",
+        "balance": "11.075,62",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "19-02-2026",
+        "description": "Transferencia recibida JOSE MANUEL SALAZAR RODRIGUEZ",
+        "reference_id": "146971540600",
+        "amount": "9.600,00",
+        "balance": "20.675,62",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "19-02-2026",
+        "description": "Transferencia enviada Xiaolan Zhang",
+        "reference_id": "146273009651",
+        "amount": "-13.300,00",
+        "balance": "7.375,62",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "19-02-2026",
+        "description": "Transferencia enviada Ruth Mery Vallejos Coca",
+        "reference_id": "146971627816",
+        "amount": "-5.400,00",
+        "balance": "1.975,62",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "21-02-2026",
+        "description": "Transferencia recibida Gabriela Mercedes Castro Tamaronis",
+        "reference_id": "146447530563",
+        "amount": "7.000,00",
+        "balance": "8.975,62",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "23-02-2026",
+        "description": "Ingreso de dinero",
+        "reference_id": "147489436082",
+        "amount": "25.000,00",
+        "balance": "33.975,62",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "23-02-2026",
+        "description": "Transferencia enviada Gustavo Manuel Salazar Rodriguez",
+        "reference_id": "147489436082",
+        "amount": "-25.000,00",
+        "balance": "8.975,62",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "24-02-2026",
+        "description": "Pago RAPPI ARG SAS",
+        "reference_id": "146841426321",
+        "amount": "-5.990,00",
+        "balance": "2.985,62",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "26-02-2026",
+        "description": "Ingreso de dinero",
+        "reference_id": "147246024347",
+        "amount": "74.323,00",
+        "balance": "77.308,62",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "26-02-2026",
+        "description": "Compra Mercado Libre",
+        "reference_id": "147246024347",
+        "amount": "-74.323,00",
+        "balance": "2.985,62",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "27-02-2026",
+        "description": "Ingreso de dinero",
+        "reference_id": "147373594663",
+        "amount": "40.000,00",
+        "balance": "42.985,62",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "27-02-2026",
+        "description": "Transferencia enviada Alexis Ezequiel Ramirez",
+        "reference_id": "147373594663",
+        "amount": "-40.000,00",
+        "balance": "2.985,62",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "28-02-2026",
+        "description": "Ingreso de dinero",
+        "reference_id": "148272708436",
+        "amount": "6.000,00",
+        "balance": "8.985,62",
+        "period": "Feb 2026"
+      },
+      {
+        "date": "28-02-2026",
+        "description": "Transferencia enviada Maxi Go 24 Alvarez",
+        "reference_id": "148272708436",
+        "amount": "-6.000,00",
+        "balance": "2.985,62",
+        "period": "Feb 2026"
+      }
+    ],
+    "total_transactions": 138
+  },
+  "galicia": {
+    "account": "Banco Galicia - Caja Ahorro Pesos",
+    "period": "Sep 2025 - Mar 2026",
+    "transactions": [
+      {
+        "date": "02/03/2026",
+        "description": "PAGO TARJETA VISA OPERACION 1302079",
+        "debit": "-563.589,29",
+        "credit": "0,00",
+        "balance": "149319,76",
+        "comments": null
+      },
+      {
+        "date": "02/03/2026",
+        "description": "TRANSFERENCIA A TERCEROS Roberto Carlos Maciel 20280305902 VARIOS MERCADO LIBRE SRL",
+        "debit": "-18.000,00",
+        "credit": "0,00",
+        "balance": "712909,05",
+        "comments": null
+      },
+      {
+        "date": "02/03/2026",
+        "description": "COMPRA DEBITO MERPAGO*SBUXESPEJO 4425XXXXXXXXXX30 A738",
+        "debit": "-22.000,00",
+        "credit": "0,00",
+        "balance": "730909,05",
+        "comments": null
+      },
+      {
+        "date": "02/03/2026",
+        "description": "TRANSF. CTAS PROPIAS CU 20960029314 4530000800018108050928 NRJX VARIOS 4425XXXXXXXXXX30",
+        "debit": "-104.000,00",
+        "credit": "0,00",
+        "balance": "752909,05",
+        "comments": null
+      },
+      {
+        "date": "02/03/2026",
+        "description": "TRANSF. CTAS PROPIAS CU 20960029314 0170012140000006264813 FNCS VARIOS 4425XXXXXXXXXX30",
+        "debit": "-51.300,00",
+        "credit": "0,00",
+        "balance": "856909,05",
+        "comments": null
+      },
+      {
+        "date": "02/03/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-1.877,00",
+        "credit": "0,00",
+        "balance": "908209,05",
+        "comments": null
+      },
+      {
+        "date": "02/03/2026",
+        "description": "TRANSFERENCIA DE TERCEROS RAUL SANTIAGO ASTUDI 20369460189 0000003100086683435748 200004350 589244014300000001 VARIOS",
+        "debit": "0,00",
+        "credit": "11.500,00",
+        "balance": "910086,05",
+        "comments": null
+      },
+      {
+        "date": "02/03/2026",
+        "description": "TRANSFERENCIA A TERCEROS CU 30643542621 0170308320000030081905 FNCS VARIOS 4425XXXXXXXXXX30",
+        "debit": "-33.500,00",
+        "credit": "0,00",
+        "balance": "898586,05",
+        "comments": null
+      },
+      {
+        "date": "02/03/2026",
+        "description": "DEBITO DEBIN RECURRENTE 3220001805000054570077 30703088534 NRO. WGRXJE27DJZQPOO6N7MYQL VARIOS",
+        "debit": "-5.000,00",
+        "credit": "0,00",
+        "balance": "932086,05",
+        "comments": null
+      },
+      {
+        "date": "02/03/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-10.134,00",
+        "credit": "0,00",
+        "balance": "937086,05",
+        "comments": null
+      },
+      {
+        "date": "02/03/2026",
+        "description": "DEBITO DEBIN RECURRENTE 3220001805000054570077 30703088534 NRO. ORD6LEN8PLOOZYVGNM1Y30 VARIOS",
+        "debit": "-6.000,00",
+        "credit": "0,00",
+        "balance": "947220,05",
+        "comments": null
+      },
+      {
+        "date": "02/03/2026",
+        "description": "COMPRA DEBITO MERPAGO*PANADONNA 4425XXXXXXXXXX30 A738",
+        "debit": "-27.300,00",
+        "credit": "0,00",
+        "balance": "953220,05",
+        "comments": null
+      },
+      {
+        "date": "02/03/2026",
+        "description": "COMPRA DEBITO MERPAGO*SOLUCIONESONY 4425XXXXXXXXXX30 A738",
+        "debit": "-10.000,00",
+        "credit": "0,00",
+        "balance": "980520,05",
+        "comments": null
+      },
+      {
+        "date": "02/03/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-4.218,00",
+        "credit": "0,00",
+        "balance": "990520,05",
+        "comments": null
+      },
+      {
+        "date": "02/03/2026",
+        "description": "REINTEGRO PROMOCION GALICIA Subte",
+        "debit": "0,00",
+        "credit": "1.320,00",
+        "balance": "994738,05",
+        "comments": null
+      },
+      {
+        "date": "02/03/2026",
+        "description": "COMPRA DEBITO RAPPI 4425XXXXXXXXXX30 A837",
+        "debit": "-43.802,00",
+        "credit": "0,00",
+        "balance": "993418,05",
+        "comments": null
+      },
+      {
+        "date": "02/03/2026",
+        "description": "COMPRA DEBITO RAPPI 4425XXXXXXXXXX30 A837",
+        "debit": "-15.882,00",
+        "credit": "0,00",
+        "balance": "1037220,05",
+        "comments": null
+      },
+      {
+        "date": "27/02/2026",
+        "description": "TRANSFERENCIA DE TERCEROS RENZO SAMUEL SUNIAGA GARC 20959971952 4530000800015999605053 159996050500 589244045347184518 VARIOS",
+        "debit": "0,00",
+        "credit": "18.000,00",
+        "balance": "1053102,05",
+        "comments": null
+      },
+      {
+        "date": "27/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS SARAH SA 33709752109 VARIOS DARUMA PAGOS",
+        "debit": "-2.000,00",
+        "credit": "0,00",
+        "balance": "1035102,05",
+        "comments": null
+      },
+      {
+        "date": "27/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS Jose Anibal Dekmak Asseff 20245614412 VARIOS MERCADO LIBRE SRL",
+        "debit": "-36.000,00",
+        "credit": "0,00",
+        "balance": "1037102,05",
+        "comments": null
+      },
+      {
+        "date": "27/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS Martin Leandro Cedron 20337126457 VARIOS MERCADO LIBRE SRL",
+        "debit": "-11.600,00",
+        "credit": "0,00",
+        "balance": "1073102,05",
+        "comments": null
+      },
+      {
+        "date": "27/02/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-5.987,00",
+        "credit": "0,00",
+        "balance": "1084702,05",
+        "comments": null
+      },
+      {
+        "date": "27/02/2026",
+        "description": "ANULACION PERCEPCION RG 5617/24",
+        "debit": "0,00",
+        "credit": "301,75",
+        "balance": "1090689,05",
+        "comments": null
+      },
+      {
+        "date": "27/02/2026",
+        "description": "DEV.COMPRA GALICIA 24-ELECTRON 4425XXXXXXXXXX30 A171",
+        "debit": "0,00",
+        "credit": "1.000,00",
+        "balance": "1090387,3",
+        "comments": null
+      },
+      {
+        "date": "27/02/2026",
+        "description": "PERCEPCION RG 5617/24",
+        "debit": "-301,75",
+        "credit": "0,00",
+        "balance": "1089387,3",
+        "comments": null
+      },
+      {
+        "date": "27/02/2026",
+        "description": "COMPRA DEBITO UBER SHOPPER STATEMENT 4425XXXXXXXXXX30 A171",
+        "debit": "-1.000,00",
+        "credit": "0,00",
+        "balance": "1089689,05",
+        "comments": null
+      },
+      {
+        "date": "27/02/2026",
+        "description": "DEBITO DEBIN RECURRENTE 3220001805000054570077 30703088534 NRO. 76V4MR2Z70GLLZ18NDEZOL VARIOS",
+        "debit": "-40.000,00",
+        "credit": "0,00",
+        "balance": "1090689,05",
+        "comments": null
+      },
+      {
+        "date": "27/02/2026",
+        "description": "COMPRA DEBITO DLO*Rappi 4425XXXXXXXXXX30 A621",
+        "debit": "-37.402,49",
+        "credit": "0,00",
+        "balance": "1130689,05",
+        "comments": null
+      },
+      {
+        "date": "27/02/2026",
+        "description": "COMPRA DEBITO MERPAGO*ATC 4425XXXXXXXXXX30 A894",
+        "debit": "-15.000,00",
+        "credit": "0,00",
+        "balance": "1168091,54",
+        "comments": null
+      },
+      {
+        "date": "26/02/2026",
+        "description": "DEBITO DEBIN RECURRENTE 3220001805000054570077 30703088534 NRO. 46YGOW9M1VXKKL0MNEXD8J VARIOS",
+        "debit": "-74.323,00",
+        "credit": "0,00",
+        "balance": "1183091,54",
+        "comments": null
+      },
+      {
+        "date": "26/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS Jose Gabriel Ziade Sarabia 20957343326 VARIOS MERCADO LIBRE SRL",
+        "debit": "-2.600,00",
+        "credit": "0,00",
+        "balance": "1257414,54",
+        "comments": null
+      },
+      {
+        "date": "26/02/2026",
+        "description": "COMPRA DEBITO SAN AGUSTIN-SAN AGUSTIN 4425XXXXXXXXXX30 A453",
+        "debit": "-36.597,00",
+        "credit": "0,00",
+        "balance": "1260014,54",
+        "comments": null
+      },
+      {
+        "date": "26/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS Leandro Oscar Agosta Orellana 20301366664 VARIOS MERCADO LIBRE SRL",
+        "debit": "-230.000,00",
+        "credit": "0,00",
+        "balance": "1296611,54",
+        "comments": null
+      },
+      {
+        "date": "26/02/2026",
+        "description": "Compra venta de dolares SALAZAR RODRIGUEZ JOSE MANUEL 20960029314 OPERACION 00999260226124442624 Venta Moneda Extranjera: Dólares Cotizacion: 1370.00000000000000",
+        "debit": "0,00",
+        "credit": "1.507.000,00",
+        "balance": "1526611,54",
+        "comments": null
+      },
+      {
+        "date": "25/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS Cecilia Patron 27239030195 VARIOS MERCADO LIBRE SRL",
+        "debit": "-18.000,00",
+        "credit": "0,00",
+        "balance": "19611,54",
+        "comments": null
+      },
+      {
+        "date": "23/02/2026",
+        "description": "INTERES CAPITALIZADO Febrero 2026",
+        "debit": "0,00",
+        "credit": "5,76",
+        "balance": "37611,54",
+        "comments": null
+      },
+      {
+        "date": "23/02/2026",
+        "description": "COMPRA DEBITO MERPAGO*MOVISAPPMOVIL 4425XXXXXXXXXX30 A894",
+        "debit": "-29.961,83",
+        "credit": "0,00",
+        "balance": "37605,78",
+        "comments": null
+      },
+      {
+        "date": "23/02/2026",
+        "description": "DEBITO DEBIN RECURRENTE 3220001805000054570077 30703088534 NRO. Z4K6DVNOW3YYYDRG25J8LQ VARIOS",
+        "debit": "-25.000,00",
+        "credit": "0,00",
+        "balance": "67567,61",
+        "comments": null
+      },
+      {
+        "date": "23/02/2026",
+        "description": "COMPRA DEBITO MERPAGO*SBUXESPEJO 4425XXXXXXXXXX30 A738",
+        "debit": "-22.000,00",
+        "credit": "0,00",
+        "balance": "92567,61",
+        "comments": null
+      },
+      {
+        "date": "23/02/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-2.650,00",
+        "credit": "0,00",
+        "balance": "114567,61",
+        "comments": null
+      },
+      {
+        "date": "23/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS CU 30643542621 0170308320000030081905 FNCS VARIOS 4425XXXXXXXXXX30",
+        "debit": "-34.500,00",
+        "credit": "0,00",
+        "balance": "117217,61",
+        "comments": null
+      },
+      {
+        "date": "23/02/2026",
+        "description": "COMPRA DEBITO MERPAGO*ATC 4425XXXXXXXXXX30 A894",
+        "debit": "-15.000,00",
+        "credit": "0,00",
+        "balance": "151717,61",
+        "comments": null
+      },
+      {
+        "date": "23/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS SALAZAR ENIS ESTEBAN JESUS 27961683012 VARIOS BANCO DE GALICIA Y BUENOS AIRES SAU",
+        "debit": "-63.200,00",
+        "credit": "0,00",
+        "balance": "166717,61",
+        "comments": null
+      },
+      {
+        "date": "23/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS SALAZAR ENIS ESTEBAN JESUS 27961683012 VARIOS BANCO DE GALICIA Y BUENOS AIRES SAU",
+        "debit": "-30.000,00",
+        "credit": "0,00",
+        "balance": "229917,61",
+        "comments": null
+      },
+      {
+        "date": "23/02/2026",
+        "description": "REINTEGRO PROMOCION GALICIA MODO 40% en Acai",
+        "debit": "0,00",
+        "credit": "3.248,60",
+        "balance": "259917,61",
+        "comments": null
+      },
+      {
+        "date": "23/02/2026",
+        "description": "COMPRA DEBITO ACAI BRASIL-ACAI BRASIL 4425XXXXXXXXXX30 A943",
+        "debit": "-14.936,60",
+        "credit": "0,00",
+        "balance": "256669,01",
+        "comments": null
+      },
+      {
+        "date": "23/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS Angelys Klisbelys Rodriguez Aray 27959058747 VARIOS MERCADO LIBRE SRL",
+        "debit": "-61.500,00",
+        "credit": "0,00",
+        "balance": "271605,61",
+        "comments": null
+      },
+      {
+        "date": "23/02/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-1.464,00",
+        "credit": "0,00",
+        "balance": "333105,61",
+        "comments": null
+      },
+      {
+        "date": "23/02/2026",
+        "description": "ANULACION PERCEPCION RG 5617/24",
+        "debit": "0,00",
+        "credit": "301,34",
+        "balance": "334569,61",
+        "comments": null
+      },
+      {
+        "date": "23/02/2026",
+        "description": "DEV.COMPRA GALICIA 24-ELECTRON 4425XXXXXXXXXX30 A171",
+        "debit": "0,00",
+        "credit": "1.000,00",
+        "balance": "334268,27",
+        "comments": null
+      },
+      {
+        "date": "23/02/2026",
+        "description": "PERCEPCION RG 5617/24",
+        "debit": "-301,34",
+        "credit": "0,00",
+        "balance": "333268,27",
+        "comments": null
+      },
+      {
+        "date": "23/02/2026",
+        "description": "COMPRA DEBITO UBER SHOPPER STATEMENT 4425XXXXXXXXXX30 A171",
+        "debit": "-1.000,00",
+        "credit": "0,00",
+        "balance": "333569,61",
+        "comments": null
+      },
+      {
+        "date": "23/02/2026",
+        "description": "COMPRA DEBITO RAPPI 4425XXXXXXXXXX30 A837",
+        "debit": "-41.952,00",
+        "credit": "0,00",
+        "balance": "334569,61",
+        "comments": null
+      },
+      {
+        "date": "23/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS CU 27960818771 0170266040000006810856 FNCS 4425XXXXXXXXXX30 VARIOS",
+        "debit": "-7.000,00",
+        "credit": "0,00",
+        "balance": "376521,61",
+        "comments": null
+      },
+      {
+        "date": "20/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS SARAH SA 33709752109 VARIOS DARUMA PAGOS",
+        "debit": "-3.500,00",
+        "credit": "0,00",
+        "balance": "383521,61",
+        "comments": null
+      },
+      {
+        "date": "20/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS Gregorio Guerrero 20413120161 VARIOS MERCADO LIBRE SRL",
+        "debit": "-18.000,00",
+        "credit": "0,00",
+        "balance": "387021,61",
+        "comments": null
+      },
+      {
+        "date": "20/02/2026",
+        "description": "Compra venta de dolares SALAZAR RODRIGUEZ JOSE MANUEL 20960029314 OPERACION 00999260220213108999 Cotizacion: 1350.00000000000000 Venta Moneda Extranjera: Dólares",
+        "debit": "0,00",
+        "credit": "405.000,00",
+        "balance": "405021,61",
+        "comments": null
+      },
+      {
+        "date": "19/02/2026",
+        "description": "TRANSF. CTAS PROPIAS JOSE MANUEL SALAZAR RODRIGUEZ 20960029314 VARIOS MERCADO LIBRE SRL",
+        "debit": "-9.600,00",
+        "credit": "0,00",
+        "balance": "21,61",
+        "comments": null
+      },
+      {
+        "date": "19/02/2026",
+        "description": "COMPRA DEBITO ESTANCIA SAN FRANCISCO L 4425XXXXXXXXXX30 A197",
+        "debit": "-11.934,00",
+        "credit": "0,00",
+        "balance": "9621,61",
+        "comments": null
+      },
+      {
+        "date": "19/02/2026",
+        "description": "COMPRA DEBITO MERPAGO*SBUXESPEJO 4425XXXXXXXXXX30 A007",
+        "debit": "-11.000,00",
+        "credit": "0,00",
+        "balance": "21555,61",
+        "comments": null
+      },
+      {
+        "date": "19/02/2026",
+        "description": "COMPRA DEBITO EXPRESS AV. CHICLANA 4425XXXXXXXXXX30 A884",
+        "debit": "-5.588,00",
+        "credit": "0,00",
+        "balance": "32555,61",
+        "comments": null
+      },
+      {
+        "date": "19/02/2026",
+        "description": "COMPRA DEBITO EXPRESS AV. CHICLANA 4425XXXXXXXXXX30 A884",
+        "debit": "-7.810,00",
+        "credit": "0,00",
+        "balance": "38143,61",
+        "comments": null
+      },
+      {
+        "date": "19/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS Roberto Carlos Maciel 20280305902 VARIOS MERCADO LIBRE SRL",
+        "debit": "-23.000,00",
+        "credit": "0,00",
+        "balance": "45953,61",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "REINTEGRO PROMOCION GALICIA Uber",
+        "debit": "0,00",
+        "credit": "226,50",
+        "balance": "68953,61",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "REINTEGRO PROMOCION GALICIA Rappi",
+        "debit": "0,00",
+        "credit": "3.878,00",
+        "balance": "68727,11",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "COMPRA DEBITO MERPAGO*THEHOOD 4425XXXXXXXXXX30 A738",
+        "debit": "-3.000,00",
+        "credit": "0,00",
+        "balance": "64849,11",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "COMPRA DEBITO MERPAGO*THEHOOD 4425XXXXXXXXXX30 A738",
+        "debit": "-5.000,00",
+        "credit": "0,00",
+        "balance": "67849,11",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "REINTEGRO PROMOCION GALICIA ESTANCIA SAN FRANCISCO LA RIOJA 216",
+        "debit": "0,00",
+        "credit": "2.504,00",
+        "balance": "72849,11",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "COMPRA DEBITO ESTANCIA SAN FRANCISCO L 4425XXXXXXXXXX30 A197",
+        "debit": "-12.520,00",
+        "credit": "0,00",
+        "balance": "70345,11",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "COMPRA DEBITO THE COFFEE STORE MARTI 4425XXXXXXXXXX30 A992",
+        "debit": "-8.900,00",
+        "credit": "0,00",
+        "balance": "82865,11",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "COMPRA DEBITO PUERTO TABLAS 4425XXXXXXXXXX30 A424",
+        "debit": "-38.000,00",
+        "credit": "0,00",
+        "balance": "91765,11",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "COMPRA DEBITO MERPAGO*TERRAZA 4425XXXXXXXXXX30 A738",
+        "debit": "-13.500,00",
+        "credit": "0,00",
+        "balance": "129765,11",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "COMPRA DEBITO MERPAGO*SOULSURFERDRU 4425XXXXXXXXXX30 A738",
+        "debit": "-5.000,00",
+        "credit": "0,00",
+        "balance": "143265,11",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "EXTRACCION CAJERO 4425XXXXXXXXXX30 A119",
+        "debit": "-50.000,00",
+        "credit": "0,00",
+        "balance": "148265,11",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS Melissa Jennifer Campbell Gonzalez 27960305480 VARIOS MERCADO LIBRE SRL",
+        "debit": "-74.800,00",
+        "credit": "0,00",
+        "balance": "198265,11",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "Compra venta de dolares SALAZAR RODRIGUEZ JOSE MANUEL 20960029314 OPERACION 00999260215234117146 Cotizacion: 1375.00000000000000 Venta Moneda Extranjera: Dólares",
+        "debit": "0,00",
+        "credit": "206.250,00",
+        "balance": "273065,11",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-24.619,00",
+        "credit": "0,00",
+        "balance": "66815,11",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS Xiaolan Zhang 27957492288 VARIOS MERCADO LIBRE SRL",
+        "debit": "-7.000,00",
+        "credit": "0,00",
+        "balance": "91434,11",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-13.794,00",
+        "credit": "0,00",
+        "balance": "98434,11",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "ANULACION PERCEPCION RG 5617/24",
+        "debit": "0,00",
+        "credit": "306,49",
+        "balance": "112228,11",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "DEV.COMPRA GALICIA 24-ELECTRON 4425XXXXXXXXXX30 A171",
+        "debit": "0,00",
+        "credit": "1.000,00",
+        "balance": "111921,62",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "PERCEPCION RG 5617/24",
+        "debit": "-306,49",
+        "credit": "0,00",
+        "balance": "110921,62",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "COMPRA DEBITO UBER SHOPPER STATEMENT 4425XXXXXXXXXX30 A171",
+        "debit": "-1.000,00",
+        "credit": "0,00",
+        "balance": "111228,11",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS CU 30717087417 0170354020000056887442 FNCS 4425XXXXXXXXXX30 VARIOS",
+        "debit": "-4.000,00",
+        "credit": "0,00",
+        "balance": "112228,11",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS CU 30717087417 0170354020000056887442 FNCS VARIOS 4425XXXXXXXXXX30",
+        "debit": "-6.500,00",
+        "credit": "0,00",
+        "balance": "116228,11",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS Alejandro Raul Pariente 20342092838 VARIOS MERCADO LIBRE SRL",
+        "debit": "-58.000,00",
+        "credit": "0,00",
+        "balance": "122728,11",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "REINTEGRO PROMOCION GALICIA MODO 40% en Acai",
+        "debit": "0,00",
+        "credit": "8.751,40",
+        "balance": "180728,11",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "COMPRA DEBITO ACAI BRASIL-ACAI BRASIL 4425XXXXXXXXXX30 A960",
+        "debit": "-21.878,50",
+        "credit": "0,00",
+        "balance": "171976,71",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "COMPRA DEBITO JENGI SA 4425XXXXXXXXXX30 A106",
+        "debit": "-103.500,00",
+        "credit": "0,00",
+        "balance": "193855,21",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-8.756,00",
+        "credit": "0,00",
+        "balance": "297355,21",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS CU 30643542621 0170308320000030081905 FNCS VARIOS 4425XXXXXXXXXX30",
+        "debit": "-21.000,00",
+        "credit": "0,00",
+        "balance": "306111,21",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS CU 30643542621 0170308320000030081905 FNCS 4425XXXXXXXXXX30 VARIOS",
+        "debit": "-31.000,00",
+        "credit": "0,00",
+        "balance": "327111,21",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS Angelys Klisbelys Rodriguez Aray 27959058747 VARIOS MERCADO LIBRE SRL",
+        "debit": "-50.000,00",
+        "credit": "0,00",
+        "balance": "358111,21",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "INGRESO DE DINERO A CUENTA PROPIA 3220001805000054570077 30703088534 BANCO INDUSTRIAL S.A. 7L8GYKNX07405RWX2MPRZ5D",
+        "debit": "-30.000,00",
+        "credit": "0,00",
+        "balance": "408111,21",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "Compra venta de dolares SALAZAR RODRIGUEZ JOSE MANUEL 20960029314 OPERACION 00999260214155522865 Cotizacion: 1375.00000000000000 Venta Moneda Extranjera: Dólares",
+        "debit": "0,00",
+        "credit": "412.500,00",
+        "balance": "438111,21",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS Diego Amador Iglesias 20365290289 VARIOS MERCADO LIBRE SRL",
+        "debit": "-45.800,00",
+        "credit": "0,00",
+        "balance": "25611,21",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "PAGO CON TRANSFERENCIA MARIA ESTELA 23320379784 0140010603401052799765 PAGO CON TRANSF.",
+        "debit": "-5.800,00",
+        "credit": "0,00",
+        "balance": "71411,21",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "COMPRA DEBITO DIA TIENDA 1531 4425XXXXXXXXXX30 A372",
+        "debit": "-11.780,00",
+        "credit": "0,00",
+        "balance": "77211,21",
+        "comments": null
+      },
+      {
+        "date": "18/02/2026",
+        "description": "COMPRA DEBITO EXPRESS AV. CHICLANA 4425XXXXXXXXXX30 A884",
+        "debit": "-10.587,00",
+        "credit": "0,00",
+        "balance": "88991,21",
+        "comments": null
+      },
+      {
+        "date": "13/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS SARAH SA 33709752109 VARIOS DARUMA PAGOS",
+        "debit": "-2.000,00",
+        "credit": "0,00",
+        "balance": "99578,21",
+        "comments": null
+      },
+      {
+        "date": "13/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS SARAH SA 33709752109 VARIOS DARUMA PAGOS",
+        "debit": "-5.000,00",
+        "credit": "0,00",
+        "balance": "101578,21",
+        "comments": null
+      },
+      {
+        "date": "13/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS Jose Anibal Dekmak Asseff 20245614412 VARIOS MERCADO LIBRE SRL",
+        "debit": "-18.000,00",
+        "credit": "0,00",
+        "balance": "106578,21",
+        "comments": null
+      },
+      {
+        "date": "13/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS CU 27957336634 0720480188000001060368 RIOP VARIOS 4425XXXXXXXXXX30",
+        "debit": "-99.000,00",
+        "credit": "0,00",
+        "balance": "124578,21",
+        "comments": null
+      },
+      {
+        "date": "13/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS Aldana Ayelen Hille 27408636871 VARIOS MERCADO LIBRE SRL",
+        "debit": "-71.500,00",
+        "credit": "0,00",
+        "balance": "223578,21",
+        "comments": null
+      },
+      {
+        "date": "13/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS Miguel Ramon Benitez Leguizamon 20951780007 VARIOS MERCADO LIBRE SRL",
+        "debit": "-42.910,00",
+        "credit": "0,00",
+        "balance": "295078,21",
+        "comments": null
+      },
+      {
+        "date": "13/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS Eucaris Daniela Pumero Montoya 27961096117 VARIOS MERCADO LIBRE SRL",
+        "debit": "-32.400,00",
+        "credit": "0,00",
+        "balance": "337988,21",
+        "comments": null
+      },
+      {
+        "date": "12/02/2026",
+        "description": "COMPRA DEBITO EXPRESS AV. CHICLANA 4425XXXXXXXXXX30 A884",
+        "debit": "-3.155,00",
+        "credit": "0,00",
+        "balance": "370388,21",
+        "comments": null
+      },
+      {
+        "date": "12/02/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-4.909,00",
+        "credit": "0,00",
+        "balance": "373543,21",
+        "comments": null
+      },
+      {
+        "date": "12/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS Anahi Johana Campo Hernandez 27961472623 VARIOS MERCADO LIBRE SRL",
+        "debit": "-15.200,00",
+        "credit": "0,00",
+        "balance": "378452,21",
+        "comments": null
+      },
+      {
+        "date": "12/02/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-4.383,00",
+        "credit": "0,00",
+        "balance": "393652,21",
+        "comments": null
+      },
+      {
+        "date": "12/02/2026",
+        "description": "ANULACION PERCEPCION RG 5617/24",
+        "debit": "0,00",
+        "credit": "302,40",
+        "balance": "398035,21",
+        "comments": null
+      },
+      {
+        "date": "12/02/2026",
+        "description": "DEV.COMPRA GALICIA 24-ELECTRON 4425XXXXXXXXXX30 A171",
+        "debit": "0,00",
+        "credit": "1.000,00",
+        "balance": "397732,81",
+        "comments": null
+      },
+      {
+        "date": "12/02/2026",
+        "description": "PERCEPCION RG 5617/24",
+        "debit": "-302,40",
+        "credit": "0,00",
+        "balance": "396732,81",
+        "comments": null
+      },
+      {
+        "date": "12/02/2026",
+        "description": "COMPRA DEBITO UBER SHOPPER STATEMENT 4425XXXXXXXXXX30 A171",
+        "debit": "-1.000,00",
+        "credit": "0,00",
+        "balance": "397035,21",
+        "comments": null
+      },
+      {
+        "date": "12/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS Roberto Carlos Maciel 20280305902 VARIOS MERCADO LIBRE SRL",
+        "debit": "-23.000,00",
+        "credit": "0,00",
+        "balance": "398035,21",
+        "comments": null
+      },
+      {
+        "date": "11/02/2026",
+        "description": "REINTEGRO PROMOCION GALICIA Uber",
+        "debit": "0,00",
+        "credit": "1.841,75",
+        "balance": "421035,21",
+        "comments": null
+      },
+      {
+        "date": "11/02/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-7.367,00",
+        "credit": "0,00",
+        "balance": "419193,46",
+        "comments": null
+      },
+      {
+        "date": "11/02/2026",
+        "description": "REINTEGRO PROMOCION GALICIA Uber",
+        "debit": "0,00",
+        "credit": "1.931,75",
+        "balance": "426560,46",
+        "comments": null
+      },
+      {
+        "date": "11/02/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-7.727,00",
+        "credit": "0,00",
+        "balance": "424628,71",
+        "comments": null
+      },
+      {
+        "date": "11/02/2026",
+        "description": "Compra venta de dolares SALAZAR RODRIGUEZ JOSE MANUEL 20960029314 OPERACION 00999260211140301125 Venta Moneda Extranjera: Dólares Cotizacion: 1375.00000000000000",
+        "debit": "0,00",
+        "credit": "412.500,00",
+        "balance": "432355,71",
+        "comments": null
+      },
+      {
+        "date": "11/02/2026",
+        "description": "COMPRA DEBITO VETERINARIA 4425XXXXXXXXXX30 A865",
+        "debit": "-37.000,00",
+        "credit": "0,00",
+        "balance": "19855,71",
+        "comments": null
+      },
+      {
+        "date": "10/02/2026",
+        "description": "COMPRA DEBITO EXPRESS AV. CHICLANA 4425XXXXXXXXXX30 A884",
+        "debit": "-2.930,00",
+        "credit": "0,00",
+        "balance": "56855,71",
+        "comments": null
+      },
+      {
+        "date": "10/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS Xiaolan Zhang 27957492288 VARIOS MERCADO LIBRE SRL",
+        "debit": "-17.500,00",
+        "credit": "0,00",
+        "balance": "59785,71",
+        "comments": null
+      },
+      {
+        "date": "09/02/2026",
+        "description": "COMPRA DEBITO QUOTIDIANO-QUOTIDIANO 4425XXXXXXXXXX30 A171",
+        "debit": "-109.800,00",
+        "credit": "0,00",
+        "balance": "77285,71",
+        "comments": null
+      },
+      {
+        "date": "09/02/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-5.696,00",
+        "credit": "0,00",
+        "balance": "187085,71",
+        "comments": null
+      },
+      {
+        "date": "09/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS CU 20236952178 0720321188000033536440 RIOP VARIOS 4425XXXXXXXXXX30",
+        "debit": "-9.000,00",
+        "credit": "0,00",
+        "balance": "192781,71",
+        "comments": null
+      },
+      {
+        "date": "09/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS Xiaolan Zhang 27957492288 VARIOS MERCADO LIBRE SRL",
+        "debit": "-16.000,00",
+        "credit": "0,00",
+        "balance": "201781,71",
+        "comments": null
+      },
+      {
+        "date": "09/02/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-3.224,00",
+        "credit": "0,00",
+        "balance": "217781,71",
+        "comments": null
+      },
+      {
+        "date": "09/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS Anahi Johana Campo Hernandez 27961472623 VARIOS MERCADO LIBRE SRL",
+        "debit": "-7.700,00",
+        "credit": "0,00",
+        "balance": "221005,71",
+        "comments": null
+      },
+      {
+        "date": "09/02/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-4.657,00",
+        "credit": "0,00",
+        "balance": "228705,71",
+        "comments": null
+      },
+      {
+        "date": "09/02/2026",
+        "description": "ANULACION PERCEPCION RG 5617/24",
+        "debit": "0,00",
+        "credit": "305,01",
+        "balance": "233362,71",
+        "comments": null
+      },
+      {
+        "date": "09/02/2026",
+        "description": "DEV.COMPRA GALICIA 24-ELECTRON 4425XXXXXXXXXX30 A171",
+        "debit": "0,00",
+        "credit": "1.000,00",
+        "balance": "233057,7",
+        "comments": null
+      },
+      {
+        "date": "09/02/2026",
+        "description": "PERCEPCION RG 5617/24",
+        "debit": "-305,01",
+        "credit": "0,00",
+        "balance": "232057,7",
+        "comments": null
+      },
+      {
+        "date": "09/02/2026",
+        "description": "COMPRA DEBITO UBER SHOPPER STATEMENT 4425XXXXXXXXXX30 A171",
+        "debit": "-1.000,00",
+        "credit": "0,00",
+        "balance": "232362,71",
+        "comments": null
+      },
+      {
+        "date": "09/02/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-651,00",
+        "credit": "0,00",
+        "balance": "233362,71",
+        "comments": null
+      },
+      {
+        "date": "09/02/2026",
+        "description": "COMPRA DEBITO CASA JAPONESA 4425XXXXXXXXXX30 A203",
+        "debit": "-9.900,00",
+        "credit": "0,00",
+        "balance": "234013,71",
+        "comments": null
+      },
+      {
+        "date": "09/02/2026",
+        "description": "COMPRA DEBITO CASA JAPONESA-CASA JAPON 4425XXXXXXXXXX30 A505",
+        "debit": "-111.000,00",
+        "credit": "0,00",
+        "balance": "243913,71",
+        "comments": null
+      },
+      {
+        "date": "09/02/2026",
+        "description": "COMPRA DEBITO CASA JAPONESA 4425XXXXXXXXXX30 A203",
+        "debit": "-8.000,00",
+        "credit": "0,00",
+        "balance": "354913,71",
+        "comments": null
+      },
+      {
+        "date": "09/02/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-5.138,00",
+        "credit": "0,00",
+        "balance": "362913,71",
+        "comments": null
+      },
+      {
+        "date": "09/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS Xiaolan Zhang 27957492288 VARIOS MERCADO LIBRE SRL",
+        "debit": "-10.600,00",
+        "credit": "0,00",
+        "balance": "368051,71",
+        "comments": null
+      },
+      {
+        "date": "09/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS Hernan Mauricio Castellon Delgado 20955348967 VARIOS MERCADO LIBRE SRL",
+        "debit": "-3.000,00",
+        "credit": "0,00",
+        "balance": "378651,71",
+        "comments": null
+      },
+      {
+        "date": "09/02/2026",
+        "description": "PAGO CON TRANSFERENCIA TAP BILLETER 30716627531 3220001805006803440011 PAGO CON TRANSF.",
+        "debit": "-74.321,10",
+        "credit": "0,00",
+        "balance": "381651,71",
+        "comments": null
+      },
+      {
+        "date": "09/02/2026",
+        "description": "COMPRA DEBITO OSDE 4425XXXXXXXXXX30 A183",
+        "debit": "-695.695,07",
+        "credit": "0,00",
+        "balance": "455972,81",
+        "comments": null
+      },
+      {
+        "date": "09/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS Miguel Ramon Benitez Leguizamon 20951780007 VARIOS MERCADO LIBRE SRL",
+        "debit": "-14.000,00",
+        "credit": "0,00",
+        "balance": "1151667,88",
+        "comments": null
+      },
+      {
+        "date": "09/02/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-3.470,00",
+        "credit": "0,00",
+        "balance": "1165667,88",
+        "comments": null
+      },
+      {
+        "date": "09/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS CU 30643542621 0170308320000030081905 FNCS 4425XXXXXXXXXX30 VARIOS",
+        "debit": "-2.500,00",
+        "credit": "0,00",
+        "balance": "1169137,88",
+        "comments": null
+      },
+      {
+        "date": "09/02/2026",
+        "description": "DEBITO DEBIN RECURRENTE 3220001805000054570077 30703088534 NRO. Z6OLMDN3VWWG6Y8Y2E7RQ5 VARIOS",
+        "debit": "-100.000,00",
+        "credit": "0,00",
+        "balance": "1171637,88",
+        "comments": null
+      },
+      {
+        "date": "06/02/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-3.676,00",
+        "credit": "0,00",
+        "balance": "1271637,88",
+        "comments": null
+      },
+      {
+        "date": "06/02/2026",
+        "description": "TRANSFERENCIA DE TERCEROS RENZO SAMUEL SUNIAGA GARC 20959971952 4530000800015999605053 159996050500 589244045347184518 VARIOS",
+        "debit": "0,00",
+        "credit": "12.800,00",
+        "balance": "1275313,88",
+        "comments": null
+      },
+      {
+        "date": "06/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS Angelys Klisbelys Rodriguez Aray 27959058747 VARIOS MERCADO LIBRE SRL",
+        "debit": "-12.800,00",
+        "credit": "0,00",
+        "balance": "1262513,88",
+        "comments": null
+      },
+      {
+        "date": "06/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS Francisco Pollola 20924437791 VARIOS MERCADO LIBRE SRL",
+        "debit": "-66.500,00",
+        "credit": "0,00",
+        "balance": "1275313,88",
+        "comments": null
+      },
+      {
+        "date": "06/02/2026",
+        "description": "COMPRA DEBITO HAVANNA 4425XXXXXXXXXX30 A400",
+        "debit": "-22.200,00",
+        "credit": "0,00",
+        "balance": "1341813,88",
+        "comments": null
+      },
+      {
+        "date": "06/02/2026",
+        "description": "PAGO CON TRANSFERENCIA MARIA ESTELA 23320379784 0140010603401052799765 PAGO CON TRANSF.",
+        "debit": "-14.298,00",
+        "credit": "0,00",
+        "balance": "1364013,88",
+        "comments": null
+      },
+      {
+        "date": "06/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS Miguel Ramon Benitez Leguizamon 20951780007 VARIOS MERCADO LIBRE SRL",
+        "debit": "-44.100,00",
+        "credit": "0,00",
+        "balance": "1378311,88",
+        "comments": null
+      },
+      {
+        "date": "05/02/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-4.140,00",
+        "credit": "0,00",
+        "balance": "1422411,88",
+        "comments": null
+      },
+      {
+        "date": "05/02/2026",
+        "description": "PAGO TARJETA VISA D.A. RECICLA",
+        "debit": "-5.620.826,28",
+        "credit": "0,00",
+        "balance": "1426551,88",
+        "comments": null
+      },
+      {
+        "date": "05/02/2026",
+        "description": "PAGO TARJETA MASTER D.A. RECICLA",
+        "debit": "-84.375,83",
+        "credit": "0,00",
+        "balance": "7047378,16",
+        "comments": null
+      },
+      {
+        "date": "05/02/2026",
+        "description": "COMPRA DEBITO COTO SUCURSAL 91 4425XXXXXXXXXX30 A219",
+        "debit": "-388.800,01",
+        "credit": "0,00",
+        "balance": "7131753,99",
+        "comments": null
+      },
+      {
+        "date": "05/02/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-4.496,00",
+        "credit": "0,00",
+        "balance": "7520554",
+        "comments": null
+      },
+      {
+        "date": "05/02/2026",
+        "description": "ANULACION PERCEPCION RG 5617/24",
+        "debit": "0,00",
+        "credit": "302,82",
+        "balance": "7525050",
+        "comments": null
+      },
+      {
+        "date": "05/02/2026",
+        "description": "DEV.COMPRA GALICIA 24-ELECTRON 4425XXXXXXXXXX30 A171",
+        "debit": "0,00",
+        "credit": "1.000,00",
+        "balance": "7524747,18",
+        "comments": null
+      },
+      {
+        "date": "05/02/2026",
+        "description": "PERCEPCION RG 5617/24",
+        "debit": "-302,82",
+        "credit": "0,00",
+        "balance": "7523747,18",
+        "comments": null
+      },
+      {
+        "date": "05/02/2026",
+        "description": "COMPRA DEBITO UBER SHOPPER STATEMENT 4425XXXXXXXXXX30 A171",
+        "debit": "-1.000,00",
+        "credit": "0,00",
+        "balance": "7524050",
+        "comments": null
+      },
+      {
+        "date": "05/02/2026",
+        "description": "Compra venta de dolares SALAZAR RODRIGUEZ JOSE MANUEL 20960029314 OPERACION 00999260205183344515 Cotizacion: 1410.00000000000000 Venta Moneda Extranjera: Dólares",
+        "debit": "0,00",
+        "credit": "7.508.250,00",
+        "balance": "7525050",
+        "comments": null
+      },
+      {
+        "date": "05/02/2026",
+        "description": "TRANSFERENCIA DE TERCEROS RAUL SANTIAGO ASTUDI 20369460189 0000003100086683435748 200004350 VARIOS 589244014300000001",
+        "debit": "0,00",
+        "credit": "16.800,00",
+        "balance": "16800",
+        "comments": null
+      },
+      {
+        "date": "02/02/2026",
+        "description": "PAGO TARJETA MASTER D.A. AL VTO",
+        "debit": "-141.516,10",
+        "credit": "0,00",
+        "balance": "0",
+        "comments": null
+      },
+      {
+        "date": "02/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS Angelys Klisbelys Rodriguez Aray 27959058747 VARIOS MERCADO LIBRE SRL",
+        "debit": "-70.000,00",
+        "credit": "0,00",
+        "balance": "141516,1",
+        "comments": null
+      },
+      {
+        "date": "02/02/2026",
+        "description": "Compra venta de dolares SALAZAR RODRIGUEZ JOSE MANUEL 20960029314 OPERACION 00999260202225517159 Venta Moneda Extranjera: Dólares Cotizacion: 1410.00000000000000",
+        "debit": "0,00",
+        "credit": "211.500,00",
+        "balance": "211516,1",
+        "comments": null
+      },
+      {
+        "date": "02/02/2026",
+        "description": "TRANSF. CTAS PROPIAS JOSE MANUEL SALAZAR RODRIGUEZ 20960029314 VARIOS MERCADO LIBRE SRL",
+        "debit": "-19.900,00",
+        "credit": "0,00",
+        "balance": "16,1",
+        "comments": null
+      },
+      {
+        "date": "02/02/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-3.387,00",
+        "credit": "0,00",
+        "balance": "19916,1",
+        "comments": null
+      },
+      {
+        "date": "02/02/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-5.018,00",
+        "credit": "0,00",
+        "balance": "23303,1",
+        "comments": null
+      },
+      {
+        "date": "02/02/2026",
+        "description": "TRANSFERENCIA DE TERCEROS SALAZAR/ENIS WILMER JESU 20960044887 0170044240000032375084 VARIOS 4517XXXXXXXXXX07 44323750800",
+        "debit": "0,00",
+        "credit": "16.800,00",
+        "balance": "28321,1",
+        "comments": null
+      },
+      {
+        "date": "02/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS Ying He 27945649645 VARIOS MERCADO LIBRE SRL",
+        "debit": "-2.900,00",
+        "credit": "0,00",
+        "balance": "11521,1",
+        "comments": null
+      },
+      {
+        "date": "02/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS CU 30643542621 0170308320000030081905 FNCS 4425XXXXXXXXXX30 VARIOS",
+        "debit": "-5.000,00",
+        "credit": "0,00",
+        "balance": "14421,1",
+        "comments": null
+      },
+      {
+        "date": "02/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS CU 30643542621 0170308320000030081905 FNCS 4425XXXXXXXXXX30 VARIOS",
+        "debit": "-3.500,00",
+        "credit": "0,00",
+        "balance": "19421,1",
+        "comments": null
+      },
+      {
+        "date": "02/02/2026",
+        "description": "TRANSFERENCIA A TERCEROS Eucaris Daniela Pumero Montoya 27961096117 VARIOS MERCADO LIBRE SRL",
+        "debit": "-5.500,00",
+        "credit": "0,00",
+        "balance": "22921,1",
+        "comments": null
+      },
+      {
+        "date": "02/02/2026",
+        "description": "COMPRA DEBITO EXPRESS AV. CHICLANA 4425XXXXXXXXXX30 A884",
+        "debit": "-19.228,85",
+        "credit": "0,00",
+        "balance": "28421,1",
+        "comments": null
+      },
+      {
+        "date": "30/01/2026",
+        "description": "COMPRA DEBITO EXPRESS AV. CHICLANA 4425XXXXXXXXXX30 A884",
+        "debit": "-7.684,00",
+        "credit": "0,00",
+        "balance": "47649,95",
+        "comments": null
+      },
+      {
+        "date": "30/01/2026",
+        "description": "PAGO CON TRANSFERENCIA MARIA ESTELA 23320379784 0140010603401052799765 PAGO CON TRANSF.",
+        "debit": "-4.000,00",
+        "credit": "0,00",
+        "balance": "55333,95",
+        "comments": null
+      },
+      {
+        "date": "30/01/2026",
+        "description": "COMPRA DEBITO DLO*Rappi 4425XXXXXXXXXX30 A523",
+        "debit": "-2.000,00",
+        "credit": "0,00",
+        "balance": "59333,95",
+        "comments": null
+      },
+      {
+        "date": "30/01/2026",
+        "description": "COMPRA DEBITO DLO*Rappi 4425XXXXXXXXXX30 A523",
+        "debit": "-17.122,00",
+        "credit": "0,00",
+        "balance": "61333,95",
+        "comments": null
+      },
+      {
+        "date": "30/01/2026",
+        "description": "COMPRA DEBITO MERPAGO*ATC 4425XXXXXXXXXX30 A894",
+        "debit": "-15.000,00",
+        "credit": "0,00",
+        "balance": "78455,95",
+        "comments": null
+      },
+      {
+        "date": "29/01/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-5.168,00",
+        "credit": "0,00",
+        "balance": "93455,95",
+        "comments": null
+      },
+      {
+        "date": "29/01/2026",
+        "description": "ANULACION PERCEPCION RG 5617/24",
+        "debit": "0,00",
+        "credit": "303,34",
+        "balance": "98623,95",
+        "comments": null
+      },
+      {
+        "date": "29/01/2026",
+        "description": "DEV.COMPRA GALICIA 24-ELECTRON 4425XXXXXXXXXX30 A171",
+        "debit": "0,00",
+        "credit": "1.000,00",
+        "balance": "98320,61",
+        "comments": null
+      },
+      {
+        "date": "29/01/2026",
+        "description": "PERCEPCION RG 5617/24",
+        "debit": "-303,34",
+        "credit": "0,00",
+        "balance": "97320,61",
+        "comments": null
+      },
+      {
+        "date": "29/01/2026",
+        "description": "COMPRA DEBITO UBER SHOPPER STATEMENT 4425XXXXXXXXXX30 A171",
+        "debit": "-1.000,00",
+        "credit": "0,00",
+        "balance": "97623,95",
+        "comments": null
+      },
+      {
+        "date": "29/01/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-7.230,00",
+        "credit": "0,00",
+        "balance": "98623,95",
+        "comments": null
+      },
+      {
+        "date": "29/01/2026",
+        "description": "COMPRA DEBITO MAMUSCHKA HONDURAS 4425XXXXXXXXXX30 A376",
+        "debit": "-34.850,00",
+        "credit": "0,00",
+        "balance": "105853,95",
+        "comments": null
+      },
+      {
+        "date": "29/01/2026",
+        "description": "Compra venta de dolares SALAZAR RODRIGUEZ JOSE MANUEL 20960029314 OPERACION 00999260129214104633 Cotizacion: 1405.00000000000000 Venta Moneda Extranjera: Dólares",
+        "debit": "0,00",
+        "credit": "140.500,00",
+        "balance": "140703,95",
+        "comments": null
+      },
+      {
+        "date": "29/01/2026",
+        "description": "COMPRA DEBITO MERPAGO*ATC 4425XXXXXXXXXX30 A894",
+        "debit": "-15.000,00",
+        "credit": "0,00",
+        "balance": "203,95",
+        "comments": null
+      },
+      {
+        "date": "29/01/2026",
+        "description": "TRANSFERENCIA A TERCEROS Miguel Ramon Benitez Leguizamon 20951780007 VARIOS MERCADO LIBRE SRL",
+        "debit": "-45.985,00",
+        "credit": "0,00",
+        "balance": "15203,95",
+        "comments": null
+      },
+      {
+        "date": "29/01/2026",
+        "description": "TRANSFERENCIA A TERCEROS Raul Santiago Astudillo 20369460189 VARIOS MERCADO LIBRE SRL",
+        "debit": "-50.000,00",
+        "credit": "0,00",
+        "balance": "61188,95",
+        "comments": null
+      },
+      {
+        "date": "29/01/2026",
+        "description": "PAGO DE SERVICIOS IMP.AFIP 209600293149 4425XXXXXXXXXX30 A001",
+        "debit": "-231.321,05",
+        "credit": "0,00",
+        "balance": "111188,95",
+        "comments": null
+      },
+      {
+        "date": "29/01/2026",
+        "description": "TRANSFERENCIA A TERCEROS Roberto Carlos Maciel 20280305902 VARIOS MERCADO LIBRE SRL",
+        "debit": "-23.000,00",
+        "credit": "0,00",
+        "balance": "342510",
+        "comments": null
+      },
+      {
+        "date": "29/01/2026",
+        "description": "Compra venta de dolares SALAZAR RODRIGUEZ JOSE MANUEL 20960029314 OPERACION 00999260129101226892 Cotizacion: 1405.00000000000000 Venta Moneda Extranjera: Dólares",
+        "debit": "0,00",
+        "credit": "351.250,00",
+        "balance": "365510",
+        "comments": null
+      },
+      {
+        "date": "28/01/2026",
+        "description": "COMPRA DEBITO DLO*Rappi 4425XXXXXXXXXX30 A523",
+        "debit": "-39.420,00",
+        "credit": "0,00",
+        "balance": "14260",
+        "comments": null
+      },
+      {
+        "date": "27/01/2026",
+        "description": "COMPRA DEBITO RAPPI 4425XXXXXXXXXX30 A585",
+        "debit": "-17.022,00",
+        "credit": "0,00",
+        "balance": "53680",
+        "comments": null
+      },
+      {
+        "date": "27/01/2026",
+        "description": "TRANSFERENCIA A TERCEROS CU 27957336634 0720480188000001060368 RIOP 4425XXXXXXXXXX30 VARIOS",
+        "debit": "-93.000,00",
+        "credit": "0,00",
+        "balance": "70702",
+        "comments": null
+      },
+      {
+        "date": "27/01/2026",
+        "description": "Compra venta de dolares SALAZAR RODRIGUEZ JOSE MANUEL 20960029314 OPERACION 00999260127120410807 Cotizacion: 1410.00000000000000 Venta Moneda Extranjera: Dólares",
+        "debit": "0,00",
+        "credit": "141.000,00",
+        "balance": "163702",
+        "comments": null
+      },
+      {
+        "date": "27/01/2026",
+        "description": "COMPRA DEBITO EXPRESS AV. CHICLANA 4425XXXXXXXXXX30 A884",
+        "debit": "-18.423,47",
+        "credit": "0,00",
+        "balance": "22702",
+        "comments": null
+      },
+      {
+        "date": "27/01/2026",
+        "description": "TRANSFERENCIA A TERCEROS Roberto Carlos Maciel 20280305902 VARIOS MERCADO LIBRE SRL",
+        "debit": "-46.000,00",
+        "credit": "0,00",
+        "balance": "41125,47",
+        "comments": null
+      },
+      {
+        "date": "26/01/2026",
+        "description": "COMPRA DEBITO MERPAGO*ATC 4425XXXXXXXXXX30 A894",
+        "debit": "-50.000,00",
+        "credit": "0,00",
+        "balance": "87125,47",
+        "comments": null
+      },
+      {
+        "date": "26/01/2026",
+        "description": "COMPRA DEBITO EXPRESS AV. CHICLANA 4425XXXXXXXXXX30 A884",
+        "debit": "-12.289,25",
+        "credit": "0,00",
+        "balance": "137125,47",
+        "comments": null
+      },
+      {
+        "date": "26/01/2026",
+        "description": "Compra venta de dolares SALAZAR RODRIGUEZ JOSE MANUEL 20960029314 OPERACION 00999260126094826481 Venta Moneda Extranjera: Dólares Cotizacion: 1400.00000000000000",
+        "debit": "0,00",
+        "credit": "140.000,00",
+        "balance": "149414,72",
+        "comments": null
+      },
+      {
+        "date": "26/01/2026",
+        "description": "TRANSFERENCIA A TERCEROS CU 30643542621 0170308320000030081905 FNCS VARIOS 4425XXXXXXXXXX30",
+        "debit": "-3.500,00",
+        "credit": "0,00",
+        "balance": "9414,72",
+        "comments": null
+      },
+      {
+        "date": "26/01/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-2.714,00",
+        "credit": "0,00",
+        "balance": "12914,72",
+        "comments": null
+      },
+      {
+        "date": "26/01/2026",
+        "description": "COMPRA DEBITO FRUTAS PREMIUM 4425XXXXXXXXXX30 A976",
+        "debit": "-11.751,25",
+        "credit": "0,00",
+        "balance": "15628,72",
+        "comments": null
+      },
+      {
+        "date": "26/01/2026",
+        "description": "REINTEGRO PROMOCION GALICIA Subte",
+        "debit": "0,00",
+        "credit": "1.260,00",
+        "balance": "27379,97",
+        "comments": null
+      },
+      {
+        "date": "23/01/2026",
+        "description": "COMPRA DEBITO EXPRESS AV. CHICLANA 4425XXXXXXXXXX30 A884",
+        "debit": "-14.106,50",
+        "credit": "0,00",
+        "balance": "26119,97",
+        "comments": null
+      },
+      {
+        "date": "23/01/2026",
+        "description": "TRANSFERENCIA A TERCEROS Christian Gustavo Sosa 20368075443 VARIOS UALA",
+        "debit": "-2.000,00",
+        "credit": "0,00",
+        "balance": "40226,47",
+        "comments": null
+      },
+      {
+        "date": "23/01/2026",
+        "description": "TRANSFERENCIA A TERCEROS GALVAN FLORENCIA 23339359954 VARIOS BANCO DE GALICIA Y BUENOS AIRES SAU",
+        "debit": "-13.000,00",
+        "credit": "0,00",
+        "balance": "42226,47",
+        "comments": null
+      },
+      {
+        "date": "23/01/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-4.755,00",
+        "credit": "0,00",
+        "balance": "55226,47",
+        "comments": null
+      },
+      {
+        "date": "22/01/2026",
+        "description": "INTERES CAPITALIZADO Enero 2026",
+        "debit": "0,00",
+        "credit": "3,66",
+        "balance": "59981,47",
+        "comments": null
+      },
+      {
+        "date": "22/01/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-5.983,00",
+        "credit": "0,00",
+        "balance": "59977,81",
+        "comments": null
+      },
+      {
+        "date": "22/01/2026",
+        "description": "PAGO CON TRANSFERENCIA FIRST DATA C 30522211563 0140000701100000524270 PAGO CON TRANSF.",
+        "debit": "-27.300,00",
+        "credit": "0,00",
+        "balance": "65960,81",
+        "comments": null
+      },
+      {
+        "date": "22/01/2026",
+        "description": "TRANSFERENCIA A TERCEROS Angelys Klisbelys Rodriguez Aray 27959058747 VARIOS MERCADO LIBRE SRL",
+        "debit": "-90.400,00",
+        "credit": "0,00",
+        "balance": "93260,81",
+        "comments": null
+      },
+      {
+        "date": "22/01/2026",
+        "description": "Compra venta de dolares SALAZAR RODRIGUEZ JOSE MANUEL 20960029314 OPERACION 00999260122215856144 Venta Moneda Extranjera: Dólares Cotizacion: 1400.00000000000000",
+        "debit": "0,00",
+        "credit": "140.000,00",
+        "balance": "183660,81",
+        "comments": null
+      },
+      {
+        "date": "22/01/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-3.777,00",
+        "credit": "0,00",
+        "balance": "43660,81",
+        "comments": null
+      },
+      {
+        "date": "22/01/2026",
+        "description": "COMPRA DEBITO MERPAGO*ATC 4425XXXXXXXXXX30 A894",
+        "debit": "-15.000,00",
+        "credit": "0,00",
+        "balance": "47437,81",
+        "comments": null
+      },
+      {
+        "date": "22/01/2026",
+        "description": "COMPRA DEBITO MERPAGO*ATC 4425XXXXXXXXXX30 A894",
+        "debit": "-15.000,00",
+        "credit": "0,00",
+        "balance": "62437,81",
+        "comments": null
+      },
+      {
+        "date": "22/01/2026",
+        "description": "COMPRA DEBITO ROMANO PASTAS 4425XXXXXXXXXX30 A773",
+        "debit": "-12.700,00",
+        "credit": "0,00",
+        "balance": "77437,81",
+        "comments": null
+      },
+      {
+        "date": "22/01/2026",
+        "description": "TRANSFERENCIA A TERCEROS Roberto Carlos Maciel 20280305902 VARIOS MERCADO LIBRE SRL",
+        "debit": "-23.000,00",
+        "credit": "0,00",
+        "balance": "90137,81",
+        "comments": null
+      },
+      {
+        "date": "22/01/2026",
+        "description": "COMPRA DEBITO DLO*Rappi 4425XXXXXXXXXX30 A621",
+        "debit": "-16.722,00",
+        "credit": "0,00",
+        "balance": "113137,81",
+        "comments": null
+      },
+      {
+        "date": "21/01/2026",
+        "description": "TRANSFERENCIA A TERCEROS Miguel Ramon Benitez Leguizamon 20951780007 VARIOS MERCADO LIBRE SRL",
+        "debit": "-20.800,00",
+        "credit": "0,00",
+        "balance": "129859,81",
+        "comments": null
+      },
+      {
+        "date": "21/01/2026",
+        "description": "Compra venta de dolares SALAZAR RODRIGUEZ JOSE MANUEL 20960029314 OPERACION 00999260121202806931 Venta Moneda Extranjera: Dólares Cotizacion: 1405.00000000000000",
+        "debit": "0,00",
+        "credit": "140.500,00",
+        "balance": "150659,81",
+        "comments": null
+      },
+      {
+        "date": "21/01/2026",
+        "description": "TRANSFERENCIA A TERCEROS CU 20959971952 4530000800015999605053 NRJX VARIOS 4425XXXXXXXXXX30",
+        "debit": "-38.857,00",
+        "credit": "0,00",
+        "balance": "10159,81",
+        "comments": null
+      },
+      {
+        "date": "20/01/2026",
+        "description": "TRANSFERENCIA A TERCEROS Xiaolan Zhang 27957492288 VARIOS MERCADO LIBRE SRL",
+        "debit": "-14.700,00",
+        "credit": "0,00",
+        "balance": "49016,81",
+        "comments": null
+      },
+      {
+        "date": "19/01/2026",
+        "description": "COMPRA DEBITO EXPRESS AV. CHICLANA 4425XXXXXXXXXX30 A884",
+        "debit": "-6.454,25",
+        "credit": "0,00",
+        "balance": "63716,81",
+        "comments": null
+      },
+      {
+        "date": "19/01/2026",
+        "description": "TRANSFERENCIA A TERCEROS Xiaolan Zhang 27957492288 VARIOS MERCADO LIBRE SRL",
+        "debit": "-33.000,00",
+        "credit": "0,00",
+        "balance": "70171,06",
+        "comments": null
+      },
+      {
+        "date": "19/01/2026",
+        "description": "TRANSFERENCIA A TERCEROS GALVAN FLORENCIA 23339359954 VARIOS BANCO DE GALICIA Y BUENOS AIRES SAU",
+        "debit": "-55.000,00",
+        "credit": "0,00",
+        "balance": "103171,06",
+        "comments": null
+      },
+      {
+        "date": "19/01/2026",
+        "description": "Compra venta de dolares SALAZAR RODRIGUEZ JOSE MANUEL 20960029314 OPERACION 00999260119182718400 Cotizacion: 1405.00000000000000 Venta Moneda Extranjera: Dólares",
+        "debit": "0,00",
+        "credit": "140.500,00",
+        "balance": "158171,06",
+        "comments": null
+      },
+      {
+        "date": "19/01/2026",
+        "description": "COMPRA DEBITO DLO*Rappi 4425XXXXXXXXXX30 A523",
+        "debit": "-16.722,00",
+        "credit": "0,00",
+        "balance": "17671,06",
+        "comments": null
+      },
+      {
+        "date": "19/01/2026",
+        "description": "COMPRA DEBITO MARIA ESTELA QUISPE LI 4425XXXXXXXXXX30 A566",
+        "debit": "-4.550,00",
+        "credit": "0,00",
+        "balance": "34393,06",
+        "comments": null
+      },
+      {
+        "date": "19/01/2026",
+        "description": "TRANSFERENCIA A TERCEROS Roberto Carlos Maciel 20280305902 VARIOS MERCADO LIBRE SRL",
+        "debit": "-18.000,00",
+        "credit": "0,00",
+        "balance": "38943,06",
+        "comments": null
+      },
+      {
+        "date": "19/01/2026",
+        "description": "TRANSFERENCIA A TERCEROS Xiaolan Zhang 27957492288 VARIOS MERCADO LIBRE SRL",
+        "debit": "-28.300,00",
+        "credit": "0,00",
+        "balance": "56943,06",
+        "comments": null
+      },
+      {
+        "date": "19/01/2026",
+        "description": "COMPRA DEBITO CASA JAPONESA-CASA JAPON 4425XXXXXXXXXX30 A505",
+        "debit": "-54.000,00",
+        "credit": "0,00",
+        "balance": "85243,06",
+        "comments": null
+      },
+      {
+        "date": "19/01/2026",
+        "description": "COMPRA DEBITO CASA JAPONESA 4425XXXXXXXXXX30 A203",
+        "debit": "-79.200,00",
+        "credit": "0,00",
+        "balance": "139243,06",
+        "comments": null
+      },
+      {
+        "date": "19/01/2026",
+        "description": "Compra venta de dolares SALAZAR RODRIGUEZ JOSE MANUEL 20960029314 OPERACION 00999260118143403827 Cotizacion: 1405.00000000000000 Venta Moneda Extranjera: Dólares",
+        "debit": "0,00",
+        "credit": "140.500,00",
+        "balance": "218443,06",
+        "comments": null
+      },
+      {
+        "date": "19/01/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-3.896,00",
+        "credit": "0,00",
+        "balance": "77943,06",
+        "comments": null
+      },
+      {
+        "date": "19/01/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-28.284,00",
+        "credit": "0,00",
+        "balance": "81839,06",
+        "comments": null
+      },
+      {
+        "date": "19/01/2026",
+        "description": "COMPRA DEBITO DLO*Rappi 4425XXXXXXXXXX30 A523",
+        "debit": "-2.000,00",
+        "credit": "0,00",
+        "balance": "110123,06",
+        "comments": null
+      },
+      {
+        "date": "19/01/2026",
+        "description": "COMPRA DEBITO DLO*Rappi 4425XXXXXXXXXX30 A523",
+        "debit": "-8.313,00",
+        "credit": "0,00",
+        "balance": "112123,06",
+        "comments": null
+      },
+      {
+        "date": "19/01/2026",
+        "description": "TRANSFERENCIA A TERCEROS Noel Idilberto Salvio Verastegui 20941436626 VARIOS MERCADO LIBRE SRL",
+        "debit": "-16.560,00",
+        "credit": "0,00",
+        "balance": "120436,06",
+        "comments": null
+      },
+      {
+        "date": "19/01/2026",
+        "description": "COMPRA DEBITO MERPAGO*PUPS 4425XXXXXXXXXX30 A738",
+        "debit": "-5.200,00",
+        "credit": "0,00",
+        "balance": "136996,06",
+        "comments": null
+      },
+      {
+        "date": "19/01/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-3.790,00",
+        "credit": "0,00",
+        "balance": "142196,06",
+        "comments": null
+      },
+      {
+        "date": "19/01/2026",
+        "description": "COMPRA DEBITO MERPAGO*SOULSURFERDRU 4425XXXXXXXXXX30 A738",
+        "debit": "-8.500,00",
+        "credit": "0,00",
+        "balance": "145986,06",
+        "comments": null
+      },
+      {
+        "date": "19/01/2026",
+        "description": "COMPRA DEBITO MERPAGO*SOULSURFERDRU 4425XXXXXXXXXX30 A738",
+        "debit": "-3.500,00",
+        "credit": "0,00",
+        "balance": "154486,06",
+        "comments": null
+      },
+      {
+        "date": "19/01/2026",
+        "description": "EXTRACCION CAJERO 4425XXXXXXXXXX30 A878",
+        "debit": "-30.000,00",
+        "credit": "0,00",
+        "balance": "157986,06",
+        "comments": null
+      },
+      {
+        "date": "16/01/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-5.884,00",
+        "credit": "0,00",
+        "balance": "187986,06",
+        "comments": null
+      },
+      {
+        "date": "16/01/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-5.395,00",
+        "credit": "0,00",
+        "balance": "193870,06",
+        "comments": null
+      },
+      {
+        "date": "16/01/2026",
+        "description": "TRANSF. CTAS PROPIAS CU 20960029314 0170012140000006264813 FNCS 4425XXXXXXXXXX30 VARIOS",
+        "debit": "-29.000,00",
+        "credit": "0,00",
+        "balance": "199265,06",
+        "comments": null
+      },
+      {
+        "date": "16/01/2026",
+        "description": "TRANSF. CTAS PROPIAS CU 20960029314 4530000800018108050928 NRJX VARIOS 4425XXXXXXXXXX30",
+        "debit": "-99.000,00",
+        "credit": "0,00",
+        "balance": "228265,06",
+        "comments": null
+      },
+      {
+        "date": "16/01/2026",
+        "description": "Compra venta de dolares SALAZAR RODRIGUEZ JOSE MANUEL 20960029314 OPERACION 00999260116170807645 Cotizacion: 1400.00000000000000 Venta Moneda Extranjera: Dólares",
+        "debit": "0,00",
+        "credit": "210.000,00",
+        "balance": "327265,06",
+        "comments": null
+      },
+      {
+        "date": "16/01/2026",
+        "description": "ANULACION PERCEPCION RG 5617/24",
+        "debit": "0,00",
+        "credit": "300,30",
+        "balance": "117265,06",
+        "comments": null
+      },
+      {
+        "date": "16/01/2026",
+        "description": "DEV.COMPRA GALICIA 24-ELECTRON 4425XXXXXXXXXX30 A171",
+        "debit": "0,00",
+        "credit": "1.000,00",
+        "balance": "116964,76",
+        "comments": null
+      },
+      {
+        "date": "16/01/2026",
+        "description": "PERCEPCION RG 5617/24",
+        "debit": "-300,30",
+        "credit": "0,00",
+        "balance": "115964,76",
+        "comments": null
+      },
+      {
+        "date": "16/01/2026",
+        "description": "COMPRA DEBITO UBER SHOPPER STATEMENT 4425XXXXXXXXXX30 A171",
+        "debit": "-1.000,00",
+        "credit": "0,00",
+        "balance": "116265,06",
+        "comments": null
+      },
+      {
+        "date": "15/01/2026",
+        "description": "DEBITO DEBIN RECURRENTE 3220001805000054570077 30703088534 NRO. LMORZP908DQV5L34NEGJ46 VARIOS",
+        "debit": "-23.298,20",
+        "credit": "0,00",
+        "balance": "117265,06",
+        "comments": null
+      },
+      {
+        "date": "15/01/2026",
+        "description": "COMPRA DEBITO ROMANO PASTAS 4425XXXXXXXXXX30 A773",
+        "debit": "-12.400,00",
+        "credit": "0,00",
+        "balance": "140563,26",
+        "comments": null
+      },
+      {
+        "date": "15/01/2026",
+        "description": "Compra venta de dolares SALAZAR RODRIGUEZ JOSE MANUEL 20960029314 OPERACION 00999260115114634600 Venta Moneda Extranjera: Dólares Cotizacion: 1430.00000000000000",
+        "debit": "0,00",
+        "credit": "143.000,00",
+        "balance": "152963,26",
+        "comments": null
+      },
+      {
+        "date": "15/01/2026",
+        "description": "TRANSFERENCIA A TERCEROS Claudia Paola Gonzalez Barrios 27943182707 VARIOS MERCADO LIBRE SRL",
+        "debit": "-45.868,00",
+        "credit": "0,00",
+        "balance": "9963,26",
+        "comments": null
+      },
+      {
+        "date": "15/01/2026",
+        "description": "TRANSFERENCIA A TERCEROS Roberto Carlos Maciel 20280305902 VARIOS MERCADO LIBRE SRL",
+        "debit": "-23.000,00",
+        "credit": "0,00",
+        "balance": "55831,26",
+        "comments": null
+      },
+      {
+        "date": "14/01/2026",
+        "description": "COMPRA DEBITO EXPRESS AV. CHICLANA 4425XXXXXXXXXX30 A884",
+        "debit": "-17.604,20",
+        "credit": "0,00",
+        "balance": "78831,26",
+        "comments": null
+      },
+      {
+        "date": "14/01/2026",
+        "description": "COMPRA DEBITO MARIA ESTELA QUISPE LI 4425XXXXXXXXXX30 A566",
+        "debit": "-17.696,00",
+        "credit": "0,00",
+        "balance": "96435,46",
+        "comments": null
+      },
+      {
+        "date": "13/01/2026",
+        "description": "TRANSFERENCIA A TERCEROS Claudia Paola Gonzalez Barrios 27943182707 VARIOS MERCADO LIBRE SRL",
+        "debit": "-33.445,00",
+        "credit": "0,00",
+        "balance": "114131,46",
+        "comments": null
+      },
+      {
+        "date": "13/01/2026",
+        "description": "Compra venta de dolares SALAZAR RODRIGUEZ JOSE MANUEL 20960029314 OPERACION 00999260113201021247 Cotizacion: 1430.00000000000000 Venta Moneda Extranjera: Dólares",
+        "debit": "0,00",
+        "credit": "143.000,00",
+        "balance": "147576,46",
+        "comments": null
+      },
+      {
+        "date": "13/01/2026",
+        "description": "COMPRA DEBITO DLO*Rappi 4425XXXXXXXXXX30 A523",
+        "debit": "-1.500,00",
+        "credit": "0,00",
+        "balance": "4576,46",
+        "comments": null
+      },
+      {
+        "date": "13/01/2026",
+        "description": "COMPRA DEBITO DLO*Rappi 4425XXXXXXXXXX30 A523",
+        "debit": "-16.162,00",
+        "credit": "0,00",
+        "balance": "6076,46",
+        "comments": null
+      },
+      {
+        "date": "13/01/2026",
+        "description": "DEBITO DEBIN RECURRENTE 3220001805000054570077 30703088534 NRO. 67REZ8NPQD1L6YO194KVGO VARIOS",
+        "debit": "-30.159,99",
+        "credit": "0,00",
+        "balance": "22238,46",
+        "comments": null
+      },
+      {
+        "date": "13/01/2026",
+        "description": "TRANSFERENCIA A TERCEROS GALVAN FLORENCIA 23339359954 VARIOS BANCO DE GALICIA Y BUENOS AIRES SAU",
+        "debit": "-55.000,00",
+        "credit": "0,00",
+        "balance": "52398,45",
+        "comments": null
+      },
+      {
+        "date": "12/01/2026",
+        "description": "TRANSFERENCIA A TERCEROS Richard Orlando Perez Sierra 20959025364 VARIOS MERCADO LIBRE SRL",
+        "debit": "-6.000,00",
+        "credit": "0,00",
+        "balance": "107398,45",
+        "comments": null
+      },
+      {
+        "date": "12/01/2026",
+        "description": "TRANSFERENCIA A TERCEROS Roberto Carlos Maciel 20280305902 VARIOS MERCADO LIBRE SRL",
+        "debit": "-23.000,00",
+        "credit": "0,00",
+        "balance": "113398,45",
+        "comments": null
+      },
+      {
+        "date": "12/01/2026",
+        "description": "TRANSFERENCIA A TERCEROS CU 20960044887 0170044240000032375084 FNCS 4425XXXXXXXXXX30 VARIOS",
+        "debit": "-2.000,00",
+        "credit": "0,00",
+        "balance": "136398,45",
+        "comments": null
+      },
+      {
+        "date": "12/01/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-6.740,00",
+        "credit": "0,00",
+        "balance": "138398,45",
+        "comments": null
+      },
+      {
+        "date": "12/01/2026",
+        "description": "REINTEGRO PROMOCION GALICIA MODO 40% en Acai",
+        "debit": "0,00",
+        "credit": "9.501,52",
+        "balance": "145138,45",
+        "comments": null
+      },
+      {
+        "date": "12/01/2026",
+        "description": "COMPRA DEBITO ACAI BRASIL-ACAI BRASIL 4425XXXXXXXXXX30 A490",
+        "debit": "-23.753,80",
+        "credit": "0,00",
+        "balance": "135636,93",
+        "comments": null
+      },
+      {
+        "date": "12/01/2026",
+        "description": "COMPRA DEBITO MERPAGO*MERAKIFOOD 4425XXXXXXXXXX30 A007",
+        "debit": "-213.300,00",
+        "credit": "0,00",
+        "balance": "159390,73",
+        "comments": null
+      },
+      {
+        "date": "12/01/2026",
+        "description": "TRANSFERENCIA DE TERCEROS MELISSA JENNIFER CAMPBELL GONZALEZ 27960305480 VARIOS BANCO DE GALICIA Y BUENOS AIRES SAU",
+        "debit": "0,00",
+        "credit": "60.500,00",
+        "balance": "372690,73",
+        "comments": null
+      },
+      {
+        "date": "12/01/2026",
+        "description": "TRANSFERENCIA DE TERCEROS SALAZAR/ENIS WILMER JESU 20960044887 0170044240000032375084 44323750800 4517XXXXXXXXXX07 VARIOS",
+        "debit": "0,00",
+        "credit": "32.000,00",
+        "balance": "312190,73",
+        "comments": null
+      },
+      {
+        "date": "12/01/2026",
+        "description": "Compra venta de dolares SALAZAR RODRIGUEZ JOSE MANUEL 20960029314 OPERACION 00999260111151211244 Cotizacion: 1435.00000000000000 Venta Moneda Extranjera: Dólares",
+        "debit": "0,00",
+        "credit": "165.025,00",
+        "balance": "280190,73",
+        "comments": null
+      },
+      {
+        "date": "12/01/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-5.535,00",
+        "credit": "0,00",
+        "balance": "115165,73",
+        "comments": null
+      },
+      {
+        "date": "12/01/2026",
+        "description": "ANULACION PERCEPCION RG 5617/24",
+        "debit": "0,00",
+        "credit": "303,25",
+        "balance": "120700,73",
+        "comments": null
+      },
+      {
+        "date": "12/01/2026",
+        "description": "DEV.COMPRA GALICIA 24-ELECTRON 4425XXXXXXXXXX30 A171",
+        "debit": "0,00",
+        "credit": "1.000,00",
+        "balance": "120397,48",
+        "comments": null
+      },
+      {
+        "date": "12/01/2026",
+        "description": "PERCEPCION RG 5617/24",
+        "debit": "-303,25",
+        "credit": "0,00",
+        "balance": "119397,48",
+        "comments": null
+      },
+      {
+        "date": "12/01/2026",
+        "description": "COMPRA DEBITO UBER SHOPPER STATEMENT 4425XXXXXXXXXX30 A171",
+        "debit": "-1.000,00",
+        "credit": "0,00",
+        "balance": "119700,73",
+        "comments": null
+      },
+      {
+        "date": "12/01/2026",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-28.483,00",
+        "credit": "0,00",
+        "balance": "120700,73",
+        "comments": null
+      },
+      {
+        "date": "12/01/2026",
+        "description": "TRANSFERENCIA A TERCEROS Francisco Pollola 20924437791 VARIOS MERCADO LIBRE SRL",
+        "debit": "-96.000,00",
+        "credit": "0,00",
+        "balance": "149183,73",
+        "comments": null
+      },
+      {
+        "date": "12/01/2026",
+        "description": "Compra venta de dolares SALAZAR RODRIGUEZ JOSE MANUEL 20960029314 OPERACION 00999260111133630239 Cotizacion: 1435.00000000000000 Venta Moneda Extranjera: Dólares",
+        "debit": "0,00",
+        "credit": "215.250,00",
+        "balance": "245183,73",
+        "comments": null
+      },
+      {
+        "date": "12/01/2026",
+        "description": "TRANSFERENCIA DE TERCEROS RAUL SANTIAGO ASTUDI 20369460189 0000003100086683435748 589244014300000001 VARIOS 200004350",
+        "debit": "0,00",
+        "credit": "5.000,00",
+        "balance": "29933,73",
+        "comments": null
+      },
+      {
+        "date": "12/01/2026",
+        "description": "TRANSFERENCIA A TERCEROS CU 30643542621 0170308320000030081905 FNCS VARIOS 4425XXXXXXXXXX30",
+        "debit": "-2.500,00",
+        "credit": "0,00",
+        "balance": "24933,73",
+        "comments": null
+      },
+      {
+        "date": "12/01/2026",
+        "description": "DEBITO DEBIN RECURRENTE 3220001805000054570077 30703088534 NRO. 8D0Q619L0K7055GLN7JZ5R VARIOS",
+        "debit": "-25.000,00",
+        "credit": "0,00",
+        "balance": "27433,73",
+        "comments": null
+      },
+      {
+        "date": "12/01/2026",
+        "description": "DEBITO DEBIN RECURRENTE 3220001805000054570077 30703088534 NRO. JMQKYZ9QQP30PZY89V50P3 VARIOS",
+        "debit": "-17.900,00",
+        "credit": "0,00",
+        "balance": "52433,73",
+        "comments": null
+      },
+      {
+        "date": "12/01/2026",
+        "description": "COMPRA DEBITO MERPAGO*ATC 4425XXXXXXXXXX30 A894",
+        "debit": "-15.000,00",
+        "credit": "0,00",
+        "balance": "70333,73",
+        "comments": null
+      },
+      {
+        "date": "09/01/2026",
+        "description": "TRANSFERENCIA A TERCEROS CU 20960044887 0170044240000032375084 FNCS 4425XXXXXXXXXX30 VARIOS",
+        "debit": "-14.500,00",
+        "credit": "0,00",
+        "balance": "85333,73",
+        "comments": null
+      },
+      {
+        "date": "09/01/2026",
+        "description": "COMPRA DEBITO MERPAGO*GURRUFIODELI 4425XXXXXXXXXX30 A007",
+        "debit": "-33.180,00",
+        "credit": "0,00",
+        "balance": "99833,73",
+        "comments": null
+      },
+      {
+        "date": "09/01/2026",
+        "description": "COMPRA DEBITO MERPAGO*MERCADOPAGOPAG 4425XXXXXXXXXX30 A894",
+        "debit": "-20.844,86",
+        "credit": "0,00",
+        "balance": "133013,73",
+        "comments": null
+      },
+      {
+        "date": "09/01/2026",
+        "description": "Compra venta de dolares SALAZAR RODRIGUEZ JOSE MANUEL 20960029314 OPERACION 00999260109201818888 Venta Moneda Extranjera: Dólares Cotizacion: 1435.00000000000000",
+        "debit": "0,00",
+        "credit": "143.500,00",
+        "balance": "153858,59",
+        "comments": null
+      },
+      {
+        "date": "09/01/2026",
+        "description": "COMPRA DEBITO VASQUEZ PINOCHET SANDR 4425XXXXXXXXXX30 A253",
+        "debit": "-4.200,00",
+        "credit": "0,00",
+        "balance": "10358,59",
+        "comments": null
+      },
+      {
+        "date": "08/01/2026",
+        "description": "COMPRA DEBITO SAN AGUSTIN-SAN AGUSTIN 4425XXXXXXXXXX30 A453",
+        "debit": "-30.262,00",
+        "credit": "0,00",
+        "balance": "14558,59",
+        "comments": null
+      },
+      {
+        "date": "08/01/2026",
+        "description": "COMPRA DEBITO VETERINARIA 4425XXXXXXXXXX30 A865",
+        "debit": "-34.000,00",
+        "credit": "0,00",
+        "balance": "44820,59",
+        "comments": null
+      },
+      {
+        "date": "08/01/2026",
+        "description": "TRANSFERENCIA A TERCEROS Roberto Carlos Maciel 20280305902 VARIOS MERCADO LIBRE SRL",
+        "debit": "-23.000,00",
+        "credit": "0,00",
+        "balance": "78820,59",
+        "comments": null
+      },
+      {
+        "date": "07/01/2026",
+        "description": "COMPRA DEBITO DLO*Rappi 4425XXXXXXXXXX30 A523",
+        "debit": "-1.500,00",
+        "credit": "0,00",
+        "balance": "101820,59",
+        "comments": null
+      },
+      {
+        "date": "07/01/2026",
+        "description": "COMPRA DEBITO DLO*Rappi 4425XXXXXXXXXX30 A523",
+        "debit": "-45.002,00",
+        "credit": "0,00",
+        "balance": "103320,59",
+        "comments": null
+      },
+      {
+        "date": "07/01/2026",
+        "description": "COMPRA DEBITO EXPRESS AV. CHICLANA 4425XXXXXXXXXX30 A884",
+        "debit": "-14.052,25",
+        "credit": "0,00",
+        "balance": "148322,59",
+        "comments": null
+      },
+      {
+        "date": "06/01/2026",
+        "description": "PAGO TARJETA VISA D.A. RECICLA",
+        "debit": "-732.325,16",
+        "credit": "0,00",
+        "balance": "162374,84",
+        "comments": null
+      },
+      {
+        "date": "06/01/2026",
+        "description": "COMPRA DEBITO MERPAGO*CABNARESTOBAR 4425XXXXXXXXXX30 A738",
+        "debit": "-8.300,00",
+        "credit": "0,00",
+        "balance": "894700",
+        "comments": null
+      },
+      {
+        "date": "05/01/2026",
+        "description": "CREDITO TRANSFERENCIA COELSA Gabriela Mercedes Castro Tamaronis 27960818771",
+        "debit": "0,00",
+        "credit": "903.000,00",
+        "balance": "903000",
+        "comments": null
+      },
+      {
+        "date": "05/01/2026",
+        "description": "PAGO TARJETA VISA D.A. AL VTO",
+        "debit": "-35.754,77",
+        "credit": "0,00",
+        "balance": "0",
+        "comments": null
+      },
+      {
+        "date": "05/01/2026",
+        "description": "PAGO TARJETA VISA D.A. AL VTO",
+        "debit": "-36.296,40",
+        "credit": "0,00",
+        "balance": "35754,77",
+        "comments": null
+      },
+      {
+        "date": "29/12/2025",
+        "description": "ING. BRUTOS S/ CRED REG.RECAU.SIRCREB",
+        "debit": "-1.124,88",
+        "credit": "0,00",
+        "balance": "72051,17",
+        "comments": null
+      },
+      {
+        "date": "29/12/2025",
+        "description": "TRANSFERENCIA DE TERCEROS SALAZAR/ENIS WILMER JESU 20960044887 0170044240000032375084 VARIOS 4517XXXXXXXXXX07 44323750800",
+        "debit": "0,00",
+        "credit": "56.244,00",
+        "balance": "73176,05",
+        "comments": null
+      },
+      {
+        "date": "29/12/2025",
+        "description": "REINTEGRO PROMOCION GALICIA Havanna",
+        "debit": "0,00",
+        "credit": "12.000,00",
+        "balance": "16932,05",
+        "comments": null
+      },
+      {
+        "date": "29/12/2025",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-32.962,00",
+        "credit": "0,00",
+        "balance": "4932,05",
+        "comments": null
+      },
+      {
+        "date": "29/12/2025",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-8.329,00",
+        "credit": "0,00",
+        "balance": "37894,05",
+        "comments": null
+      },
+      {
+        "date": "29/12/2025",
+        "description": "TRANSFERENCIA A TERCEROS CU 30643542621 0170308320000030081905 FNCS VARIOS 4425XXXXXXXXXX30",
+        "debit": "-31.000,00",
+        "credit": "0,00",
+        "balance": "46223,05",
+        "comments": null
+      },
+      {
+        "date": "29/12/2025",
+        "description": "TRANSFERENCIA A TERCEROS CU 30643542621 0170308320000030081905 FNCS VARIOS 4425XXXXXXXXXX30",
+        "debit": "-31.000,00",
+        "credit": "0,00",
+        "balance": "77223,05",
+        "comments": null
+      },
+      {
+        "date": "29/12/2025",
+        "description": "TRANSFERENCIA A TERCEROS CU 30643542621 0170308320000030081905 FNCS VARIOS 4425XXXXXXXXXX30",
+        "debit": "-6.000,00",
+        "credit": "0,00",
+        "balance": "108223,05",
+        "comments": null
+      },
+      {
+        "date": "29/12/2025",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-5.880,00",
+        "credit": "0,00",
+        "balance": "114223,05",
+        "comments": null
+      },
+      {
+        "date": "29/12/2025",
+        "description": "ANULACION PERCEPCION RG 5617/24",
+        "debit": "0,00",
+        "credit": "305,02",
+        "balance": "120103,05",
+        "comments": null
+      },
+      {
+        "date": "29/12/2025",
+        "description": "DEV.COMPRA GALICIA 24-ELECTRON 4425XXXXXXXXXX30 A171",
+        "debit": "0,00",
+        "credit": "1.000,00",
+        "balance": "119798,03",
+        "comments": null
+      },
+      {
+        "date": "29/12/2025",
+        "description": "PERCEPCION RG 5617/24",
+        "debit": "-305,02",
+        "credit": "0,00",
+        "balance": "118798,03",
+        "comments": null
+      },
+      {
+        "date": "29/12/2025",
+        "description": "COMPRA DEBITO UBER SHOPPER STATEMENT 4425XXXXXXXXXX30 A171",
+        "debit": "-1.000,00",
+        "credit": "0,00",
+        "balance": "119103,05",
+        "comments": null
+      },
+      {
+        "date": "29/12/2025",
+        "description": "COMPRA DEBITO MS PATRICIOS 4425XXXXXXXXXX30 A061",
+        "debit": "-23.095,22",
+        "credit": "0,00",
+        "balance": "120103,05",
+        "comments": null
+      },
+      {
+        "date": "26/12/2025",
+        "description": "COMPRA DEBITO MERPAGO*URBANJAZZCABA 4425XXXXXXXXXX30 A894",
+        "debit": "-23.799,00",
+        "credit": "0,00",
+        "balance": "143198,27",
+        "comments": null
+      },
+      {
+        "date": "26/12/2025",
+        "description": "TRANSFERENCIA A TERCEROS Xiaolan Zhang 27957492288 VARIOS MERCADO LIBRE SRL",
+        "debit": "-13.700,00",
+        "credit": "0,00",
+        "balance": "166997,27",
+        "comments": null
+      },
+      {
+        "date": "26/12/2025",
+        "description": "TRANSFERENCIA A TERCEROS Angel David Navas Ramos 27962094800 VARIOS MERCADO LIBRE SRL",
+        "debit": "-349.195,00",
+        "credit": "0,00",
+        "balance": "180697,27",
+        "comments": null
+      },
+      {
+        "date": "26/12/2025",
+        "description": "DEBITO DEBIN RECURRENTE 3220001805000054570077 30703088534 NRO. D4RO172VZWKJDK5RNKJ3QE VARIOS",
+        "debit": "-19.000,00",
+        "credit": "0,00",
+        "balance": "529892,27",
+        "comments": null
+      },
+      {
+        "date": "26/12/2025",
+        "description": "COMPRA DEBITO MERPAGO*ELTOVARENOFIA 4425XXXXXXXXXX30 A007",
+        "debit": "-6.650,00",
+        "credit": "0,00",
+        "balance": "548892,27",
+        "comments": null
+      },
+      {
+        "date": "23/12/2025",
+        "description": "TRANSFERENCIA A TERCEROS Ruth Mery Vallejos Coca 27953361650 VARIOS MERCADO LIBRE SRL",
+        "debit": "-2.700,00",
+        "credit": "0,00",
+        "balance": "555542,27",
+        "comments": null
+      },
+      {
+        "date": "23/12/2025",
+        "description": "TRANSFERENCIA A TERCEROS Xiaolan Zhang 27957492288 VARIOS MERCADO LIBRE SRL",
+        "debit": "-46.100,00",
+        "credit": "0,00",
+        "balance": "558242,27",
+        "comments": null
+      },
+      {
+        "date": "23/12/2025",
+        "description": "REINTEGRO PROMOCION GALICIA SushiClub",
+        "debit": "0,00",
+        "credit": "29.230,00",
+        "balance": "604342,27",
+        "comments": null
+      },
+      {
+        "date": "23/12/2025",
+        "description": "Compra venta de dolares SALAZAR RODRIGUEZ JOSE MANUEL 20960029314 OPERACION 00999251223180732087 Venta Moneda Extranjera: Dólares Cotizacion: 1425.00000000000000",
+        "debit": "0,00",
+        "credit": "356.250,00",
+        "balance": "575112,27",
+        "comments": null
+      },
+      {
+        "date": "23/12/2025",
+        "description": "COMPRA DEBITO OSDE 4425XXXXXXXXXX30 A183",
+        "debit": "-631.429,06",
+        "credit": "0,00",
+        "balance": "218862,27",
+        "comments": null
+      },
+      {
+        "date": "23/12/2025",
+        "description": "PAGO DE SERVICIOS EDESUR 000491301800 4425XXXXXXXXXX30 A001",
+        "debit": "-59.717,90",
+        "credit": "0,00",
+        "balance": "850291,33",
+        "comments": null
+      },
+      {
+        "date": "23/12/2025",
+        "description": "COMPRA DEBITO PAYU*AR*UBER 4425XXXXXXXXXX30 A429",
+        "debit": "-14.098,00",
+        "credit": "0,00",
+        "balance": "910009,23",
+        "comments": null
+      },
+      {
+        "date": "23/12/2025",
+        "description": "TRANSF. CTAS PROPIAS CU 20960029314 0170012140000006264813 FNCS VARIOS 4425XXXXXXXXXX30",
+        "debit": "-21.000,00",
+        "credit": "0,00",
+        "balance": "924107,23",
+        "comments": null
+      },
+      {
+        "date": "23/12/2025",
+        "description": "TRANSF. CTAS PROPIAS CU 20960029314 0170012140000006264813 FNCS 4425XXXXXXXXXX30 VARIOS",
+        "debit": "-32.000,00",
+        "credit": "0,00",
+        "balance": "945107,23",
+        "comments": null
+      },
+      {
+        "date": "23/12/2025",
+        "description": "DEBITO DEBIN RECURRENTE 3220001805000054570077 30703088534 NRO. 86VRPQ2GM6VRZK3J2GLY0M VARIOS",
+        "debit": "-20.000,00",
+        "credit": "0,00",
+        "balance": "977107,23",
+        "comments": null
+      },
+      {
+        "date": "23/12/2025",
+        "description": "ANULACION PERCEPCION RG 5617/24",
+        "debit": "0,00",
+        "credit": "304,71",
+        "balance": "997107,23",
+        "comments": null
+      },
+      {
+        "date": "23/12/2025",
+        "description": "DEV.COMPRA GALICIA 24-ELECTRON 4425XXXXXXXXXX30 A171",
+        "debit": "0,00",
+        "credit": "1.000,00",
+        "balance": "996802,52",
+        "comments": null
+      },
+      {
+        "date": "23/12/2025",
+        "description": "PERCEPCION RG 5617/24",
+        "debit": "-304,71",
+        "credit": "0,00",
+        "balance": "995802,52",
+        "comments": null
+      },
+      {
+        "date": "23/12/2025",
+        "description": "COMPRA DEBITO UBER SHOPPER STATEMENT 4425XXXXXXXXXX30 A171",
+        "debit": "-1.000,00",
+        "credit": "0,00",
+        "balance": "996107,23",
+        "comments": null
+      },
+      {
+        "date": "23/12/2025",
+        "description": "COMPRA DEBITO MERPAGO*ATC 4425XXXXXXXXXX30 A894",
+        "debit": "-15.000,00",
+        "credit": "0,00",
+        "balance": "997107,23",
+        "comments": null
+      },
+      {
+        "date": "23/12/2025",
+        "description": "TRANSF. CTAS PROPIAS CU 20960029314 4530000800018108050928 NRJX 4425XXXXXXXXXX30 VARIOS",
+        "debit": "-1.000,00",
+        "credit": "0,00",
+        "balance": "1012107,23",
+        "comments": null
+      },
+      {
+        "date": "23/12/2025",
+        "description": "INGRESO DE DINERO A CUENTA PROPIA CU 20960029314 4530000800018108050928 NRJX 4425XXXXXXXXXX30 VARIOS",
+        "debit": "-45.500,00",
+        "credit": "0,00",
+        "balance": "1013107,23",
+        "comments": null
+      },
+      {
+        "date": "23/12/2025",
+        "description": "DEBITO DEBIN RECURRENTE 3220001805000054570077 30703088534 NRO. 8D0Q619L0POK3W6ZN7JZ5R VARIOS",
+        "debit": "-30.000,00",
+        "credit": "0,00",
+        "balance": "1058607,23",
+        "comments": null
+      },
+      {
+        "date": "23/12/2025",
+        "description": "TRANSFERENCIA A TERCEROS CU 27957336634 0720480188000001060368 RIOP VARIOS 4425XXXXXXXXXX30",
+        "debit": "-31.000,00",
+        "credit": "0,00",
+        "balance": "1088607,23",
+        "comments": null
+      },
+      {
+        "date": "23/12/2025",
+        "description": "TRANSFERENCIA A TERCEROS Leidys Vanessa Gomez Rojas 27959584759 VARIOS",
+        "debit": "-16.000,00",
+        "credit": "0,00",
+        "balance": "1119607,23",
+        "comments": null
+      },
+      {
+        "date": "23/12/2025",
+        "description": "COMPRA DEBITO MERPAGO*FANDEPAN 4425XXXXXXXXXX30 A894",
+        "debit": "-7.078,80",
+        "credit": "0,00",
+        "balance": "1135607,23",
+        "comments": null
+      },
+      {
+        "date": "23/12/2025",
+        "description": "Compra venta de dolares SALAZAR RODRIGUEZ JOSE MANUEL 20960029314 OPERACION 00999251223102920257 Cotizacion: 1425.00000000000000 Venta Moneda Extranjera: Dólares",
+        "debit": "0,00",
+        "credit": "1.140.000,00",
+        "balance": "1142686,03",
+        "comments": null
+      },
+      {
+        "date": "23/12/2025",
+        "description": "COMPRA DEBITO VASQUEZ PINOCHET SANDR 4425XXXXXXXXXX30 A253",
+        "debit": "-57.300,00",
+        "credit": "0,00",
+        "balance": "2686,03",
+        "comments": null
+      },
+      {
+        "date": "23/12/2025",
+        "description": "TRANSFERENCIA A TERCEROS Christian Gustavo Sosa 20368075443 VARIOS UALA",
+        "debit": "-21.000,00",
+        "credit": "0,00",
+        "balance": "59986,03",
+        "comments": null
+      },
+      {
+        "date": "22/12/2025",
+        "description": "INTERES CAPITALIZADO Diciembre 2025",
+        "debit": "0,00",
+        "credit": "0,30",
+        "balance": "80986,03",
+        "comments": null
+      },
+      {
+        "date": "22/12/2025",
+        "description": "COMPRA DEBITO MERPAGO*RINCONNORTENO 4425XXXXXXXXXX30 A894",
+        "debit": "-22.000,00",
+        "credit": "0,00",
+        "balance": "80985,73",
+        "comments": null
+      },
+      {
+        "date": "22/12/2025",
+        "description": "COMPRA DEBITO MERPAGO*CARREFOUR 4425XXXXXXXXXX30 A738",
+        "debit": "-14.214,70",
+        "credit": "0,00",
+        "balance": "102985,73",
+        "comments": null
+      },
+      {
+        "date": "22/12/2025",
+        "description": "PAGO CON TRANSFERENCIA MARIA ESTELA 23320379784 0140010603401052799765 PAGO CON TRANSF.",
+        "debit": "-26.665,00",
+        "credit": "0,00",
+        "balance": "117200,43",
+        "comments": null
+      },
+      {
+        "date": "22/12/2025",
+        "description": "Compra venta de dolares SALAZAR RODRIGUEZ JOSE MANUEL 20960029314 OPERACION 00999251222105350184 Venta Moneda Extranjera: Dólares Cotizacion: 1415.00000000000000",
+        "debit": "0,00",
+        "credit": "141.500,00",
+        "balance": "143865,43",
+        "comments": null
+      },
+      {
+        "date": "22/12/2025",
+        "description": "TRANSFERENCIA A TERCEROS SALAZAR ENIS ESTEBAN JESUS 27961683012 VARIOS BANCO DE GALICIA Y BUENOS AIRES SAU",
+        "debit": "-1.400,00",
+        "credit": "0,00",
+        "balance": "2365,43",
+        "comments": null
+      },
+      {
+        "date": "22/12/2025",
+        "description": "TRANSFERENCIA A TERCEROS Roberto Carlos Maciel 20280305902 VARIOS MERCADO LIBRE SRL",
+        "debit": "-20.000,00",
+        "credit": "0,00",
+        "balance": "3765,43",
+        "comments": null
+      },
+      {
+        "date": "22/12/2025",
+        "description": "TRANSFERENCIA A TERCEROS SALAZAR ENIS ESTEBAN JESUS 27961683012 VARIOS BANCO DE GALICIA Y BUENOS AIRES SAU",
+        "debit": "-30.000,00",
+        "credit": "0,00",
+        "balance": "23765,43",
+        "comments": null
+      },
+      {
+        "date": "22/12/2025",
+        "description": "COMPRA DEBITO MERPAGO*CASAJAPONESA 4425XXXXXXXXXX30 A738",
+        "debit": "-4.000,00",
+        "credit": "0,00",
+        "balance": "53765,43",
+        "comments": null
+      },
+      {
+        "date": "22/12/2025",
+        "description": "COMPRA DEBITO BUENOS MOMENTOS DEL PA 4425XXXXXXXXXX30 A602",
+        "debit": "-30.400,00",
+        "credit": "0,00",
+        "balance": "57765,43",
+        "comments": null
+      },
+      {
+        "date": "22/12/2025",
+        "description": "REINTEGRO PROMOCION GALICIA Especial para vos",
+        "debit": "0,00",
+        "credit": "1.000,00",
+        "balance": "88165,43",
+        "comments": null
+      },
+      {
+        "date": "19/12/2025",
+        "description": "TRANSFERENCIA A TERCEROS Melida del Valle Rodriguez 20961740208 VARIOS MERCADO LIBRE SRL",
+        "debit": "-120.000,00",
+        "credit": "0,00",
+        "balance": "87165,43",
+        "comments": null
+      },
+      {
+        "date": "19/12/2025",
+        "description": "Compra venta de dolares SALAZAR RODRIGUEZ JOSE MANUEL 20960029314 OPERACION 00999251219211852958 Cotizacion: 1415.00000000000000 Venta Moneda Extranjera: Dólares",
+        "debit": "0,00",
+        "credit": "141.500,00",
+        "balance": "207165,43",
+        "comments": null
+      },
+      {
+        "date": "19/12/2025",
+        "description": "COMPRA DEBITO MERPAGO*URBANJAZZCABA 4425XXXXXXXXXX30 A894",
+        "debit": "-57.798,00",
+        "credit": "0,00",
+        "balance": "65665,43",
+        "comments": null
+      },
+      {
+        "date": "19/12/2025",
+        "description": "TRANSFERENCIA A TERCEROS Xiaolan Zhang 27957492288 VARIOS MERCADO LIBRE SRL",
+        "debit": "-18.700,00",
+        "credit": "0,00",
+        "balance": "123463,43",
+        "comments": null
+      },
+      {
+        "date": "19/12/2025",
+        "description": "Compra venta de dolares SALAZAR RODRIGUEZ JOSE MANUEL 20960029314 OPERACION 00999251219191920882 Cotizacion: 1415.00000000000000 Venta Moneda Extranjera: Dólares",
+        "debit": "0,00",
+        "credit": "141.500,00",
+        "balance": "142163,43",
+        "comments": null
+      },
+      {
+        "date": "18/12/2025",
+        "description": "TRANSFERENCIA A TERCEROS Roberto Carlos Maciel 20280305902 VARIOS MERCADO LIBRE SRL",
+        "debit": "-20.000,00",
+        "credit": "0,00",
+        "balance": "663,43",
+        "comments": null
+      },
+      {
+        "date": "18/12/2025",
+        "description": "TRANSFERENCIA A TERCEROS Melida del Valle Rodriguez 20961740208 VARIOS MERCADO LIBRE SRL",
+        "debit": "-15.000,00",
+        "credit": "0,00",
+        "balance": "20663,43",
+        "comments": null
+      },
+      {
+        "date": "15/12/2025",
+        "description": "TRANSFERENCIA A TERCEROS CU 27957336634 0720480188000001060368 RIOP 4425XXXXXXXXXX30 VARIOS",
+        "debit": "-118.000,00",
+        "credit": "0,00",
+        "balance": "35663,43",
+        "comments": null
+      },
+      {
+        "date": "15/12/2025",
+        "description": "TRANSFERENCIA DE CUENTA PROPIA SALAZAR RODRIGUEZ JOSE MANUEL 20960029314 OPERACION 40079780624 Compra Moneda Extranjera: Dólares Cotizacion: 1415.00000000000000",
+        "debit": "0,00",
+        "credit": "141.500,00",
+        "balance": "153663,43",
+        "comments": null
+      },
+      {
+        "date": "15/12/2025",
+        "description": "REINTEGRO PROMOCION GALICIA MODO 40% en Acai",
+        "debit": "0,00",
+        "credit": "12.000,00",
+        "balance": "12163,43",
+        "comments": null
+      },
+      {
+        "date": "03/12/2025",
+        "description": "COMPRA DEBITO RAPANUI 4425XXXXXXXXXX30 A491",
+        "debit": "-18.000,00",
+        "credit": "0,00",
+        "balance": "163,43",
+        "comments": null
+      },
+      {
+        "date": "03/12/2025",
+        "description": "PAGO TARJETA VISA D.A. RECICLA",
+        "debit": "-972.586,34",
+        "credit": "0,00",
+        "balance": "18163,43",
+        "comments": null
+      },
+      {
+        "date": "03/12/2025",
+        "description": "COMPRA DEBITO RAPANUI 4425XXXXXXXXXX30 A491",
+        "debit": "-19.600,00",
+        "credit": "0,00",
+        "balance": "990749,77",
+        "comments": null
+      },
+      {
+        "date": "03/12/2025",
+        "description": "REINTEGRO PROMOCION GALICIA Kiddo",
+        "debit": "0,00",
+        "credit": "10.500,00",
+        "balance": "1010349,77",
+        "comments": null
+      },
+      {
+        "date": "03/12/2025",
+        "description": "TRANSFERENCIA DE CUENTA PROPIA JOSE MANUEL SALAZAR 20960029314 0000003100183191628087 VARIOS 589244091600000001 82478802200",
+        "debit": "0,00",
+        "credit": "233.000,00",
+        "balance": "999849,77",
+        "comments": null
+      },
+      {
+        "date": "03/12/2025",
+        "description": "PAGO DE SERVICIOS IMP.AFIP 209600293149 4425XXXXXXXXXX30 A001",
+        "debit": "-119.829,65",
+        "credit": "0,00",
+        "balance": "766849,77",
+        "comments": null
+      },
+      {
+        "date": "03/12/2025",
+        "description": "PAGO DE SERVICIOS IMP.AFIP 209600293149 4425XXXXXXXXXX30 A001",
+        "debit": "-113.320,58",
+        "credit": "0,00",
+        "balance": "886679,42",
+        "comments": null
+      },
+      {
+        "date": "03/12/2025",
+        "description": "TRANSFERENCIA DE CUENTA PROPIA JOSE MANUEL SALAZAR 20960029314 0000003100183191628087 82478802200 589244091600000001 VARIOS",
+        "debit": "0,00",
+        "credit": "1.000.000,00",
+        "balance": "1000000",
+        "comments": null
+      },
+      {
+        "date": "01/12/2025",
+        "description": "PAGO TARJETA VISA D.A. AL VTO",
+        "debit": "-243,65",
+        "credit": "0,00",
+        "balance": "0",
+        "comments": null
+      },
+      {
+        "date": "27/11/2025",
+        "description": "TRANSF. CTAS PROPIAS JOSE MANUEL SALAZAR RODRIGUEZ 20960029314 VARIOS MERCADO LIBRE SRL",
+        "debit": "-22.000,00",
+        "credit": "0,00",
+        "balance": "243,65",
+        "comments": null
+      },
+      {
+        "date": "27/11/2025",
+        "description": "TRANSFERENCIA A TERCEROS Graciela Alejo Tacuri 27940193961 VARIOS MERCADO LIBRE SRL",
+        "debit": "-2.730,00",
+        "credit": "0,00",
+        "balance": "22243,65",
+        "comments": null
+      },
+      {
+        "date": "27/11/2025",
+        "description": "PAGO CON TRANSFERENCIA MARIA ESTELA 23320379784 0140010603401052799765 PAGO CON TRANSF.",
+        "debit": "-7.000,00",
+        "credit": "0,00",
+        "balance": "24973,65",
+        "comments": null
+      },
+      {
+        "date": "26/11/2025",
+        "description": "REINTEGRO PROMOCION GALICIA MODO 40% en Acai",
+        "debit": "0,00",
+        "credit": "4.684,96",
+        "balance": "31973,65",
+        "comments": null
+      },
+      {
+        "date": "25/11/2025",
+        "description": "INTERES CAPITALIZADO Noviembre 2025",
+        "debit": "0,00",
+        "credit": "1,07",
+        "balance": "27288,69",
+        "comments": null
+      },
+      {
+        "date": "10/11/2025",
+        "description": "REINTEGRO PROMOCION GALICIA Cabify",
+        "debit": "0,00",
+        "credit": "1.347,43",
+        "balance": "27287,62",
+        "comments": null
+      },
+      {
+        "date": "10/11/2025",
+        "description": "ANULACION REINTEGRO PROMO GALICIA Cabify 005056ADC8581FD0AFB7369DFAABAF6D",
+        "debit": "-10,00",
+        "credit": "0,00",
+        "balance": "25940,19",
+        "comments": null
+      },
+      {
+        "date": "10/11/2025",
+        "description": "REINTEGRO PROMOCION GALICIA Cabify",
+        "debit": "0,00",
+        "credit": "2.652,57",
+        "balance": "25950,19",
+        "comments": null
+      },
+      {
+        "date": "10/11/2025",
+        "description": "REINTEGRO PROMOCION GALICIA Cabify",
+        "debit": "0,00",
+        "credit": "10,00",
+        "balance": "23297,62",
+        "comments": null
+      },
+      {
+        "date": "05/11/2025",
+        "description": "PAGO TARJETA VISA D.A. RECICLA",
+        "debit": "-241.712,38",
+        "credit": "0,00",
+        "balance": "23287,62",
+        "comments": null
+      },
+      {
+        "date": "05/11/2025",
+        "description": "TRANSFERENCIA DE CUENTA PROPIA JOSE MANUEL SALAZAR 20960029314 0000003100183191628087 200004350 VARIOS 589244014300000001",
+        "debit": "0,00",
+        "credit": "15.000,00",
+        "balance": "265000",
+        "comments": null
+      },
+      {
+        "date": "05/11/2025",
+        "description": "CREDITO TRANSFERENCIA Jose Manuel Salazar Rodriguez 20960029314",
+        "debit": "0,00",
+        "credit": "250.000,00",
+        "balance": "250000",
+        "comments": null
+      },
+      {
+        "date": "03/11/2025",
+        "description": "PAGO TARJETA VISA D.A. AL VTO",
+        "debit": "-3.518,21",
+        "credit": "0,00",
+        "balance": "0",
+        "comments": null
+      },
+      {
+        "date": "03/11/2025",
+        "description": "PAGO TARJETA VISA D.A. AL VTO",
+        "debit": "-25.300,20",
+        "credit": "0,00",
+        "balance": "3518,21",
+        "comments": null
+      },
+      {
+        "date": "03/11/2025",
+        "description": "PAGO TARJETA MASTER D.A. AL VTO",
+        "debit": "-182,50",
+        "credit": "0,00",
+        "balance": "28818,41",
+        "comments": null
+      },
+      {
+        "date": "29/10/2025",
+        "description": "TRANSFERENCIA DE TERCEROS SALAZAR/ENIS WILMER JESU 20960044887 0170044240000032375084 VARIOS 4517XXXXXXXXXX07 44323750800",
+        "debit": "0,00",
+        "credit": "20.700,00",
+        "balance": "29000,91",
+        "comments": null
+      },
+      {
+        "date": "27/10/2025",
+        "description": "COMPRA DEBITO EXPRESS AV. CHICLANA 4425XXXXXXXXXX30 A884",
+        "debit": "-4.120,00",
+        "credit": "0,00",
+        "balance": "8300,91",
+        "comments": null
+      },
+      {
+        "date": "27/10/2025",
+        "description": "TRANSFERENCIA A TERCEROS Ruth Mery Vallejos Coca 27953361650 VARIOS MERCADO LIBRE SRL",
+        "debit": "-2.140,00",
+        "credit": "0,00",
+        "balance": "12420,91",
+        "comments": null
+      },
+      {
+        "date": "27/10/2025",
+        "description": "TRANSFERENCIA A TERCEROS Siul Maridee Gonzalez Hernandez 27958066797 VARIOS MERCADO LIBRE SRL",
+        "debit": "-60.047,00",
+        "credit": "0,00",
+        "balance": "14560,91",
+        "comments": null
+      },
+      {
+        "date": "27/10/2025",
+        "description": "COMPRA DEBITO EXPRESS AV. CHICLANA 4425XXXXXXXXXX30 A884",
+        "debit": "-20.223,00",
+        "credit": "0,00",
+        "balance": "74607,91",
+        "comments": null
+      },
+      {
+        "date": "27/10/2025",
+        "description": "COMPRA DEBITO FAN DE PAN 4425XXXXXXXXXX30 A932",
+        "debit": "-9.825,00",
+        "credit": "0,00",
+        "balance": "94830,91",
+        "comments": null
+      },
+      {
+        "date": "27/10/2025",
+        "description": "TRANSFERENCIA A TERCEROS Leandro Amir Villca Flores 23467331779 VARIOS MERCADO LIBRE SRL",
+        "debit": "-10.694,00",
+        "credit": "0,00",
+        "balance": "104655,91",
+        "comments": null
+      },
+      {
+        "date": "27/10/2025",
+        "description": "TRANSFERENCIA A TERCEROS Angelys Klisbelys Rodriguez Aray 27959058747 VARIOS MERCADO LIBRE SRL",
+        "debit": "-18.000,00",
+        "credit": "0,00",
+        "balance": "115349,91",
+        "comments": null
+      },
+      {
+        "date": "27/10/2025",
+        "description": "TRANSFERENCIA A TERCEROS Claudia Paola Gonzalez Barrios 27943182707 VARIOS MERCADO LIBRE SRL",
+        "debit": "-40.711,00",
+        "credit": "0,00",
+        "balance": "133349,91",
+        "comments": null
+      }
+    ],
+    "total_transactions": 407
+  }
+}

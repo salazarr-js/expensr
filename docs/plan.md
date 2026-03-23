@@ -331,3 +331,4 @@ Covered by Smart Parse. Tags already belong to categories — selecting a tag au
 - Recurring records
 - Budget targets per category
 - Export to CSV/PDF
+- Auto-generated CHANGELOG.md from commits/features — see [docs/changelog-plan.md](changelog-plan.md)
