@@ -38,7 +38,8 @@ Move the 6 pure functions out of `records.ts` so they're directly importable in 
 - Returns `{ mf, d1 }` for use in tests
 
 ### `packages/api/src/test/seed.ts`
-- Inserts known test accounts: Galicia ARS, Galicia USD, Efectivo (cash)
+- Inserts known test accounts with aliases: Galicia ARS (aliases: "galicia,gal"), Galicia USD (aliases: "usd"), Efectivo (aliases: "cash"), MercadoLibre (aliases: "ml,mercado")
+- One account set as `isDefault: true` (Galicia ARS) for default fallback tests
 - Inserts known test tags under the seeded categories: Uber (Transport), Reembolso (Income), Restaurante (Dining), Celular (Personal), Padel (Leisure), Verduras (Shopping), Supermercado (Shopping), Subscriptions (Digital), Salario (Income)
 - Returns ID maps for assertions
 
@@ -62,7 +63,9 @@ Pure function tests, no DB or mocks needed. ~35 cases:
 
 **extractKeywords** — filters <3 chars and numbers, lowercases
 
-**matchAccount** — partial match both directions, no match → null
+**matchAccount** — exact alias match (priority), partial name match both directions, no match → null
+
+**matchTagByName** (inline in parse) — exact match first ("uber" → Uber), then partial/contains ("super" → Supermercado, "farm" → Farmacia, "mercado" → Supermercado). Brand names with no matching tag return null ("carrefour", "movistar").
 
 ### Integration: `packages/api/src/routes/records.parse.test.ts`
 
@@ -71,26 +74,29 @@ Uses miniflare D1 + AI mock + `app.request()`. ~25 cases:
 **Real-world inputs (test.each):**
 | Input | Assert amount | Assert account | Assert tag | Assert flags |
 |---|---|---|---|---|
-| `uber 3327` | 3327 | default | Uber | — |
+| `uber 3327` | 3327 | default | Uber (name match) | — |
 | `127 reintegro galicia` | 127 | Galicia ARS | Reembolso | type=income |
 | `1281.50 reintegro galicia` | 1281.5 | Galicia ARS | Reembolso | type=income |
-| `5126 uber` | 5126 | default | Uber | — |
-| `reintegro 831.75` | 831.75 | default | Reembolso | type=income |
+| `5126 uber` | 5126 | default | Uber (name match) | — |
+| `reintegro 831.75` | 831.75 | default | null (no tag "Reintegro") | AI/keyword needed |
 | `percepcion -305.28` | 305.28 | default | null | — |
-| `uber 1000` | 1000 | default | Uber | — |
-| `clase padel robbie -30000` | 30000 | default | Padel | — |
+| `uber 1000` | 1000 | default | Uber (name match) | — |
+| `clase padel robbie -30000` | 30000 | default | Padel (name match) | — |
 | `exchange 150usd 204750` | 204750 | default | null | — |
 | `carrefour -16364.25` | 16364.25 | default | (AI) | — |
-| `verduras ruth 4500` | 4500 | default | Verduras | — |
+| `verduras ruth 4500` | 4500 | default | Verduras (name match) | — |
 | `mercadopago sbuxespejo?? 16/03/26 11500` | 11500 | default | null | needsReview, date=2026-03-16 |
 | `tranf angelica salvatierra vargas??? 16/03/26 -20000` | 20000 | default | null | needsReview, date=2026-03-16 |
 
 **Account resolution priority:**
-- `(galicia)` → Galicia ARS (parens match)
+- `(galicia)` → Galicia ARS (alias via parens)
+- `(usd)` → Galicia USD (alias via parens)
+- `(ml)` → MercadoLibre (alias via parens)
 - `mercadopago debito 17000 (galicia)` → Galicia ARS (parens override)
-- `127 reintegro galicia` → Galicia ARS (note word match)
+- `127 reintegro galicia` → Galicia ARS (alias in note)
 - `dev compra galicia (reintegro) 1000` → Galicia ARS (parens no match → note fallback)
-- no account match → first alphabetically (Efectivo)
+- no account match, explicit default set → uses isDefault account
+- no account match, no explicit default → most-used account (most records)
 
 **AI fallback:**
 - When no keyword mapping exists, verify AI mock is called

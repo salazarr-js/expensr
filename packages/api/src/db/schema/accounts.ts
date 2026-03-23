@@ -9,6 +9,8 @@ export const accounts = sqliteTable("accounts", {
   currency: text().notNull(),
   color: text(),
   icon: text(),
+  aliases: text(), // comma-separated lowercase shorthand for parse matching
+  isDefault: integer("is_default", { mode: "boolean" }).notNull().default(false), // explicit parse fallback
   startingBalance: real("starting_balance").notNull().default(0),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()

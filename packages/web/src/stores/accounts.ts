@@ -48,6 +48,9 @@ export const useAccountsStore = defineStore("accounts", () => {
   /** Creates a new account and appends it to the local list. */
   async function createAccount(data: CreateAccount) {
     const account = await api.post<Account>("/accounts", data);
+    if (account.isDefault) {
+      accounts.value.forEach((a) => { a.isDefault = false; });
+    }
     accounts.value.push(account);
     return account;
   }
@@ -55,6 +58,10 @@ export const useAccountsStore = defineStore("accounts", () => {
   /** Patches an account and replaces it in the local list. */
   async function updateAccount(id: number, data: UpdateAccount) {
     const account = await api.put<Account>(`/accounts/${id}`, data);
+    // If this account became default, unset others locally (API already did it server-side)
+    if (account.isDefault) {
+      accounts.value.forEach((a) => { if (a.id !== id) a.isDefault = false; });
+    }
     const index = accounts.value.findIndex((a) => a.id === id);
     if (index !== -1) accounts.value[index] = account;
     return account;

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, ref, computed, watch } from "vue";
+import { reactive, ref, computed, watch, toRef } from "vue";
 import { storeToRefs } from "pinia";
 import type { Account, CreateAccount } from "@slzr/expensr-shared";
 import { createAccountSchema, ACCOUNT_TYPES } from "@slzr/expensr-shared";
@@ -63,6 +63,8 @@ const defaultState = (): CreateAccount => ({
   currency: "",
   color: null,
   icon: null,
+  aliases: null,
+  isDefault: false,
   startingBalance: 0,
 });
 
@@ -74,6 +76,7 @@ watch(open, (isOpen) => {
   if (!isOpen) return;
   userPickedIcon.value = false;
   nameError.value = "";
+  aliasError.value = "";
   accountsStore.fetchCurrencies();
   if (props.account) {
     userPickedIcon.value = true;
@@ -83,6 +86,8 @@ watch(open, (isOpen) => {
       currency: props.account.currency,
       color: props.account.color,
       icon: props.account.icon,
+      aliases: props.account.aliases,
+      isDefault: props.account.isDefault,
       startingBalance: props.account.startingBalance,
     });
   } else {
@@ -101,6 +106,20 @@ const emit = defineEmits<{ delete: [account: Account] }>();
 const form = ref<{ submit: () => Promise<void>; errors: { message: string }[]; dirty: boolean }>();
 const loading = ref(false);
 const nameError = ref("");
+const aliasError = ref("");
+
+// UInputTags works with string[] — convert to/from comma-separated storage
+const aliasTags = computed({
+  get: () => state.aliases?.split(",").filter(Boolean) ?? [],
+  set: (tags: string[]) => {
+    const normalized = tags.map((t) => t.trim().toLowerCase()).filter(Boolean);
+    const unique = [...new Set(normalized)];
+    if (unique.length < normalized.length) {
+      aliasError.value = "Duplicate alias";
+    }
+    state.aliases = unique.length ? unique.join(",") : null;
+  },
+});
 
 const hasErrors = computed(() => !!form.value?.errors?.length);
 
@@ -108,6 +127,7 @@ const hasErrors = computed(() => !!form.value?.errors?.length);
 async function onSubmit() {
   loading.value = true;
   nameError.value = "";
+  aliasError.value = "";
   try {
     if (props.account) {
       await accountsStore.updateAccount(props.account.id, { ...state });
@@ -127,6 +147,10 @@ async function onSubmit() {
   } catch (e: unknown) {
     if (e instanceof ApiError && e.code === "DUPLICATE_NAME") {
       nameError.value = e.message;
+      return;
+    }
+    if (e instanceof ApiError && e.code === "DUPLICATE_ALIAS") {
+      aliasError.value = e.message;
       return;
     }
     useToast().add({
@@ -178,6 +202,14 @@ async function onSubmit() {
             <IconPicker v-model="state.icon" @update:model-value="userPickedIcon = true" />
           </UFormField>
         </div>
+
+        <UFormField label="Aliases" name="aliases" hint="For quick input" :error="aliasError || undefined">
+          <UInputTags v-model="aliasTags" placeholder="Add alias..." class="w-full" @update:model-value="aliasError = ''" />
+        </UFormField>
+
+        <UFormField name="isDefault">
+          <UCheckbox v-model="state.isDefault" label="Default account" description="Used as fallback when no account is specified in quick input" />
+        </UFormField>
       </UForm>
     </template>
 

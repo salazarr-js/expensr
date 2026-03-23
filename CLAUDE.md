@@ -130,10 +130,10 @@ Hono app with `.basePath("/api")`. Current routes:
 - `PUT /api/records/:id` — update record (preserves time when only date changes)
 - `DELETE /api/records/:id` — delete record
 - `POST /api/records/reorder` — reorder record via datetime adjustment ({id, afterId?, beforeId?})
-- `POST /api/records/parse` — two-pass smart parse: keyword dictionary lookup (instant) → AI fallback (Workers AI). Returns ParsedRecord shape.
+- `POST /api/records/parse` — smart parse: direct tag name match → keyword dictionary → AI fallback (Workers AI). Returns ParsedRecord shape.
 - `POST /api/records/parse/feedback` — store correction + upsert keyword mappings from corrected text
 
-**Smart Parse architecture:** `keyword_mappings` table stores learned word→tag/account associations. On parse, keywords are looked up first — if amount + tag + account all resolve, returns instantly (no AI). Otherwise falls through to Workers AI with the full keyword dictionary as compact context. Feedback endpoint extracts keywords from prompt text and upserts mappings, so the dictionary grows with each correction.
+**Smart Parse architecture:** Three-tier tag resolution: (1) tag name match — exact then partial/contains: "uber" → Uber, "super" → Supermercado, "farm" → Farmacia (instant, no DB lookup), (2) `keyword_mappings` dictionary — learned word→tag/account associations from feedback (e.g. "carrefour" → Supermercado), (3) Workers AI fallback with keyword dictionary as context. Account resolution: aliases (exact) → name match (partial) → keyword map → default (explicit `isDefault` or most records). Accounts support user-defined aliases for shorthand in parse (e.g. "galicia" → Galicia ARS, "usd" → Galicia USD). Amounts always absolute — type field handles direction.
 
 Error responses include a `code` field for machine-readable errors (e.g., `DUPLICATE_NAME`). The frontend `ApiError` class in `useApi` preserves this code.
 

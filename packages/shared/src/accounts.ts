@@ -20,6 +20,8 @@ export interface Account {
   currency: string;
   color: string | null;
   icon: string | null;
+  aliases: string | null;
+  isDefault: boolean;
   startingBalance: number;
   balance: number;
   recordCount: number;
@@ -34,6 +36,8 @@ export const createAccountSchema = z.object({
   currency: z.string().min(3, "Must be at least 3 characters").max(10, "Must be at most 10 characters"),
   color: z.string().nullable().optional(),
   icon: z.string().nullable().optional(),
+  aliases: z.string().nullable().optional(),
+  isDefault: z.boolean().optional(),
   startingBalance: z.number({ message: "Must be a number" }).default(0),
 });
 

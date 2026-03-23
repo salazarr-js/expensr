@@ -169,10 +169,14 @@ onMounted(accountsStore.fetchAccounts);
             >
               <UIcon :name="getAccountIcon(account)" class="size-5" />
             </div>
-            <div class="min-w-0">
+            <div class="min-w-0 flex-1">
               <h3 class="text-sm font-semibold text-highlighted truncate">{{ account.name }}</h3>
-              <p class="text-xs text-muted">{{ getTypeLabel(account.type) }}</p>
+              <p class="text-xs text-muted">
+                {{ getTypeLabel(account.type) }}
+                <span v-if="account.aliases" class="text-dimmed"> · {{ account.aliases }}</span>
+              </p>
             </div>
+            <UIcon v-if="account.isDefault" name="i-lucide-star" class="size-4 shrink-0 self-start" :style="{ color: getColor(account.color)[500], fill: getColor(account.color)[500] }" />
           </div>
 
           <div class="mt-3 flex items-end justify-between gap-1">

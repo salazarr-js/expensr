@@ -50,6 +50,13 @@
       "when": 1773948574917,
       "tag": "0006_eminent_black_tarantula",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1774233773042,
+      "tag": "0007_loose_bloodstrike",
+      "breakpoints": true
     }
   ]
 }

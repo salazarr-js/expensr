@@ -178,12 +178,16 @@ function extractKeywords(text: string): string[] {
     .filter((w) => w.length >= 3 && !/^-?[\d.,]+$/.test(w));
 }
 
-/** Bidirectional partial match: "galicia" ↔ "Galicia ARS", "mercado" ↔ "MercadoLibre". */
+/** Match text against account aliases (exact) then names (partial). Aliases take priority. */
 function matchAccount(
   text: string,
-  allAccounts: { id: number; name: string; currency: string }[],
-): { id: number; name: string; currency: string } | null {
+  allAccounts: { id: number; name: string; currency: string; aliases: string | null; isDefault: boolean }[],
+): { id: number; name: string; currency: string; aliases: string | null; isDefault: boolean } | null {
   const lower = text.toLowerCase();
+  // Exact alias match first (e.g. "usd" → Galicia USD)
+  const aliasMatch = allAccounts.find((a) => a.aliases?.split(",").includes(lower));
+  if (aliasMatch) return aliasMatch;
+  // Bidirectional partial name match (e.g. "galicia" ↔ "Galicia ARS")
   return allAccounts.find((a) => a.name.toLowerCase().includes(lower)
     || lower.includes(a.name.toLowerCase())) ?? null;
 }
@@ -221,7 +225,7 @@ route.post("/parse", async (ctx) => {
       .from(tags)
       .leftJoin(categories, eq(tags.categoryId, categories.id))
       .orderBy(tags.name),
-    db.select({ id: accounts.id, name: accounts.name, currency: accounts.currency })
+    db.select({ id: accounts.id, name: accounts.name, currency: accounts.currency, aliases: accounts.aliases, isDefault: accounts.isDefault })
       .from(accounts)
       .orderBy(accounts.name),
     db.select({ id: categories.id, name: categories.name })
@@ -232,7 +236,7 @@ route.post("/parse", async (ctx) => {
   const sorted = mappings.sort((a, b) => b.usageCount - a.usageCount);
 
   // --- Account resolution: (parens) → note words → keyword map → default ---
-  let resolvedAccount: { id: number; name: string; currency: string } | null = null;
+  let resolvedAccount: typeof allAccounts[number] | null = null;
 
   if (accountText) {
     resolvedAccount = matchAccount(accountText, allAccounts);
@@ -242,12 +246,12 @@ route.post("/parse", async (ctx) => {
     }
   }
 
+  // Note word match — checks aliases then names via matchAccount
   if (!resolvedAccount && note) {
     const noteWords = note.toLowerCase().split(/\s+/);
     for (const word of noteWords) {
-      if (word.length < 3) continue;
-      const match = allAccounts.find((a) => a.name.toLowerCase().includes(word)
-        || word.includes(a.name.toLowerCase()));
+      if (word.length < 2) continue;
+      const match = matchAccount(word, allAccounts);
       if (match) {
         resolvedAccount = match;
         break;
@@ -262,22 +266,42 @@ route.post("/parse", async (ctx) => {
     }
   }
 
+  // Default: explicit isDefault → most records (first in usage-sorted list)
   if (!resolvedAccount && allAccounts.length) {
-    resolvedAccount = allAccounts[0];
+    resolvedAccount = allAccounts.find((a) => a.isDefault) ?? allAccounts[0];
   }
 
-  // --- Tag resolution: keyword map → AI fallback ---
+  // --- Tag resolution: tag name match → keyword map → AI fallback ---
   let resolvedTagId: number | null = null;
 
-  const kwTag = sorted.find((m) => m.tagId);
-  if (kwTag) resolvedTagId = kwTag.tagId;
+  // 1. Tag name match — exact first, then partial (contains)
+  if (keywords.length) {
+    // Exact match takes priority: "uber" → Uber
+    for (const kw of keywords) {
+      const exact = allTags.find((t) => t.name.toLowerCase() === kw);
+      if (exact) { resolvedTagId = exact.id; break; }
+    }
+    // Partial: "super" → Supermercado, "mercado" → Supermercado
+    if (!resolvedTagId) {
+      for (const kw of keywords) {
+        const partial = allTags.find((t) => t.name.toLowerCase().includes(kw) || kw.includes(t.name.toLowerCase()));
+        if (partial) { resolvedTagId = partial.id; break; }
+      }
+    }
+  }
+
+  // 2. Keyword dictionary lookup
+  if (!resolvedTagId) {
+    const kwTag = sorted.find((m) => m.tagId);
+    if (kwTag) resolvedTagId = kwTag.tagId;
+  }
 
   const matchedTag = resolvedTagId ? allTags.find((t) => t.id === resolvedTagId) ?? null : null;
   let matchedCategory = matchedTag?.categoryId
     ? allCategories.find((c) => c.id === matchedTag.categoryId) ?? null
     : null;
 
-  // AI fallback — only when keywords didn't resolve a tag
+  // 3. AI fallback — only when name + keywords didn't resolve a tag
   if (!matchedTag && note) {
     // Include learned keyword→tag dictionary in the prompt so AI can leverage it
     const allMappings = await db.select().from(keywordMappings).orderBy(desc(keywordMappings.usageCount));
