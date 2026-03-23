@@ -28,8 +28,8 @@
 		"vue-router": "^5.0.3"
 	},
 	"devDependencies": {
-		"@cloudflare/vite-plugin": "^1.26.0",
-		"@cloudflare/workers-types": "^4.20260307.1",
+		"@cloudflare/vite-plugin": "^1.29.1",
+		"@cloudflare/workers-types": "^4.20260317.1",
 		"@iconify-json/simple-icons": "^1.2.73",
 		"@slzr/expensr-shared": "workspace:*",
 		"@types/node": "catalog:",

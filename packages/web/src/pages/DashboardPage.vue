@@ -1,3 +1,10 @@
+<script setup lang="ts">
+import { ref } from "vue";
+import { QuickRecordModal } from "@/components/QuickRecordModal";
+
+const showQuickRecord = ref(false);
+</script>
+
 <template>
   <UDashboardPanel>
     <template #header>
@@ -6,7 +13,7 @@
           <UDashboardSidebarCollapse />
         </template>
         <template #right>
-          <UButton icon="i-lucide-zap" label="Quick record" />
+          <UButton icon="i-lucide-sparkles" label="Quick record" @click="showQuickRecord = true" />
         </template>
       </UDashboardNavbar>
     </template>
@@ -19,4 +26,6 @@
       </div>
     </template>
   </UDashboardPanel>
+
+  <QuickRecordModal v-model:open="showQuickRecord" />
 </template>

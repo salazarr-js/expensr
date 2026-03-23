@@ -10,6 +10,7 @@ import { useCategoriesStore } from "@/stores/categories";
 import { formatMoneyParts } from "@/utils/money";
 import { getColor } from "@/utils/colors";
 import { RecordFormModal } from "@/components/RecordFormModal";
+import { QuickRecordModal } from "@/components/QuickRecordModal";
 import { useAlertDialog } from "@/composables/useAlertDialog";
 
 const route = useRoute();
@@ -23,6 +24,7 @@ const { records, loading, error } = storeToRefs(recordsStore);
 const { accounts } = storeToRefs(accountsStore);
 
 const showFormModal = ref(false);
+const showQuickRecord = ref(false);
 const selectedRecord = ref<RecordWithRelations | undefined>();
 
 // ── Filters (synced to URL query params) ────────────────────────────
@@ -170,7 +172,10 @@ onMounted(() => {
         </template>
 
         <template #right>
-          <UButton icon="i-lucide-plus" label="New record" @click="openCreate" />
+          <UButton icon="i-lucide-plus" label="New record" variant="outline" @click="openCreate" />
+          <UTooltip text="Quick record (AI)">
+            <UButton icon="i-lucide-sparkles" @click="showQuickRecord = true" />
+          </UTooltip>
         </template>
       </UDashboardNavbar>
 
@@ -263,6 +268,7 @@ onMounted(() => {
             <!-- Info -->
             <div class="min-w-0 flex-1">
               <p class="text-sm font-medium text-highlighted truncate">
+                <UIcon v-if="record.needsReview" name="i-lucide-circle-alert" class="size-3.5 text-amber-500 align-text-bottom mr-0.5" />
                 {{ record.tagName || record.categoryName || record.note || 'Record' }}
               </p>
               <p class="text-xs text-muted truncate">
@@ -333,7 +339,10 @@ onMounted(() => {
           </template>
 
           <template #note-cell="{ row }">
-            <span class="truncate max-w-48 inline-block">{{ row.original.note ?? "—" }}</span>
+            <div class="flex items-center gap-1">
+              <UIcon v-if="row.original.needsReview" name="i-lucide-circle-alert" class="size-3.5 text-amber-500 shrink-0" />
+              <span class="truncate max-w-48 inline-block">{{ row.original.note ?? "—" }}</span>
+            </div>
           </template>
 
           <template #amount-cell="{ row }">
@@ -350,4 +359,5 @@ onMounted(() => {
   </UDashboardPanel>
 
   <RecordFormModal v-model:open="showFormModal" :record="selectedRecord" @delete="deleteRecord" />
+  <QuickRecordModal v-model:open="showQuickRecord" />
 </template>

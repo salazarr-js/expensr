@@ -11,6 +11,7 @@ import { getColor } from "@/utils/colors";
 
 const props = defineProps<{
   record?: RecordWithRelations;
+  initialData?: Partial<CreateRecord>;
 }>();
 
 const open = defineModel<boolean>("open", { required: true });
@@ -115,6 +116,10 @@ watch(open, (isOpen) => {
       personId: props.record.personId,
       note: props.record.note,
     });
+  } else if (props.initialData) {
+    suppressTagWatch = true;
+    suppressCategoryWatch = true;
+    Object.assign(state, { ...defaultState(), ...props.initialData });
   } else {
     Object.assign(state, defaultState());
   }

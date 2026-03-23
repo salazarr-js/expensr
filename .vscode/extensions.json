@@ -2,6 +2,7 @@
   "recommendations": [
     "Vue.volar",
     "editorconfig.editorconfig",
-    "bradlc.vscode-tailwindcss"
+    "bradlc.vscode-tailwindcss",
+    "dbaeumer.vscode-eslint"
   ]
 }

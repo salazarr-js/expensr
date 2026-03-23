@@ -5,12 +5,13 @@ import { tags } from "./tags";
 import { categories } from "./categories";
 import { people } from "./people";
 
+/** Core entity. Sorted by date DESC (ISO "YYYY-MM-DDTHH:MM:SS" text, not Unix). */
 export const records = sqliteTable(
   "records",
   {
     id: integer().primaryKey({ autoIncrement: true }),
     type: text().notNull(),
-    amount: real().notNull(),
+    amount: real().notNull(), // always positive — type handles direction
     date: text().notNull(),
     accountId: integer("account_id")
       .notNull()
@@ -18,8 +19,9 @@ export const records = sqliteTable(
     tagId: integer("tag_id").references(() => tags.id),
     categoryId: integer("category_id").references(() => categories.id),
     personId: integer("person_id").references(() => people.id),
-    linkedRecordId: integer("linked_record_id"),
+    linkedRecordId: integer("linked_record_id"), // counterpart record for transfers
     note: text(),
+    needsReview: integer("needs_review", { mode: "boolean" }).notNull().default(false), // flagged via ?? in smart parse
     createdAt: integer("created_at", { mode: "timestamp" })
       .notNull()
       .default(sql`(unixepoch())`),

@@ -10,9 +10,15 @@ function getLocalD1Path() {
 
   if (!fs.existsSync(d1Dir)) return "";
 
-  const file = fs.readdirSync(d1Dir).find((f) => f.endsWith(".sqlite"));
+  const files = fs.readdirSync(d1Dir).filter((f) => f.endsWith(".sqlite"));
+  if (files.length === 0) return "";
 
-  return file ? path.join(d1Dir, file) : "";
+  // Pick the most recently modified file (multiple can exist from miniflare)
+  const file = files
+    .map((f) => ({ name: f, mtime: fs.statSync(path.join(d1Dir, f)).mtimeMs }))
+    .sort((a, b) => b.mtime - a.mtime)[0].name;
+
+  return path.join(d1Dir, file);
 }
 
 export default defineConfig({
