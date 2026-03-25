@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { storeToRefs } from "pinia";
-import type { Person } from "@slzr/expensr-shared";
+import type { Person, CreateRecord } from "@slzr/expensr-shared";
 import { usePeopleStore } from "@/stores/people";
 import { getColor } from "@/utils/colors";
 import { formatMoneyParts } from "@/utils/money";
 import { PersonFormModal } from "@/components/PersonFormModal";
+import { RecordFormModal } from "@/components/RecordFormModal";
 import { useAlertDialog } from "@/composables/useAlertDialog";
 
 const peopleStore = usePeopleStore();
@@ -14,6 +15,19 @@ const alert = useAlertDialog();
 
 const showFormModal = ref(false);
 const selectedPerson = ref<Person | undefined>();
+
+/** Settlement modal state. */
+const showSettlementModal = ref(false);
+const settlementData = ref<Partial<CreateRecord> | undefined>();
+
+/** Open settlement form pre-filled for a person. */
+function openSettlement(person: Person) {
+  settlementData.value = {
+    type: "settlement",
+    personIds: [person.id],
+  };
+  showSettlementModal.value = true;
+}
 
 function openCreate() {
   selectedPerson.value = undefined;
@@ -112,17 +126,29 @@ onMounted(peopleStore.fetchPeople);
             </div>
           </div>
 
-          <div class="mt-3 text-right">
-            <p
-              class="text-lg font-heading font-bold tracking-tight"
-              :class="person.balance > 0 ? 'text-emerald-600 dark:text-emerald-400' : person.balance < 0 ? 'text-red-600 dark:text-red-400' : 'text-muted'"
-            >
-              <template v-if="person.balance > 0">+</template>
-              {{ formatMoneyParts(person.balance).integer }}<span class="text-sm font-medium text-muted">{{ formatMoneyParts(person.balance).decimal }}</span>
-            </p>
-            <p class="text-[11px] text-muted">
-              {{ person.balance > 0 ? 'owes you' : person.balance < 0 ? 'you owe' : 'settled' }}
-            </p>
+          <div class="mt-3 flex items-end justify-between">
+            <UButton
+              v-if="person.balance > 0"
+              icon="i-lucide-banknote"
+              label="Payment"
+              size="xs"
+              variant="soft"
+              color="neutral"
+              @click.stop="openSettlement(person)"
+            />
+            <div v-else />
+            <div class="text-right">
+              <p
+                class="text-lg font-heading font-bold tracking-tight"
+                :class="person.balance > 0 ? 'text-emerald-600 dark:text-emerald-400' : person.balance < 0 ? 'text-red-600 dark:text-red-400' : 'text-muted'"
+              >
+                <template v-if="person.balance > 0">+</template>
+                {{ formatMoneyParts(person.balance).integer }}<span class="text-sm font-medium text-muted">{{ formatMoneyParts(person.balance).decimal }}</span>
+              </p>
+              <p class="text-[11px] text-muted">
+                {{ person.balance > 0 ? 'owes you' : person.balance < 0 ? 'you owe' : 'settled' }}
+              </p>
+            </div>
           </div>
         </UCard>
       </div>
@@ -130,4 +156,11 @@ onMounted(peopleStore.fetchPeople);
   </UDashboardPanel>
 
   <PersonFormModal v-model:open="showFormModal" :person="selectedPerson" @delete="deletePerson" />
+
+  <!-- Settlement modal: pre-filled with type=settlement and person -->
+  <RecordFormModal
+    v-model:open="showSettlementModal"
+    :initial-data="settlementData"
+    @update:open="!$event && peopleStore.fetchPeople()"
+  />
 </template>

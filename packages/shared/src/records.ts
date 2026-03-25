@@ -1,7 +1,11 @@
 import { z } from "zod";
 
-/** Supported record types. More planned: shared, transfer, exchange, fee. */
-export const RECORD_TYPES = ["expense", "income"] as const;
+/** Supported record types. More planned: transfer, exchange, fee. */
+export const RECORD_TYPES = ["expense", "income", "settlement"] as const;
+
+/** Split modes for shared expenses. */
+export const SPLIT_TYPES = ["equal", "weighted", "manual"] as const;
+export type SplitType = (typeof SPLIT_TYPES)[number];
 
 /** Union of RECORD_TYPES values. */
 export type RecordType = (typeof RECORD_TYPES)[number];
@@ -18,6 +22,7 @@ export interface FinancialRecord {
   linkedRecordId: number | null;
   note: string | null;
   myShares: number;
+  splitType: SplitType;
   needsReview: boolean;
   createdAt: string;
   updatedAt: string;
@@ -31,7 +36,7 @@ export interface RecordWithRelations extends FinancialRecord {
   categoryColor: string | null;
   categoryIcon: string | null;
   tagName: string | null;
-  people: { id: number; name: string }[];
+  people: { id: number; name: string; shareAmount: number }[];
 }
 
 /** Validation for creating a record. Shared by frontend forms and API. */
@@ -44,6 +49,7 @@ export const createRecordSchema = z.object({
   categoryId: z.number().nullable().optional(),
   personIds: z.array(z.number()).optional(),
   myShares: z.number().int().min(1).optional(), // how many shares the creator pays (default 1 = equal split)
+  personShares: z.array(z.object({ personId: z.number(), amount: z.number().positive() })).optional(), // manual per-person amounts
   note: z.string().max(500, "Too long").nullable().optional(),
   needsReview: z.boolean().optional(),
 });
@@ -77,6 +83,7 @@ export interface ParsedRecord {
   personIds: number[];
   personNames: string[];
   myShares: number;
+  splitType: SplitType;
   type: RecordType;
   needsReview: boolean;
 }

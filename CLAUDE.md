@@ -65,7 +65,8 @@ docs/
   03-records/            # Records CRUD, datetime ordering, filters
   04-people/             # People, shared expenses, debt tracking
   05-smart-parse/        # Smart parse algorithm, flowchart, test plan
-  06-custom-splits/      # Weighted splits, /N syntax, note→tag matching
+  06-custom-splits/      # Weighted splits, manual amounts, settlements, /N syntax
+  07-parse-logs/         # Parse logging + feedback wiring (planned, not yet implemented)
 ```
 
 ## Architecture
@@ -175,8 +176,12 @@ Error responses include a `code` field for machine-readable errors (e.g., `DUPLI
 - **Tags**: Belong to a category. Inherit category color, keep optional icon (fallback: `#`). Managed inline inside the category modal. Tag names are capitalized (first letter uppercase).
 - **Category defaults**: When no color/icon selected on category create, frontend applies: `Slate` color and `i-lucide-tag` icon.
 - **People**: People you share expenses with. Multi-person per record via `record_people` junction table. Cards show colored circle with name initial. Parse detects person names in input text. Inline create from RecordFormModal via USelectMenu `create-item` (random hue color assigned). None closes dropdown.
-- **Weighted splits**: `record_people.share_amount` stores pre-calculated debt per person. `records.my_shares` (default 1) controls how many shares the creator pays. Formula: `perShare = amount / (peopleCount + myShares)`. Equal split = myShares 1. "I pay x2" = myShares 2. Debt balance uses `sum(share_amount)` instead of runtime calculation.
+- **Split types**: `records.split_type` — 'equal' (default), 'weighted' (myShares > 1), 'manual' (per-person custom amounts). `record_people.share_amount` stores pre-calculated debt per person. Debt balance uses `sum(share_amount)`.
+- **Weighted splits**: `records.my_shares` (default 1) controls how many shares the creator pays. Formula: `perShare = amount / (peopleCount + myShares)`. UI: linked steppers [I cover N] [Split /N].
+- **Manual splits**: `personShares: [{personId, amount}]` in API. Per-person amount inputs in form. Manual amounts don't recalculate when record amount changes.
+- **Settlements**: `type: 'settlement'` — debt payment from a person. Exactly 1 person required (API-enforced). `share_amount` = full record amount. No category/tag. UI: [Expense][Payment] toggle in RecordFormModal + "Payment" shortcut on People page.
 - **Quick record /N syntax**: `102000 padel angy wilmer raulo /5` → totalShares=5, myShares=5-3=2. Stripped before other parsing.
+- **Person name capitalization**: Names auto-capitalized on create/update (API + frontend). "wilmer" → "Wilmer".
 - **Account aliases**: User-defined shorthand for parse matching (e.g. "galicia" → Galicia ARS). Stored comma-separated, unique across all accounts. Validated on create/update with `DUPLICATE_ALIAS` error code.
 - **Default account**: Explicit `isDefault` toggle (one per app). Parse fallback: isDefault account → first alphabetically. Star icon on default account card.
 - **Theme**: Light/dark/system via `UColorModeSelect` (expanded sidebar) and `UColorModeButton` (collapsed sidebar) in the sidebar footer.

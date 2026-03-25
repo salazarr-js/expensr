@@ -103,11 +103,16 @@ const PEOPLE_COLORS = APP_COLORS.filter((c) => !["Stone", "Zinc", "Gray", "Neutr
 const peopleSearch = ref("");
 const peopleOpen = ref(false);
 
+/** Capitalize first letter of each word. */
+function capitalizeName(s: string): string {
+  return s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 /** Create a person inline from the selector's "Create X" option. */
 async function onCreatePerson(name: string) {
   const color = PEOPLE_COLORS[Math.floor(Math.random() * PEOPLE_COLORS.length)]?.name ?? "Blue";
   try {
-    const person = await peopleStore.createPerson({ name, color });
+    const person = await peopleStore.createPerson({ name: capitalizeName(name), color });
     state.personIds = [...(state.personIds ?? []), person.id];
     peopleSearch.value = "";
   } catch {
@@ -125,13 +130,48 @@ function onPeopleUpdate(value: number[]) {
     state.myShares = 1;
     peopleOpen.value = false;
   } else {
-    // User selected/deselected a person → keep all real IDs
-    state.personIds = value.filter((v) => v !== 0);
+    // User selected/deselected a person
+    const selected = value.filter((v) => v !== 0);
+    // Settlements: only one person allowed — keep the latest pick and close
+    state.personIds = isSettlement.value ? selected.slice(-1) : selected;
+    if (isSettlement.value && state.personIds.length) {
+      peopleOpen.value = false;
+    }
   }
 }
 
 /** Whether the shares split section is visible (people selected + amount > 0). */
-const showSplitControls = computed(() => !!state.personIds?.length && state.amount > 0);
+const showSplitControls = computed(() => !!state.personIds?.length && state.amount > 0 && state.type !== "settlement");
+
+/** Split mode: 'auto' (equal/weighted) or 'manual' (per-person amounts). */
+const splitMode = ref<"auto" | "manual">("auto");
+
+/** Per-person manual amounts, keyed by person ID. */
+const manualAmounts = reactive<Record<number, number>>({});
+
+/** Sum of manual per-person amounts. */
+const manualTotal = computed(() => Object.values(manualAmounts).reduce((sum, v) => sum + (v || 0), 0));
+
+/** Your portion in manual mode (total - sum of person amounts). */
+const manualUserPays = computed(() => Math.max(0, state.amount - manualTotal.value));
+
+/** Pre-fill manual amounts from current equal/weighted calculation. */
+function prefillManualAmounts() {
+  const peopleCount = state.personIds?.length ?? 0;
+  if (!peopleCount) return;
+  const perShare = state.amount / (peopleCount + (state.myShares ?? 1));
+  for (const pid of state.personIds ?? []) {
+    manualAmounts[pid] = Math.round(perShare * 100) / 100;
+  }
+}
+
+/** Switch between auto and manual split modes. */
+function setSplitMode(mode: "auto" | "manual") {
+  if (mode === "manual" && splitMode.value === "auto") {
+    prefillManualAmounts();
+  }
+  splitMode.value = mode;
+}
 
 /** Currency code for the selected account. */
 const selectedCurrency = computed(() => {
@@ -177,9 +217,18 @@ watch(open, (isOpen) => {
   if (!isOpen) return;
   tagAutoMatched = false;
   noteJustSetTag = false;
-  accountsStore.fetchAccountsByUsage();
+  // Fetch data, then set default account to most-used for new records
+  accountsStore.fetchAccountsByUsage().then(() => {
+    if (!props.record && !props.initialData && accounts.value.length) {
+      state.accountId = accounts.value[0]!.id;
+    }
+  });
   categoriesStore.fetchAll();
   peopleStore.fetchPeople();
+  // Reset manual split state
+  splitMode.value = "auto";
+  Object.keys(manualAmounts).forEach((k) => delete manualAmounts[Number(k)]);
+
   if (props.record) {
     suppressTagWatch = true;
     suppressCategoryWatch = true;
@@ -194,6 +243,13 @@ watch(open, (isOpen) => {
       myShares: props.record.myShares ?? 1,
       note: props.record.note,
     });
+    // Load manual amounts from record if split was manual
+    if (props.record.splitType === "manual" && props.record.people?.length) {
+      splitMode.value = "manual";
+      for (const p of props.record.people) {
+        manualAmounts[p.id] = p.shareAmount;
+      }
+    }
   } else if (props.initialData) {
     suppressTagWatch = true;
     suppressCategoryWatch = true;
@@ -277,6 +333,9 @@ const loading = ref(false);
 
 const hasErrors = computed(() => !!form.value?.errors?.length);
 
+/** Whether the form is in settlement mode (debt payment). */
+const isSettlement = computed(() => state.type === "settlement");
+
 function getCategoryColor(colorName: string | null | undefined) {
   return getColor(colorName ?? null);
 }
@@ -285,18 +344,29 @@ function getCategoryColor(colorName: string | null | undefined) {
 async function onSubmit() {
   loading.value = true;
   try {
-    // Auto-assign type based on category
-    const selectedCategory = categories.value.find((c) => c.id === state.categoryId);
-    const type = selectedCategory?.name === INCOME_CATEGORY ? "income" : "expense";
+    // Determine record type
+    let type: CreateRecord["type"];
+    if (isSettlement.value) {
+      type = "settlement";
+    } else {
+      const selectedCategory = categories.value.find((c) => c.id === state.categoryId);
+      type = selectedCategory?.name === INCOME_CATEGORY ? "income" : "expense";
+    }
 
     // Clean up nullable fields: convert 0 to null for optional FKs
+    const hasPeople = !!state.personIds?.length;
+    const isManual = hasPeople && splitMode.value === "manual";
+
     const payload: CreateRecord = {
       ...state,
       type,
-      categoryId: state.categoryId || null,
-      tagId: state.tagId || null,
-      personIds: state.personIds?.length ? state.personIds : undefined,
-      myShares: state.personIds?.length ? (state.myShares ?? 1) : undefined,
+      categoryId: isSettlement.value ? null : (state.categoryId || null),
+      tagId: isSettlement.value ? null : (state.tagId || null),
+      personIds: hasPeople ? state.personIds : undefined,
+      myShares: hasPeople && !isManual && !isSettlement.value ? (state.myShares ?? 1) : undefined,
+      personShares: isManual
+        ? (state.personIds ?? []).map((pid) => ({ personId: pid, amount: manualAmounts[pid] || 0 }))
+        : undefined,
       note: state.note?.trim() || null,
     };
 
@@ -322,9 +392,29 @@ async function onSubmit() {
 </script>
 
 <template>
-  <UModal v-model:open="open" :title="record ? 'Edit record' : 'New record'">
+  <UModal v-model:open="open" :title="isSettlement ? 'Record payment' : (record ? 'Edit record' : 'New record')">
     <template #body>
       <UForm ref="form" :schema="createRecordSchema" :state="state" class="space-y-4" @submit="onSubmit">
+        <!-- Record type toggle -->
+        <div class="flex gap-1">
+          <UButton
+            size="xs"
+            :variant="!isSettlement ? 'solid' : 'ghost'"
+            :color="!isSettlement ? 'primary' : 'neutral'"
+            label="Expense"
+            icon="i-lucide-receipt"
+            @click="state.type = 'expense'"
+          />
+          <UButton
+            size="xs"
+            :variant="isSettlement ? 'solid' : 'ghost'"
+            :color="isSettlement ? 'primary' : 'neutral'"
+            label="Payment"
+            icon="i-lucide-banknote"
+            @click="state.type = 'settlement'"
+          />
+        </div>
+
         <div class="grid grid-cols-2 gap-4">
           <UFormField label="Amount" name="amount">
             <UInput v-model.number="state.amount" type="number" step="0.01" min="0" placeholder="0.00" class="w-full" />
@@ -355,7 +445,7 @@ async function onSubmit() {
           </USelectMenu>
         </UFormField>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div v-if="!isSettlement" class="grid grid-cols-2 gap-4">
           <UFormField label="Category" name="categoryId">
             <USelectMenu
               :model-value="state.categoryId ?? 0"
@@ -408,7 +498,7 @@ async function onSubmit() {
           <UTextarea :model-value="state.note ?? undefined" placeholder="Optional note..." :rows="2" class="w-full" @update:model-value="state.note = $event || null" />
         </UFormField>
 
-        <UFormField label="People" name="personIds">
+        <UFormField :label="isSettlement ? 'Person' : 'People'" name="personIds" :required="isSettlement">
           <USelectMenu
             :model-value="state.personIds?.length ? state.personIds : (people.length ? [0] : [])"
             v-model:open="peopleOpen"
@@ -417,7 +507,7 @@ async function onSubmit() {
             value-key="value"
             multiple
             :create-item="{ position: 'bottom' }"
-            placeholder="Shared with..."
+            :placeholder="isSettlement ? 'Who paid you?' : 'Shared with...'"
             class="w-full"
             @update:model-value="onPeopleUpdate"
             @create="onCreatePerson"
@@ -438,70 +528,129 @@ async function onSubmit() {
           </USelectMenu>
         </UFormField>
 
-        <!-- Weighted split controls (v-show keeps DOM stable, avoids closing people dropdown) -->
+        <!-- Split controls (v-show keeps DOM stable, avoids closing people dropdown) -->
         <div v-show="showSplitControls" class="rounded-lg border border-default bg-muted/30 px-3 py-2.5 space-y-2.5">
-          <div class="flex items-center justify-between">
-            <!-- I cover N shares -->
-            <div class="flex items-center gap-2">
-              <span class="text-xs text-muted uppercase tracking-wide">I cover</span>
-              <div class="flex items-center gap-0.5">
-                <UButton
-                  icon="i-lucide-minus"
-                  size="xs"
-                  variant="ghost"
-                  color="neutral"
-                  :disabled="(state.myShares ?? 1) <= 1"
-                  @click="state.myShares = Math.max(1, (state.myShares ?? 1) - 1)"
-                />
-                <span class="w-5 text-center text-sm font-semibold tabular-nums">{{ state.myShares ?? 1 }}</span>
-                <UButton
-                  icon="i-lucide-plus"
-                  size="xs"
-                  variant="ghost"
-                  color="neutral"
-                  @click="state.myShares = (state.myShares ?? 1) + 1"
-                />
-              </div>
-            </div>
-            <!-- Split /N total -->
-            <div class="flex items-center gap-2">
-              <span class="text-xs text-muted uppercase tracking-wide">Split</span>
-              <div class="flex items-center gap-0.5">
-                <UButton
-                  icon="i-lucide-minus"
-                  size="xs"
-                  variant="ghost"
-                  color="neutral"
-                  :disabled="splitSummary.totalShares <= (state.personIds?.length ?? 0) + 1"
-                  @click="setTotalShares(splitSummary.totalShares - 1)"
-                />
-                <span class="w-5 text-center text-sm font-semibold tabular-nums">/{{ splitSummary.totalShares }}</span>
-                <UButton
-                  icon="i-lucide-plus"
-                  size="xs"
-                  variant="ghost"
-                  color="neutral"
-                  @click="setTotalShares(splitSummary.totalShares + 1)"
-                />
-              </div>
-            </div>
+          <!-- Mode toggle -->
+          <div class="flex gap-1">
+            <UButton
+              size="xs"
+              :variant="splitMode === 'auto' ? 'solid' : 'ghost'"
+              :color="splitMode === 'auto' ? 'primary' : 'neutral'"
+              label="Equal"
+              @click="setSplitMode('auto')"
+            />
+            <UButton
+              size="xs"
+              :variant="splitMode === 'manual' ? 'solid' : 'ghost'"
+              :color="splitMode === 'manual' ? 'primary' : 'neutral'"
+              label="Manual"
+              @click="setSplitMode('manual')"
+            />
           </div>
-          <!-- Money breakdown -->
-          <div class="flex items-center justify-between text-xs">
-            <span class="text-muted">
-              Each pays
-              <span class="font-medium text-default">{{ formatMoneyParts(splitSummary.perShare).integer }}{{ formatMoneyParts(splitSummary.perShare).decimal }}</span>
-              {{ selectedCurrency }}
-            </span>
-            <span class="text-muted">
-              You pay
-              <span class="font-medium" :class="(state.myShares ?? 1) > 1 ? 'text-teal-600 dark:text-teal-400' : 'text-default'">
-                {{ formatMoneyParts(splitSummary.userPays).integer }}{{ formatMoneyParts(splitSummary.userPays).decimal }}
+
+          <!-- Auto mode: equal/weighted steppers -->
+          <template v-if="splitMode === 'auto'">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-muted uppercase tracking-wide">I cover</span>
+                <div class="flex items-center gap-0.5">
+                  <UButton
+                    icon="i-lucide-minus"
+                    size="xs"
+                    variant="ghost"
+                    color="neutral"
+                    :disabled="(state.myShares ?? 1) <= 1"
+                    @click="state.myShares = Math.max(1, (state.myShares ?? 1) - 1)"
+                  />
+                  <span class="w-5 text-center text-sm font-semibold tabular-nums">{{ state.myShares ?? 1 }}</span>
+                  <UButton
+                    icon="i-lucide-plus"
+                    size="xs"
+                    variant="ghost"
+                    color="neutral"
+                    @click="state.myShares = (state.myShares ?? 1) + 1"
+                  />
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-muted uppercase tracking-wide">Split</span>
+                <div class="flex items-center gap-0.5">
+                  <UButton
+                    icon="i-lucide-minus"
+                    size="xs"
+                    variant="ghost"
+                    color="neutral"
+                    :disabled="splitSummary.totalShares <= (state.personIds?.length ?? 0) + 1"
+                    @click="setTotalShares(splitSummary.totalShares - 1)"
+                  />
+                  <span class="w-5 text-center text-sm font-semibold tabular-nums">/{{ splitSummary.totalShares }}</span>
+                  <UButton
+                    icon="i-lucide-plus"
+                    size="xs"
+                    variant="ghost"
+                    color="neutral"
+                    @click="setTotalShares(splitSummary.totalShares + 1)"
+                  />
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-muted">
+                Each pays
+                <span class="font-bold text-highlighted">{{ formatMoneyParts(splitSummary.perShare).integer }}{{ formatMoneyParts(splitSummary.perShare).decimal }}</span>
+                {{ selectedCurrency }}
               </span>
-              {{ selectedCurrency }}
-              <span v-if="(state.myShares ?? 1) > 1" class="text-teal-600 dark:text-teal-400 font-medium">&times;{{ (state.myShares ?? 1) }}</span>
-            </span>
-          </div>
+              <span class="text-muted">
+                You pay
+                <span
+                  class="font-bold"
+                  :class="splitSummary.userPays > splitSummary.perShare ? 'text-red-600 dark:text-red-400' : splitSummary.userPays < splitSummary.perShare ? 'text-teal-600 dark:text-teal-400' : 'text-highlighted'"
+                >
+                  {{ formatMoneyParts(splitSummary.userPays).integer }}{{ formatMoneyParts(splitSummary.userPays).decimal }}
+                </span>
+                {{ selectedCurrency }}
+                <span v-if="(state.myShares ?? 1) > 1" class="text-red-600 dark:text-red-400 font-bold">&times;{{ (state.myShares ?? 1) }}</span>
+              </span>
+            </div>
+          </template>
+
+          <!-- Manual mode: per-person amount inputs -->
+          <template v-else>
+            <div class="space-y-1.5">
+              <div
+                v-for="pid in (state.personIds ?? [])"
+                :key="pid"
+                class="flex items-center gap-2"
+              >
+                <span class="text-sm text-default w-24 truncate">{{ people.find((p) => p.id === pid)?.name }}</span>
+                <UInput
+                  :model-value="manualAmounts[pid] ?? 0"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  size="xs"
+                  class="flex-1"
+                  @update:model-value="manualAmounts[pid] = Number($event) || 0"
+                />
+                <span class="text-xs text-muted w-10">{{ selectedCurrency }}</span>
+              </div>
+            </div>
+            <div class="flex items-center justify-between text-xs">
+              <span :class="manualTotal > state.amount ? 'text-error' : 'text-muted'">
+                Total: <span class="font-bold" :class="manualTotal > state.amount ? '' : 'text-highlighted'">{{ formatMoneyParts(manualTotal).integer }}{{ formatMoneyParts(manualTotal).decimal }}</span> {{ selectedCurrency }}
+              </span>
+              <span class="text-muted">
+                You pay
+                <span
+                  class="font-bold"
+                  :class="manualUserPays > manualTotal / (state.personIds?.length || 1) ? 'text-red-600 dark:text-red-400' : manualUserPays < manualTotal / (state.personIds?.length || 1) ? 'text-teal-600 dark:text-teal-400' : 'text-highlighted'"
+                >
+                  {{ formatMoneyParts(manualUserPays).integer }}{{ formatMoneyParts(manualUserPays).decimal }}
+                </span>
+                {{ selectedCurrency }}
+              </span>
+            </div>
+          </template>
         </div>
 
         <button type="submit" hidden />
@@ -511,7 +660,12 @@ async function onSubmit() {
     <template #footer>
       <UButton v-if="record" label="Delete" icon="i-lucide-trash-2" variant="outline" color="error" @click="emit('delete', record)" />
       <UButton label="Cancel" variant="ghost" color="neutral" class="ml-auto" @click="open = false" />
-      <UButton :label="record ? 'Save changes' : 'Create record'" :loading="loading" :disabled="hasErrors || !form?.dirty" @click="form?.submit()" />
+      <UButton
+        :label="isSettlement ? 'Record payment' : (record ? 'Save changes' : 'Create record')"
+        :loading="loading"
+        :disabled="hasErrors || !form?.dirty || (isSettlement && !state.personIds?.length)"
+        @click="form?.submit()"
+      />
     </template>
   </UModal>
 </template>

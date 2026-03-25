@@ -16,13 +16,13 @@ import { parseId } from "../utils";
 
 const route = new Hono<{ Bindings: CloudflareBindings }>();
 
-/** Append current time to a date-only string. Passthrough if already has time. */
+/** Append current UTC time to a date-only string. Passthrough if already has time. */
 function ensureDatetime(date: string): string {
   if (date.includes("T")) return date;
   const now = new Date();
-  const hh = String(now.getHours()).padStart(2, "0");
-  const mm = String(now.getMinutes()).padStart(2, "0");
-  const ss = String(now.getSeconds()).padStart(2, "0");
+  const hh = String(now.getUTCHours()).padStart(2, "0");
+  const mm = String(now.getUTCMinutes()).padStart(2, "0");
+  const ss = String(now.getUTCSeconds()).padStart(2, "0");
   return `${date}T${hh}:${mm}:${ss}`;
 }
 
@@ -58,6 +58,7 @@ function recordsWithRelations(db: ReturnType<typeof createDb>) {
       linkedRecordId: records.linkedRecordId,
       note: records.note,
       myShares: records.myShares,
+      splitType: records.splitType,
       needsReview: records.needsReview,
       createdAt: records.createdAt,
       updatedAt: records.updatedAt,
@@ -74,23 +75,23 @@ function recordsWithRelations(db: ReturnType<typeof createDb>) {
     .leftJoin(tags, eq(records.tagId, tags.id));
 }
 
-/** Attach people to a list of records via record_people junction table. */
+/** Attach people + share amounts to a list of records via record_people junction table. */
 async function attachPeople<T extends { id: number }>(
   db: ReturnType<typeof createDb>,
   rows: T[],
-): Promise<(T & { people: { id: number; name: string }[] })[]> {
+): Promise<(T & { people: { id: number; name: string; shareAmount: number }[] })[]> {
   if (!rows.length) return rows.map((r) => ({ ...r, people: [] }));
   const recordIds = rows.map((r) => r.id);
   const links = await db
-    .select({ recordId: recordPeople.recordId, personId: people.id, personName: people.name })
+    .select({ recordId: recordPeople.recordId, personId: people.id, personName: people.name, shareAmount: recordPeople.shareAmount })
     .from(recordPeople)
     .innerJoin(people, eq(recordPeople.personId, people.id))
     .where(inArray(recordPeople.recordId, recordIds));
 
-  const byRecord = new Map<number, { id: number; name: string }[]>();
+  const byRecord = new Map<number, { id: number; name: string; shareAmount: number }[]>();
   for (const link of links) {
     const list = byRecord.get(link.recordId) ?? [];
-    list.push({ id: link.personId, name: link.personName });
+    list.push({ id: link.personId, name: link.personName, shareAmount: link.shareAmount });
     byRecord.set(link.recordId, list);
   }
   return rows.map((r) => ({ ...r, people: byRecord.get(r.id) ?? [] }));
@@ -103,13 +104,25 @@ async function syncRecordPeople(
   personIds: number[],
   amount: number,
   myShares: number = 1,
+  manualAmounts?: Map<number, number>,
 ) {
   await db.delete(recordPeople).where(eq(recordPeople.recordId, recordId));
   if (personIds.length) {
-    const shareAmount = amount / (personIds.length + myShares);
-    await db.insert(recordPeople).values(
-      personIds.map((personId) => ({ recordId, personId, shareAmount })),
-    );
+    if (manualAmounts?.size) {
+      // Manual mode: use provided per-person amounts
+      await db.insert(recordPeople).values(
+        personIds.map((personId) => ({
+          recordId, personId,
+          shareAmount: manualAmounts.get(personId) ?? 0,
+        })),
+      );
+    } else {
+      // Equal/weighted: auto-calculate
+      const shareAmount = amount / (personIds.length + myShares);
+      await db.insert(recordPeople).values(
+        personIds.map((personId) => ({ recordId, personId, shareAmount })),
+      );
+    }
   }
 }
 
@@ -162,10 +175,34 @@ route.post("/", async (ctx) => {
   }
 
   const db = createDb(ctx.env.DB);
-  const { personIds, ...data } = parsed.data;
+  const { personIds, personShares, ...data } = parsed.data;
 
-  const [row] = await db.insert(records).values({ ...data, date: ensureDatetime(data.date) }).returning();
-  if (personIds?.length) {
+  // Determine split type from input
+  let splitType = "equal";
+  if (personShares?.length || (data.type === "settlement" && personIds?.length === 1)) {
+    splitType = "manual";
+  } else if (data.myShares && data.myShares > 1) {
+    splitType = "weighted";
+  }
+
+  // Settlements require exactly one person
+  if (data.type === "settlement" && (!personIds?.length || personIds.length !== 1)) {
+    return ctx.json({ error: "Settlement requires exactly one person", code: "SETTLEMENT_ONE_PERSON" }, 400);
+  }
+
+  const [row] = await db.insert(records).values({ ...data, splitType, date: ensureDatetime(data.date) }).returning();
+
+  if (personShares?.length) {
+    // Manual mode: use provided per-person amounts
+    const manualAmounts = new Map(personShares.map((s) => [s.personId, s.amount]));
+    const ids = personShares.map((s) => s.personId);
+    await syncRecordPeople(db, row.id, ids, row.amount, row.myShares, manualAmounts);
+  } else if (data.type === "settlement" && personIds?.length === 1) {
+    // Settlement: person's share = full amount
+    const manualAmounts = new Map([[personIds[0], row.amount]]);
+    await syncRecordPeople(db, row.id, personIds, row.amount, 1, manualAmounts);
+  } else if (personIds?.length) {
+    // Equal/weighted: auto-calculate
     await syncRecordPeople(db, row.id, personIds, row.amount, row.myShares);
   }
   return ctx.json(row, 201);
@@ -480,6 +517,7 @@ Output format: {"tagName":string|null,"type":"expense"|"income"}`;
     personIds: matchedPeople.map((p) => p.id),
     personNames: matchedPeople.map((p) => p.name),
     myShares,
+    splitType: myShares > 1 ? "weighted" : "equal",
     type: matchedCategory?.name === "Income" ? "income" : "expense",
     needsReview,
   };
@@ -513,7 +551,17 @@ route.put("/:id", async (ctx) => {
 
   const db = createDb(ctx.env.DB);
 
-  const { personIds, ...updates } = { ...parsed.data, updatedAt: new Date() };
+  const { personIds, personShares, ...updates } = { ...parsed.data, updatedAt: new Date() };
+
+  // Determine split type override
+  const splitTypeOverride: Record<string, string> = {};
+  if (personShares?.length) {
+    splitTypeOverride.splitType = "manual";
+  } else if (updates.myShares && updates.myShares > 1) {
+    splitTypeOverride.splitType = "weighted";
+  } else if (personIds !== undefined && !personShares) {
+    splitTypeOverride.splitType = "equal";
+  }
 
   if (updates.date && !updates.date.includes("T")) {
     const existing = await db.select({ date: records.date }).from(records).where(eq(records.id, id)).get();
@@ -527,18 +575,23 @@ route.put("/:id", async (ctx) => {
 
   const [row] = await db
     .update(records)
-    .set(updates)
+    .set({ ...updates, ...splitTypeOverride })
     .where(eq(records.id, id))
     .returning();
 
   if (!row) return ctx.json({ error: "Record not found" }, 404);
 
-  // Recalculate share_amounts when people, amount, or myShares change
-  if (personIds !== undefined) {
-    // People explicitly changed — sync with new list
+  // Sync people and share_amounts
+  if (personShares?.length) {
+    // Manual mode: use provided per-person amounts
+    const manualAmounts = new Map(personShares.map((s) => [s.personId, s.amount]));
+    const ids = personShares.map((s) => s.personId);
+    await syncRecordPeople(db, id, ids, row.amount, row.myShares, manualAmounts);
+  } else if (personIds !== undefined) {
+    // People explicitly changed — sync with equal/weighted calculation
     await syncRecordPeople(db, id, personIds, row.amount, row.myShares);
-  } else if (updates.amount !== undefined || updates.myShares !== undefined) {
-    // Amount or myShares changed — recalculate for existing people
+  } else if (row.splitType !== "manual" && (updates.amount !== undefined || updates.myShares !== undefined)) {
+    // Amount or myShares changed on non-manual record — recalculate
     const currentPeople = await db
       .select({ personId: recordPeople.personId })
       .from(recordPeople)
@@ -547,6 +600,7 @@ route.put("/:id", async (ctx) => {
       await syncRecordPeople(db, id, currentPeople.map((p) => p.personId), row.amount, row.myShares);
     }
   }
+  // Manual records: don't recalculate when amount changes (amounts are explicit)
 
   return ctx.json(row);
 });

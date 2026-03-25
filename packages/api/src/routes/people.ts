@@ -10,6 +10,11 @@ import { parseId } from "../utils";
 
 const route = new Hono<{ Bindings: CloudflareBindings }>();
 
+/** Capitalize first letter of each word. */
+function capitalizeName(name: string): string {
+  return name.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 /** People with computed debt balance and shared record count. */
 function peopleWithBalance(db: ReturnType<typeof createDb>) {
   // Debt uses pre-calculated share_amount from record_people (set on create/update)
@@ -52,7 +57,8 @@ route.post("/", async (ctx) => {
   }
 
   const db = createDb(ctx.env.DB);
-  const [row] = await db.insert(people).values(parsed.data).returning();
+  const data = { ...parsed.data, name: capitalizeName(parsed.data.name) };
+  const [row] = await db.insert(people).values(data).returning();
   return ctx.json(row, 201);
 });
 
@@ -79,9 +85,10 @@ route.put("/:id", async (ctx) => {
   }
 
   const db = createDb(ctx.env.DB);
+  const data = parsed.data.name ? { ...parsed.data, name: capitalizeName(parsed.data.name) } : parsed.data;
   const [row] = await db
     .update(people)
-    .set({ ...parsed.data, updatedAt: new Date() })
+    .set({ ...data, updatedAt: new Date() })
     .where(eq(people.id, id))
     .returning();
 

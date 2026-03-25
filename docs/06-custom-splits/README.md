@@ -119,7 +119,28 @@ The note field auto-detects tags as you type (debounced 400ms, client-side only)
 | Cena 80,000 | Angy | 2 (me + Gaby) | /3 | 26,667 | 53,333 |
 | Taxi 15,000 | Angy, Wilmer, Raulo | 1 | /4 | 3,750 | 3,750 |
 
+## Manual split amounts ✅
+
+Shipped. Per-person custom amounts for complex cases.
+
+- **DB**: `records.split_type` column — 'equal' | 'weighted' | 'manual'
+- **API**: `personShares: [{personId, amount}]` in create/update schema. When present, amounts stored directly (not calculated). Manual records don't recalculate when amount changes.
+- **UI**: Segmented control [Equal][Manual] in split card. Manual mode shows per-person amount inputs with live "You pay" remainder.
+- **Edit**: When editing a manual record, `attachPeople` returns `shareAmount` per person, UI pre-fills the inputs.
+
+## Settlements ✅
+
+Shipped. "Person paid me X" — reduces their debt by the full amount.
+
+- **Type**: `'settlement'` added to `RECORD_TYPES`
+- **Validation**: API enforces exactly 1 person (`SETTLEMENT_ONE_PERSON` error)
+- **Split**: `splitType = 'manual'`, `share_amount = full record amount`
+- **No category/tag**: Settlements are debt payments, not spending
+- **Debt calc**: Already handled — settlement falls in the `else` branch (subtracts `share_amount`)
+- **UI**: [Expense][Payment] toggle in RecordFormModal. Payment mode: single person selector (closes on pick), required field, simplified form (no category/tag/split controls). "Record payment" label on submit.
+- **People page**: "Payment" shortcut button on each person card (visible when balance > 0). Opens RecordFormModal pre-filled with type=settlement and person.
+
 ## Next steps
 
-- **Manual split amounts** — per-person custom amounts in the form. Add `split_type` column ('equal' | 'weighted' | 'manual'). Accept `personShares: [{personId, amount}]` in API.
 - **Quick record per-person syntax** — `102000 padel angy:20400 wilmer:20400` (stretch goal, manual splits are more natural in the form)
+- **Parse logs + feedback wiring** — see [07-parse-logs/](../07-parse-logs/)

@@ -146,9 +146,21 @@ People you share expenses with. Multi-person per record (junction table `record_
 - [x] RecordFormModal: +/- stepper for "I cover N shares" with split summary
 - [x] Quick record `/N` syntax: `102000 padel angy wilmer raulo /5` → myShares=2
 
+### Manual split amounts ✅
+- [x] `records.split_type` column — 'equal' | 'weighted' | 'manual'
+- [x] API: `personShares: [{personId, amount}]` for custom per-person amounts
+- [x] Manual records don't recalculate when amount changes
+- [x] UI: segmented [Equal][Manual] toggle, per-person inputs with remainder
+
+### Settlements ✅
+- [x] `'settlement'` record type — exactly 1 person, share_amount = full amount
+- [x] API validation: `SETTLEMENT_ONE_PERSON` error code
+- [x] No category/tag (debt payments, not spending)
+- [x] UI: [Expense][Payment] toggle in form + "Payment" shortcut on People page
+- [x] Person selector: single-select, closes on pick, required
+
 ### Next steps (not yet implemented)
-- [ ] **Manual split amounts** — per-person custom amounts in the form for complex cases
-- [ ] **Settlements** — "Angy paid me 37200" record type to reduce debt balance. Partial settlements supported.
+- [ ] **Parse logs + feedback wiring** — log every parse call, wire up keyword learning loop. See [07-parse-logs/](07-parse-logs/)
 - [ ] **Spending calculations** — shared records count as `amount / (people + myShares) * myShares` in totals/charts instead of full amount. Your real spend, not cash flow.
 - [ ] **Dashboard widgets** — total debt others owe you, settlement history, how much others spent on you vs you on them
 
