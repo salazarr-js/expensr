@@ -71,6 +71,13 @@
       "when": 1774241045326,
       "tag": "0009_people_color_drop_avatar",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1774395579216,
+      "tag": "0010_sweet_pyro",
+      "breakpoints": true
     }
   ]
 }

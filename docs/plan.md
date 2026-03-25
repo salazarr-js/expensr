@@ -112,7 +112,7 @@ Currency is user-defined on accounts (visual only). No hardcoded rates — amoun
 
 ## 4. People — Shared Expenses ✅
 
-**Detailed plan:** [docs/people-plan.md](people-plan.md)
+**Detailed plan:** [04-people/](04-people/)
 
 People you share expenses with. Multi-person per record (junction table `record_people`), equal split by default (amount / (people + you)), debt tracking per person. Only YOUR expenses are tracked — not other people's.
 
@@ -139,9 +139,17 @@ People you share expenses with. Multi-person per record (junction table `record_
 - [x] Records table: horizontal scroll with sticky Amount column, category/tag icons with colors
 - [x] Mobile: people shown as small colored circles in record cards
 
+### Weighted splits ✅
+- [x] `record_people.share_amount` — pre-calculated debt per person
+- [x] `records.my_shares` — creator's share count (1 = equal, >1 = weighted)
+- [x] Debt calculation uses `sum(share_amount)` instead of runtime formula
+- [x] RecordFormModal: +/- stepper for "I cover N shares" with split summary
+- [x] Quick record `/N` syntax: `102000 padel angy wilmer raulo /5` → myShares=2
+
 ### Next steps (not yet implemented)
+- [ ] **Manual split amounts** — per-person custom amounts in the form for complex cases
 - [ ] **Settlements** — "Angy paid me 37200" record type to reduce debt balance. Partial settlements supported.
-- [ ] **Spending calculations** — shared records count as `amount / (people + 1)` in totals/charts instead of full amount. Your real spend, not cash flow.
+- [ ] **Spending calculations** — shared records count as `amount / (people + myShares) * myShares` in totals/charts instead of full amount. Your real spend, not cash flow.
 - [ ] **Dashboard widgets** — total debt others owe you, settlement history, how much others spent on you vs you on them
 
 ---
@@ -198,7 +206,7 @@ People you share expenses with. Multi-person per record (junction table `record_
 
 ## 6. Quick Record + Smart Parse ✅
 
-Shipped. See [docs/smart-parse.md](smart-parse.md) for full algorithm.
+Shipped. See [05-smart-parse/](05-smart-parse/) for full algorithm.
 
 - [x] `POST /api/records/parse` — smart parse: tag name match (exact → partial) → keyword dictionary → Workers AI fallback
 - [x] `POST /api/records/parse/feedback` — stores corrections, builds keyword→tag/account mappings
@@ -331,4 +339,4 @@ Covered by Smart Parse. Tags already belong to categories — selecting a tag au
 - Recurring records
 - Budget targets per category
 - Export to CSV/PDF
-- Auto-generated CHANGELOG.md from commits/features — see [docs/changelog-plan.md](changelog-plan.md)
+- Auto-generated CHANGELOG.md from commits/features — see [00-foundation/changelog-plan.md](00-foundation/changelog-plan.md)

@@ -1,8 +1,8 @@
 # Smart Parse Algorithm
 
-Flowchart: [smart-parse-flowchart.excalidraw](smart-parse-flowchart.excalidraw)
+Flowchart: [flowchart.excalidraw](flowchart.excalidraw)
 
-![Smart Parse Flowchart](smart-parse-flowchart.svg)
+![Smart Parse Flowchart](flowchart.svg)
 
 ## Input Syntax
 
@@ -12,11 +12,13 @@ Flowchart: [smart-parse-flowchart.excalidraw](smart-parse-flowchart.excalidraw)
 | `(text)` | account (alias or partial name match) | `(galicia)`, `(usd)`, `(ml)` |
 | `??` / `???` | needs review flag | `sbuxespejo??` |
 | `DD/MM/YY` or `DD/MM` | explicit date (current year if omitted) | `16/03/26`, `16/03` |
+| `/N` (at end) | total shares for weighted split | `102000 padel angy /5` → myShares=2 |
 | everything else | note / context | `mercadopago sbuxespejo` |
 
 ## Algorithm
 
 ### 1. Pre-process
+- Strip `/N` from end → set `totalSharesHint` (for weighted splits)
 - Strip `??` markers → set `needsReview: true`
 - Extract `(account)` from parentheses
 - Extract date if present (DD/MM/YY or DD/MM → use current year)
@@ -40,7 +42,11 @@ Flowchart: [smart-parse-flowchart.excalidraw](smart-parse-flowchart.excalidraw)
 After tag resolution, note keywords are matched against people names (case-insensitive partial).
 "uber angy 3500" → detects Angy. Multiple people can match. Returns `personIds[]` + `personNames[]`.
 
-### 5. Result
+### 5. Weighted splits
+If `/N` was extracted in pre-process and people were detected: `myShares = N - matchedPeople.length`.
+If result < 1, ignored (treated as equal split). Example: `102000 padel angy wilmer raulo /5` → 3 people, myShares=2.
+
+### 6. Result
 All parsed records open the edit/review modal (training phase). Once keyword dictionary has enough data, auto-save can be re-enabled for high-confidence matches.
 
 ## Keyword Dictionary
@@ -54,7 +60,7 @@ The `keyword_mappings` table learns from corrections:
 ## Resolution Priority
 
 ```
-Amount + Date + needsReview       (deterministic extraction, amount always absolute)
+/N + Amount + Date + needsReview  (deterministic extraction, amount always absolute)
          ↓
 Account: (parens) → note words → keyword map → default (isDefault or most records)
          matches aliases first, then names
@@ -62,6 +68,8 @@ Account: (parens) → note words → keyword map → default (isDefault or most 
 Tag:     tag name (exact → partial) → keyword map → AI fallback
          ↓
 Person:  match note keywords against people names (partial)
+         ↓
+Shares:  if /N and people matched → myShares = N - people count
 ```
 
 ## Examples

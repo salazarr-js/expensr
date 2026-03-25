@@ -17,6 +17,7 @@ export interface FinancialRecord {
   categoryId: number | null;
   linkedRecordId: number | null;
   note: string | null;
+  myShares: number;
   needsReview: boolean;
   createdAt: string;
   updatedAt: string;
@@ -42,6 +43,7 @@ export const createRecordSchema = z.object({
   tagId: z.number().nullable().optional(),
   categoryId: z.number().nullable().optional(),
   personIds: z.array(z.number()).optional(),
+  myShares: z.number().int().min(1).optional(), // how many shares the creator pays (default 1 = equal split)
   note: z.string().max(500, "Too long").nullable().optional(),
   needsReview: z.boolean().optional(),
 });
@@ -74,6 +76,7 @@ export interface ParsedRecord {
   date: string | null;
   personIds: number[];
   personNames: string[];
+  myShares: number;
   type: RecordType;
   needsReview: boolean;
 }

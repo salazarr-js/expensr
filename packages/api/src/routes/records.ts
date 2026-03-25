@@ -57,6 +57,7 @@ function recordsWithRelations(db: ReturnType<typeof createDb>) {
       categoryId: records.categoryId,
       linkedRecordId: records.linkedRecordId,
       note: records.note,
+      myShares: records.myShares,
       needsReview: records.needsReview,
       createdAt: records.createdAt,
       updatedAt: records.updatedAt,
@@ -95,11 +96,20 @@ async function attachPeople<T extends { id: number }>(
   return rows.map((r) => ({ ...r, people: byRecord.get(r.id) ?? [] }));
 }
 
-/** Sync record_people links for a record. */
-async function syncRecordPeople(db: ReturnType<typeof createDb>, recordId: number, personIds: number[]) {
+/** Sync record_people links and pre-calculate share_amount per person. */
+async function syncRecordPeople(
+  db: ReturnType<typeof createDb>,
+  recordId: number,
+  personIds: number[],
+  amount: number,
+  myShares: number = 1,
+) {
   await db.delete(recordPeople).where(eq(recordPeople.recordId, recordId));
   if (personIds.length) {
-    await db.insert(recordPeople).values(personIds.map((personId) => ({ recordId, personId })));
+    const shareAmount = amount / (personIds.length + myShares);
+    await db.insert(recordPeople).values(
+      personIds.map((personId) => ({ recordId, personId, shareAmount })),
+    );
   }
 }
 
@@ -156,7 +166,7 @@ route.post("/", async (ctx) => {
 
   const [row] = await db.insert(records).values({ ...data, date: ensureDatetime(data.date) }).returning();
   if (personIds?.length) {
-    await syncRecordPeople(db, row.id, personIds);
+    await syncRecordPeople(db, row.id, personIds, row.amount, row.myShares);
   }
   return ctx.json(row, 201);
 });
@@ -260,6 +270,15 @@ route.post("/parse", async (ctx) => {
 
   // Extraction order matters: each step strips its match, remainder becomes the note
   let text = parsed.data.text;
+
+  // Extract /N (total shares) before other parsing — e.g. "102000 padel angy /5"
+  let totalSharesHint: number | null = null;
+  const sharesMatch = text.match(/\s\/(\d+)\s*$/);
+  if (sharesMatch) {
+    totalSharesHint = parseInt(sharesMatch[1]);
+    text = text.slice(0, sharesMatch.index).trim();
+  }
+
   const { text: t1, needsReview } = extractNeedsReview(text);
   const { text: t2, accountText } = extractParensAccount(t1);
   const { text: t3, date } = extractDate(t2);
@@ -268,7 +287,7 @@ route.post("/parse", async (ctx) => {
   let note = noteText.trim() || null;
   const keywords = extractKeywords(noteText);
 
-  const [mappings, allTags, allAccounts, allCategories] = await Promise.all([
+  const [mappings, allTags, allAccounts, allCategories, allPeople] = await Promise.all([
     keywords.length
       ? db.select().from(keywordMappings).where(inArray(keywordMappings.keyword, keywords))
       : Promise.resolve([]),
@@ -282,6 +301,7 @@ route.post("/parse", async (ctx) => {
     db.select({ id: categories.id, name: categories.name })
       .from(categories)
       .orderBy(categories.name),
+    db.select({ id: people.id, name: people.name }).from(people),
   ]);
 
   const sorted = mappings.sort((a, b) => b.usageCount - a.usageCount);
@@ -430,7 +450,6 @@ Output format: {"tagName":string|null,"type":"expense"|"income"}`;
   }
 
   // --- Person detection: match note keywords against people names ---
-  const allPeople = await db.select({ id: people.id, name: people.name }).from(people);
   const matchedPeople: { id: number; name: string }[] = [];
   if (keywords.length && allPeople.length) {
     for (const person of allPeople) {
@@ -439,6 +458,13 @@ Output format: {"tagName":string|null,"type":"expense"|"income"}`;
         matchedPeople.push(person);
       }
     }
+  }
+
+  // Calculate myShares from /N hint: myShares = totalShares - matchedPeople
+  let myShares = 1;
+  if (totalSharesHint && matchedPeople.length) {
+    const calculated = totalSharesHint - matchedPeople.length;
+    if (calculated >= 1) myShares = calculated;
   }
 
   const result: ParsedRecord = {
@@ -453,6 +479,7 @@ Output format: {"tagName":string|null,"type":"expense"|"income"}`;
     date,
     personIds: matchedPeople.map((p) => p.id),
     personNames: matchedPeople.map((p) => p.name),
+    myShares,
     type: matchedCategory?.name === "Income" ? "income" : "expense",
     needsReview,
   };
@@ -506,9 +533,19 @@ route.put("/:id", async (ctx) => {
 
   if (!row) return ctx.json({ error: "Record not found" }, 404);
 
-  // Sync people links if personIds was provided
+  // Recalculate share_amounts when people, amount, or myShares change
   if (personIds !== undefined) {
-    await syncRecordPeople(db, id, personIds ?? []);
+    // People explicitly changed — sync with new list
+    await syncRecordPeople(db, id, personIds, row.amount, row.myShares);
+  } else if (updates.amount !== undefined || updates.myShares !== undefined) {
+    // Amount or myShares changed — recalculate for existing people
+    const currentPeople = await db
+      .select({ personId: recordPeople.personId })
+      .from(recordPeople)
+      .where(eq(recordPeople.recordId, id));
+    if (currentPeople.length) {
+      await syncRecordPeople(db, id, currentPeople.map((p) => p.personId), row.amount, row.myShares);
+    }
   }
 
   return ctx.json(row);

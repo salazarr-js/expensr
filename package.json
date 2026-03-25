@@ -27,6 +27,7 @@
     ]
   },
   "devDependencies": {
+    "better-sqlite3": "catalog:",
     "tsx": "^4.21.0"
   }
 }

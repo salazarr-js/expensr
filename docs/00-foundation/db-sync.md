@@ -4,6 +4,8 @@
 
 After local development (new categories, tags, accounts), those need to be pushed to production. Production is the source of truth for real usage — local can always be restored with `pnpm db:pull all`.
 
+**Dependency:** `better-sqlite3` must be in the root `devDependencies` (via catalog) since `scripts/db-sync.ts` runs from the root workspace.
+
 ## Usage
 
 ```bash

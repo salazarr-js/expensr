@@ -6,7 +6,7 @@ People you share expenses with (angy, wilmer, renzo). Only YOUR expenses are tra
 
 - **CRUD**: name + color, cards with colored initial circle and debt balance
 - **Multi-person records**: `record_people` junction table, replaces old single `personId` FK
-- **Debt tracking**: balance = sum of (amount / (people_count + 1)) per shared record. Positive = they owe you.
+- **Debt tracking**: balance = sum of pre-calculated `share_amount` per shared record. Positive = they owe you.
 - **Parse detection**: person names matched in input text ("uber angy 3500" → detects Angy)
 - **Records integration**: people column (overlapping colored circles), person filter, multi-select in form with None option
 - **Responsive table**: horizontal scroll with sticky Amount column
@@ -14,7 +14,7 @@ People you share expenses with (angy, wilmer, renzo). Only YOUR expenses are tra
 ## Design decisions
 
 - **You only record your expenses** — not other people's. When Angy pays for something, that's her expense, not yours.
-- **Equal split by default** — amount / (people + you). Custom split amounts is a future feature.
+- **Equal split by default** — amount / (people + you). Weighted splits shipped (see [06-custom-splits](../06-custom-splits/)). Manual per-person amounts is a future feature.
 - **No `paidBy` field** — since you only record what you paid, all shared records = you paid.
 - **Person color, no icon** — colored circle with name initial. Simple.
 

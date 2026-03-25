@@ -46,6 +46,8 @@ async function parse() {
       accountId: result.accountId ?? 0,
       categoryId: result.categoryId,
       tagId: result.tagId,
+      personIds: result.personIds?.length ? result.personIds : undefined,
+      myShares: result.myShares > 1 ? result.myShares : undefined,
       note: result.note ?? null,
       needsReview: result.needsReview || undefined,
     };

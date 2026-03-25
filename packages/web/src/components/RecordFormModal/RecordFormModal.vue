@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { reactive, ref, computed, watch } from "vue";
+import { useDebounceFn } from "@vueuse/core";
 import { storeToRefs } from "pinia";
 import type { RecordWithRelations, CreateRecord, Tag } from "@slzr/expensr-shared";
 import { createRecordSchema } from "@slzr/expensr-shared";
@@ -9,6 +10,7 @@ import { useCategoriesStore } from "@/stores/categories";
 import { usePeopleStore } from "@/stores/people";
 import { ApiError } from "@/composables/useApi";
 import { getColor } from "@/utils/colors";
+import { formatMoneyParts } from "@/utils/money";
 
 const props = defineProps<{
   record?: RecordWithRelations;
@@ -30,6 +32,8 @@ const INCOME_CATEGORY = "Income";
 /** Suppress watchers during programmatic state changes (form init, auto-assign). */
 let suppressTagWatch = false;
 let suppressCategoryWatch = false;
+let tagAutoMatched = false; // note watcher is driving the tag — can keep updating
+let noteJustSetTag = false; // consumed by tagId watcher to distinguish note vs manual change
 
 const accountOptions = computed(() =>
   accounts.value.map((a) => ({
@@ -96,13 +100,41 @@ const peopleOptions = computed(() => [
 
 /** Handle "None" toggle: selecting None clears others, selecting a person removes None. */
 function onPeopleUpdate(value: number[]) {
-  const hadNone = state.personIds?.includes(0);
+  const wasEmpty = !state.personIds?.length; // None was displayed (0 is never in state)
   const hasNone = value.includes(0);
-  if (hasNone && !hadNone) {
+  if (hasNone && !wasEmpty) {
+    // User clicked None while people were selected → clear all
     state.personIds = [];
+    state.myShares = 1;
   } else {
+    // User selected/deselected a person → keep all real IDs
     state.personIds = value.filter((v) => v !== 0);
   }
+}
+
+/** Whether the shares split section is visible (people selected + amount > 0). */
+const showSplitControls = computed(() => !!state.personIds?.length && state.amount > 0);
+
+/** Currency code for the selected account. */
+const selectedCurrency = computed(() => {
+  const account = accounts.value.find((a) => a.id === state.accountId);
+  return account?.currency ?? "";
+});
+
+/** Split summary: derived amounts for the split controls UI. */
+const splitSummary = computed(() => {
+  const peopleCount = state.personIds?.length ?? 0;
+  const myShares = state.myShares ?? 1;
+  const totalShares = peopleCount + myShares;
+  const perShare = state.amount / totalShares;
+  const userPays = perShare * myShares;
+  return { perShare, userPays, totalShares };
+});
+
+/** Update myShares from the /N (total shares) stepper. */
+function setTotalShares(n: number) {
+  const peopleCount = state.personIds?.length ?? 0;
+  state.myShares = Math.max(1, n - peopleCount);
 }
 
 function todayISO(): string {
@@ -117,6 +149,7 @@ const defaultState = (): CreateRecord => ({
   tagId: null,
   categoryId: null,
   personIds: [],
+  myShares: 1,
   note: null,
 });
 
@@ -124,6 +157,8 @@ const state = reactive<CreateRecord>(defaultState());
 
 watch(open, (isOpen) => {
   if (!isOpen) return;
+  tagAutoMatched = false;
+  noteJustSetTag = false;
   accountsStore.fetchAccountsByUsage();
   categoriesStore.fetchAll();
   peopleStore.fetchPeople();
@@ -138,6 +173,7 @@ watch(open, (isOpen) => {
       tagId: props.record.tagId,
       categoryId: props.record.categoryId,
       personIds: props.record.people?.map((p) => p.id) ?? [],
+      myShares: props.record.myShares ?? 1,
       note: props.record.note,
     });
   } else if (props.initialData) {
@@ -164,11 +200,55 @@ watch(() => state.tagId, (tagId) => {
     suppressTagWatch = false;
     return;
   }
+  if (noteJustSetTag) {
+    // Note watcher triggered this — keep auto-matching active
+    noteJustSetTag = false;
+    tagAutoMatched = true;
+  } else {
+    // User manually picked a tag — stop note auto-matching
+    tagAutoMatched = false;
+  }
+
   if (!tagId) return;
   const tag = allTags.value.find((t) => t.id === tagId);
   if (tag?.categoryId) {
     suppressCategoryWatch = true;
     state.categoryId = tag.categoryId;
+  }
+});
+
+/** Debounced note → tag matching. Keeps updating while note changes, unless user manually picked a tag. */
+const matchTagFromNote = useDebounceFn((note: string) => {
+  if (state.tagId && !tagAutoMatched) return; // user manually picked — don't override
+  const keywords = note.toLowerCase().split(/\s+/).filter((w) => w.length >= 3);
+  if (!keywords.length) return;
+  // Iterate keywords in order (first word wins). Exact match first, then partial.
+  let match = null as typeof allTags.value[number] | null;
+  for (const kw of keywords) {
+    match = allTags.value.find((t) => t.name.toLowerCase() === kw) ?? null;
+    if (match) break;
+  }
+  if (!match) {
+    for (const kw of keywords) {
+      match = allTags.value.find((t) => t.name.toLowerCase().includes(kw) || kw.includes(t.name.toLowerCase())) ?? null;
+      if (match) break;
+    }
+  }
+  if (match) {
+    noteJustSetTag = true; // consumed by tagId watcher to keep tagAutoMatched = true
+    state.tagId = match.id;
+  }
+}, 400);
+watch(() => state.note, (note) => {
+  if (note) {
+    matchTagFromNote(note);
+  } else if (tagAutoMatched) {
+    // Note cleared — remove auto-matched tag + its auto-assigned category
+    tagAutoMatched = false;
+    suppressTagWatch = true;
+    suppressCategoryWatch = true;
+    state.tagId = null;
+    state.categoryId = null;
   }
 });
 
@@ -198,6 +278,7 @@ async function onSubmit() {
       categoryId: state.categoryId || null,
       tagId: state.tagId || null,
       personIds: state.personIds?.length ? state.personIds : undefined,
+      myShares: state.personIds?.length ? (state.myShares ?? 1) : undefined,
       note: state.note?.trim() || null,
     };
 
@@ -331,6 +412,72 @@ async function onSubmit() {
             </template>
           </USelectMenu>
         </UFormField>
+
+        <!-- Weighted split controls (v-show keeps DOM stable, avoids closing people dropdown) -->
+        <div v-show="showSplitControls" class="rounded-lg border border-default bg-muted/30 px-3 py-2.5 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <!-- I cover N shares -->
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-muted uppercase tracking-wide">I cover</span>
+              <div class="flex items-center gap-0.5">
+                <UButton
+                  icon="i-lucide-minus"
+                  size="xs"
+                  variant="ghost"
+                  color="neutral"
+                  :disabled="(state.myShares ?? 1) <= 1"
+                  @click="state.myShares = Math.max(1, (state.myShares ?? 1) - 1)"
+                />
+                <span class="w-5 text-center text-sm font-semibold tabular-nums">{{ state.myShares ?? 1 }}</span>
+                <UButton
+                  icon="i-lucide-plus"
+                  size="xs"
+                  variant="ghost"
+                  color="neutral"
+                  @click="state.myShares = (state.myShares ?? 1) + 1"
+                />
+              </div>
+            </div>
+            <!-- Split /N total -->
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-muted uppercase tracking-wide">Split</span>
+              <div class="flex items-center gap-0.5">
+                <UButton
+                  icon="i-lucide-minus"
+                  size="xs"
+                  variant="ghost"
+                  color="neutral"
+                  :disabled="splitSummary.totalShares <= (state.personIds?.length ?? 0) + 1"
+                  @click="setTotalShares(splitSummary.totalShares - 1)"
+                />
+                <span class="w-5 text-center text-sm font-semibold tabular-nums">/{{ splitSummary.totalShares }}</span>
+                <UButton
+                  icon="i-lucide-plus"
+                  size="xs"
+                  variant="ghost"
+                  color="neutral"
+                  @click="setTotalShares(splitSummary.totalShares + 1)"
+                />
+              </div>
+            </div>
+          </div>
+          <!-- Money breakdown -->
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-muted">
+              Each pays
+              <span class="font-medium text-default">{{ formatMoneyParts(splitSummary.perShare).integer }}{{ formatMoneyParts(splitSummary.perShare).decimal }}</span>
+              {{ selectedCurrency }}
+            </span>
+            <span class="text-muted">
+              You pay
+              <span class="font-medium" :class="(state.myShares ?? 1) > 1 ? 'text-teal-600 dark:text-teal-400' : 'text-default'">
+                {{ formatMoneyParts(splitSummary.userPays).integer }}{{ formatMoneyParts(splitSummary.userPays).decimal }}
+              </span>
+              {{ selectedCurrency }}
+              <span v-if="(state.myShares ?? 1) > 1" class="text-teal-600 dark:text-teal-400 font-medium">&times;{{ (state.myShares ?? 1) }}</span>
+            </span>
+          </div>
+        </div>
 
         <button type="submit" hidden />
       </UForm>

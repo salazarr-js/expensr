@@ -91,7 +91,7 @@ function getTypeLabel(type: string) {
   return TYPE_LABELS[type as AccountType] ?? type;
 }
 
-onMounted(accountsStore.fetchAccounts);
+onMounted(accountsStore.fetchAccountsByUsage);
 </script>
 
 <template>
@@ -134,7 +134,7 @@ onMounted(accountsStore.fetchAccounts);
         <UIcon name="i-lucide-wifi-off" class="mb-4 size-16 text-dimmed/40" />
         <h2 class="text-lg font-semibold text-highlighted">Failed to load accounts</h2>
         <p class="mt-1 text-sm text-muted">Something went wrong. Check your connection and try again.</p>
-        <UButton icon="i-lucide-refresh-cw" label="Retry" class="mt-6" :loading="loading" @click="accountsStore.fetchAccounts" />
+        <UButton icon="i-lucide-refresh-cw" label="Retry" class="mt-6" :loading="loading" @click="accountsStore.fetchAccountsByUsage" />
       </div>
 
       <!-- Empty state -->

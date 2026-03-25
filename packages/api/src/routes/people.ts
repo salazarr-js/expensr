@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { eq, count, sql } from "drizzle-orm";
+import { eq, count, sql, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { createPersonSchema, updatePersonSchema } from "@slzr/expensr-shared";
 import { createDb } from "../db";
@@ -12,7 +12,7 @@ const route = new Hono<{ Bindings: CloudflareBindings }>();
 
 /** People with computed debt balance and shared record count. */
 function peopleWithBalance(db: ReturnType<typeof createDb>) {
-  // Debt = sum of (amount / (people_count + 1)) for each shared record
+  // Debt uses pre-calculated share_amount from record_people (set on create/update)
   // Positive = they owe you (expense), negative = you owe them (income)
   return db
     .select({
@@ -23,12 +23,8 @@ function peopleWithBalance(db: ReturnType<typeof createDb>) {
       updatedAt: people.updatedAt,
       balance: sql<number>`coalesce(sum(
         case when ${records.type} = 'expense'
-          then ${records.amount} / (
-            (select count(*) from record_people where record_id = ${records.id}) + 1
-          )
-          else -${records.amount} / (
-            (select count(*) from record_people where record_id = ${records.id}) + 1
-          )
+          then ${recordPeople.shareAmount}
+          else -${recordPeople.shareAmount}
         end
       ), 0)`.as("balance"),
       recordCount: count(records.id).as("recordCount"),
@@ -99,8 +95,39 @@ route.delete("/:id", async (ctx) => {
   if (isNaN(id)) return ctx.json({ error: "Invalid ID" }, 400);
   const db = createDb(ctx.env.DB);
 
-  // Clean up junction table links first (no cascade on person FK)
+  // Find affected records before deleting links, so we can recalculate share_amounts
+  const affectedLinks = await db
+    .select({ recordId: recordPeople.recordId })
+    .from(recordPeople)
+    .where(eq(recordPeople.personId, id));
+  const affectedRecordIds = affectedLinks.map((l) => l.recordId);
+
+  // Clean up junction table links (no cascade on person FK)
   await db.delete(recordPeople).where(eq(recordPeople.personId, id));
+
+  // Recalculate share_amounts for remaining people on affected records
+  if (affectedRecordIds.length) {
+    const affectedRecords = await db
+      .select({ id: records.id, amount: records.amount, myShares: records.myShares })
+      .from(records)
+      .where(inArray(records.id, affectedRecordIds));
+
+    for (const rec of affectedRecords) {
+      const remaining = await db
+        .select({ count: count() })
+        .from(recordPeople)
+        .where(eq(recordPeople.recordId, rec.id))
+        .get();
+      const peopleCount = remaining?.count ?? 0;
+      if (peopleCount > 0) {
+        const shareAmount = rec.amount / (peopleCount + rec.myShares);
+        await db
+          .update(recordPeople)
+          .set({ shareAmount })
+          .where(eq(recordPeople.recordId, rec.id));
+      }
+    }
+  }
 
   const [row] = await db.delete(people).where(eq(people.id, id)).returning();
   if (!row) return ctx.json({ error: "Person not found" }, 404);

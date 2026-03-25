@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { storeToRefs } from "pinia";
 import type { CategoryWithTagCount, Tag } from "@slzr/expensr-shared";
 import { useCategoriesStore } from "@/stores/categories";
@@ -10,6 +10,9 @@ import { useAlertDialog } from "@/composables/useAlertDialog";
 const categoriesStore = useCategoriesStore();
 const { categories, tagsByCategory, loading, error } = storeToRefs(categoriesStore);
 const alert = useAlertDialog();
+
+/** Total tag count across all categories. */
+const totalTags = computed(() => categories.value.reduce((sum, c) => sum + c.tagCount, 0));
 
 const showCategoryModal = ref(false);
 const selectedCategory = ref<CategoryWithTagCount | undefined>();
@@ -104,44 +107,59 @@ onMounted(categoriesStore.fetchAll);
       </div>
 
       <!-- Category grid -->
-      <div v-else class="grid gap-4 lg:gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5">
-        <UCard
-          v-for="category in categories"
-          :key="category.id"
-          tabindex="0"
-          role="button"
-          class="cursor-pointer hover:ring-1 hover:ring-default-border focus:ring-1 focus:ring-primary focus:outline-none transition-shadow"
-          @click="openEditCategory(category)"
-          @keydown.enter="openEditCategory(category)"
-        >
-          <div class="flex items-center gap-3">
-            <div
-              class="flex items-center justify-center size-10 rounded-lg shrink-0"
-              :style="{ backgroundColor: getColor(category.color)[100], color: getColor(category.color)[500] }"
-            >
-              <UIcon :name="getCategoryIcon(category)" class="size-5" />
-            </div>
-            <div class="min-w-0 flex-1">
-              <h3 class="text-sm font-semibold text-highlighted truncate">{{ category.name }}</h3>
-              <p class="text-xs text-muted">{{ category.tagCount }} tag{{ category.tagCount === 1 ? '' : 's' }}</p>
-            </div>
+      <div v-else>
+        <!-- Summary -->
+        <div class="flex justify-end items-center gap-2.5 mb-4">
+          <div class="text-right">
+            <p class="text-4xl leading-none font-heading font-extrabold tabular-nums text-zinc-500 dark:text-zinc-400">{{ categories.length }}</p>
+            <p class="text-[10px] text-zinc-600 dark:text-zinc-300 uppercase tracking-wide -mt-0.5">categories</p>
           </div>
+          <div class="size-1 rounded-full bg-zinc-400 dark:bg-zinc-500 shrink-0" />
+          <div class="text-right">
+            <p class="text-4xl leading-none font-heading font-extrabold tabular-nums text-zinc-500 dark:text-zinc-400">{{ totalTags }}</p>
+            <p class="text-[10px] text-zinc-600 dark:text-zinc-300 uppercase tracking-wide -mt-0.5">tags</p>
+          </div>
+        </div>
 
-          <!-- Tags -->
-          <template v-if="tagsByCategory[category.id]?.length">
-            <div class="mt-3 flex flex-wrap gap-1.5">
-              <UBadge
-                v-for="tag in tagsByCategory[category.id]"
-                :key="tag.id"
-                variant="subtle"
-                color="neutral"
+        <div class="grid gap-4 lg:gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5">
+          <UCard
+            v-for="category in categories"
+            :key="category.id"
+            tabindex="0"
+            role="button"
+            class="cursor-pointer hover:ring-1 hover:ring-default-border focus:ring-1 focus:ring-primary focus:outline-none transition-shadow"
+            @click="openEditCategory(category)"
+            @keydown.enter="openEditCategory(category)"
+          >
+            <div class="flex items-center gap-3">
+              <div
+                class="flex items-center justify-center size-10 rounded-lg shrink-0"
+                :style="{ backgroundColor: getColor(category.color)[100], color: getColor(category.color)[500] }"
               >
-                <UIcon :name="tag.icon || 'i-lucide-hash'" class="size-3" />
-                {{ tag.name }}
-              </UBadge>
+                <UIcon :name="getCategoryIcon(category)" class="size-5" />
+              </div>
+              <div class="min-w-0 flex-1">
+                <h3 class="text-sm font-semibold text-highlighted truncate">{{ category.name }}</h3>
+                <p class="text-xs text-muted">{{ category.tagCount }} tag{{ category.tagCount === 1 ? '' : 's' }}</p>
+              </div>
             </div>
-          </template>
-        </UCard>
+
+            <!-- Tags -->
+            <template v-if="tagsByCategory[category.id]?.length">
+              <div class="mt-3 flex flex-wrap gap-1.5">
+                <UBadge
+                  v-for="tag in tagsByCategory[category.id]"
+                  :key="tag.id"
+                  variant="subtle"
+                  color="neutral"
+                >
+                  <UIcon :name="tag.icon || 'i-lucide-hash'" class="size-3" />
+                  {{ tag.name }}
+                </UBadge>
+              </div>
+            </template>
+          </UCard>
+        </div>
       </div>
     </template>
   </UDashboardPanel>

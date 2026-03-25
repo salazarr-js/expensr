@@ -19,6 +19,7 @@ export const records = sqliteTable(
     categoryId: integer("category_id").references(() => categories.id),
     linkedRecordId: integer("linked_record_id"), // counterpart record for transfers
     note: text(),
+    myShares: integer("my_shares").notNull().default(1), // how many shares the creator pays (1 = equal split, >1 = weighted)
     needsReview: integer("needs_review", { mode: "boolean" }).notNull().default(false), // flagged via ?? in smart parse
     createdAt: integer("created_at", { mode: "timestamp" })
       .notNull()

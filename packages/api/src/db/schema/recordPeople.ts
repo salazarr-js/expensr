@@ -1,4 +1,4 @@
-import { sqliteTable, integer, uniqueIndex, index } from "drizzle-orm/sqlite-core";
+import { sqliteTable, integer, real, uniqueIndex, index } from "drizzle-orm/sqlite-core";
 import { records } from "./records";
 import { people } from "./people";
 
@@ -13,6 +13,7 @@ export const recordPeople = sqliteTable(
     personId: integer("person_id")
       .notNull()
       .references(() => people.id),
+    shareAmount: real("share_amount").notNull().default(0), // pre-calculated amount this person owes
   },
   (table) => [
     uniqueIndex("record_people_unique").on(table.recordId, table.personId),
