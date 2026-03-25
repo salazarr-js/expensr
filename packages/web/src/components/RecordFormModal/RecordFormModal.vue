@@ -9,7 +9,7 @@ import { useAccountsStore } from "@/stores/accounts";
 import { useCategoriesStore } from "@/stores/categories";
 import { usePeopleStore } from "@/stores/people";
 import { ApiError } from "@/composables/useApi";
-import { getColor } from "@/utils/colors";
+import { getColor, APP_COLORS } from "@/utils/colors";
 import { formatMoneyParts } from "@/utils/money";
 
 const props = defineProps<{
@@ -90,7 +90,7 @@ const tagOptions = computed(() => {
 });
 
 const peopleOptions = computed(() => [
-  { label: "None", value: 0, color: null as string | null },
+  ...(people.value.length ? [{ label: "None", value: 0, color: null as string | null }] : []),
   ...people.value.map((p) => ({
     label: p.name,
     value: p.id,
@@ -98,14 +98,32 @@ const peopleOptions = computed(() => [
   })),
 ]);
 
+/** Hue colors for random assignment (excludes grays: Stone, Zinc, Gray, Neutral, Slate). */
+const PEOPLE_COLORS = APP_COLORS.filter((c) => !["Stone", "Zinc", "Gray", "Neutral", "Slate"].includes(c.name));
+const peopleSearch = ref("");
+const peopleOpen = ref(false);
+
+/** Create a person inline from the selector's "Create X" option. */
+async function onCreatePerson(name: string) {
+  const color = PEOPLE_COLORS[Math.floor(Math.random() * PEOPLE_COLORS.length)]?.name ?? "Blue";
+  try {
+    const person = await peopleStore.createPerson({ name, color });
+    state.personIds = [...(state.personIds ?? []), person.id];
+    peopleSearch.value = "";
+  } catch {
+    useToast().add({ title: "Failed to create person", color: "error" });
+  }
+}
+
 /** Handle "None" toggle: selecting None clears others, selecting a person removes None. */
 function onPeopleUpdate(value: number[]) {
   const wasEmpty = !state.personIds?.length; // None was displayed (0 is never in state)
   const hasNone = value.includes(0);
   if (hasNone && !wasEmpty) {
-    // User clicked None while people were selected → clear all
+    // User clicked None while people were selected → clear all and close dropdown
     state.personIds = [];
     state.myShares = 1;
+    peopleOpen.value = false;
   } else {
     // User selected/deselected a person → keep all real IDs
     state.personIds = value.filter((v) => v !== 0);
@@ -390,15 +408,19 @@ async function onSubmit() {
           <UTextarea :model-value="state.note ?? undefined" placeholder="Optional note..." :rows="2" class="w-full" @update:model-value="state.note = $event || null" />
         </UFormField>
 
-        <UFormField v-if="people.length" label="People" name="personIds">
+        <UFormField label="People" name="personIds">
           <USelectMenu
-            :model-value="state.personIds?.length ? state.personIds : [0]"
+            :model-value="state.personIds?.length ? state.personIds : (people.length ? [0] : [])"
+            v-model:open="peopleOpen"
+            v-model:search-term="peopleSearch"
             :items="peopleOptions"
             value-key="value"
             multiple
+            :create-item="{ position: 'bottom' }"
             placeholder="Shared with..."
             class="w-full"
             @update:model-value="onPeopleUpdate"
+            @create="onCreatePerson"
           >
             <template #item-leading="{ item }">
               <div
@@ -409,6 +431,9 @@ async function onSubmit() {
                 {{ item.label.charAt(0) }}
               </div>
               <UIcon v-else name="i-lucide-x" class="size-4 text-muted shrink-0" />
+            </template>
+            <template #empty>
+              <span class="text-sm text-dimmed">Type a name to add someone...</span>
             </template>
           </USelectMenu>
         </UFormField>
