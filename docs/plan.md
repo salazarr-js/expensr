@@ -229,7 +229,6 @@ Shipped. See [05-smart-parse/](05-smart-parse/) for full algorithm.
 - [x] QuickRecordModal — natural language input, opens form pre-filled with parse results
 - [x] `keyword_mappings` + `parse_logs` tables (replaced `parse_corrections`)
 - [x] Person detection in parse
-- [ ] Keyboard shortcut to open QuickRecordModal
 - [x] Auto-save for high-confidence matches (name_match + keyword, toast with Edit action)
 
 ## 7. Smart Categorization ✅
@@ -331,7 +330,6 @@ Covered by Smart Parse. Tags already belong to categories — selecting a tag au
 
 - [ ] Responsive design (mobile-first)
 - [ ] Loading states, error handling, empty states
-- [ ] Keyboard shortcuts
 - [ ] `pnpm build` + `pnpm deploy:cf`
 - [ ] Production smoke test
 

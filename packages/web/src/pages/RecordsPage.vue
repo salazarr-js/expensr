@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, h } from "vue";
+import { ref, computed, watch, onMounted, h, resolveComponent } from "vue";
+import { useDebounceFn } from "@vueuse/core";
 import { storeToRefs } from "pinia";
 import { useRoute, useRouter } from "vue-router";
 import type { RecordWithRelations } from "@slzr/expensr-shared";
@@ -12,7 +13,9 @@ import { formatMoneyParts } from "@/utils/money";
 import { getColor } from "@/utils/colors";
 import { RecordFormModal } from "@/components/RecordFormModal";
 import { QuickRecordModal } from "@/components/QuickRecordModal";
+import { DateRangePicker } from "@/components/DateRangePicker";
 import { useAlertDialog } from "@/composables/useAlertDialog";
+import { getDefaultRange } from "@/utils/dates";
 
 const route = useRoute();
 const router = useRouter();
@@ -24,6 +27,7 @@ const alert = useAlertDialog();
 
 const { records, loading, error } = storeToRefs(recordsStore);
 const { accounts } = storeToRefs(accountsStore);
+const { categories, tagsByCategory } = storeToRefs(categoriesStore);
 const { people } = storeToRefs(peopleStore);
 
 const showFormModal = ref(false);
@@ -32,8 +36,20 @@ const selectedRecord = ref<RecordWithRelations | undefined>();
 
 // ── Filters (synced to URL query params) ────────────────────────────
 
-const filterDateFrom = ref(route.query.dateFrom as string ?? "");
-const filterDateTo = ref(route.query.dateTo as string ?? "");
+// Default to "This month" when no URL params
+const defaults = getDefaultRange();
+const filterDateFrom = ref<string | undefined>(
+  route.query.dateFrom ? String(route.query.dateFrom) : defaults.dateFrom,
+);
+const filterDateTo = ref<string | undefined>(
+  route.query.dateTo ? String(route.query.dateTo) : defaults.dateTo,
+);
+const searchQuery = ref(route.query.search ? String(route.query.search) : "");
+const debouncedSearch = ref(searchQuery.value);
+const searching = ref(false); // true while typing, before debounce fires
+const onSearchInput = useDebounceFn((val: string) => { debouncedSearch.value = val; searching.value = false; }, 500);
+watch(searchQuery, (val) => { searching.value = val !== debouncedSearch.value; onSearchInput(val); });
+
 const personFilterOptions = computed(() => [
   { label: "All people", value: "all", color: null as string | null },
   ...people.value.map((p) => ({ label: p.name, value: String(p.id), color: p.color })),
@@ -45,6 +61,68 @@ const filterPersonId = computed(() => {
   const val = selectedPerson.value;
   if (val === "all") return undefined;
   return Number(val);
+});
+
+// Category/tag cascading menu — categories at top level, tags expand as submenus
+const categoryTagItems = computed(() => {
+  const allItem = {
+    label: "All categories",
+    icon: "i-lucide-layers",
+    onSelect: () => { selectedCategoryTag.value = "all"; },
+  };
+  const catItems = categories.value.map((cat) => {
+    const catTags = tagsByCategory.value[cat.id] ?? [];
+    // Category with tag children — clicking category filters all its tags
+    return {
+      label: cat.name,
+      icon: cat.icon || "i-lucide-tag",
+      onSelect: () => { selectedCategoryTag.value = `cat:${cat.id}`; },
+      children: catTags.length
+        ? catTags.map((tag) => ({
+            label: tag.name,
+            icon: tag.icon || "i-lucide-hash",
+            onSelect: () => { selectedCategoryTag.value = `tag:${tag.id}`; },
+          }))
+        : undefined,
+    };
+  });
+  return [[allItem], catItems];
+});
+
+// Init from URL: ?categoryId=5 → "cat:5", ?tagId=42 → "tag:42"
+const selectedCategoryTag = ref(
+  route.query.tagId ? `tag:${route.query.tagId}`
+    : route.query.categoryId ? `cat:${route.query.categoryId}`
+      : "all",
+);
+
+const filterCategoryId = computed(() => {
+  const val = selectedCategoryTag.value;
+  return val.startsWith("cat:") ? Number(val.slice(4)) : undefined;
+});
+
+const filterTagId = computed(() => {
+  const val = selectedCategoryTag.value;
+  return val.startsWith("tag:") ? Number(val.slice(4)) : undefined;
+});
+
+/** Display label for the category/tag filter button. */
+const categoryTagLabel = computed(() => {
+  const val = selectedCategoryTag.value;
+  if (val === "all") return "All categories";
+  if (val.startsWith("cat:")) {
+    const cat = categories.value.find((c) => c.id === Number(val.slice(4)));
+    return cat?.name ?? "Category";
+  }
+  if (val.startsWith("tag:")) {
+    const tagId = Number(val.slice(4));
+    for (const cat of categories.value) {
+      const tag = (tagsByCategory.value[cat.id] ?? []).find((t) => t.id === tagId);
+      if (tag) return tag.name;
+    }
+    return "Tag";
+  }
+  return "All categories";
 });
 
 const accountFilterOptions = computed(() => [
@@ -94,8 +172,30 @@ const currentFilters = computed<RecordFilters>(() => {
     personId: filterPersonId.value,
     dateFrom: filterDateFrom.value || undefined,
     dateTo: filterDateTo.value || undefined,
+    search: debouncedSearch.value || undefined,
+    categoryId: filterCategoryId.value,
+    tagId: filterTagId.value,
   };
 });
+
+/** Whether any non-default filter is active (account, person, search, or non-default date). */
+const hasActiveFilters = computed(() => {
+  const f = currentFilters.value;
+  const d = defaults;
+  return !!(f.accountIds?.length || f.personId || f.search || f.categoryId || f.tagId
+    || (f.dateFrom !== d.dateFrom) || (f.dateTo !== d.dateTo));
+});
+
+/** Reset all filters to defaults. */
+function clearFilters() {
+  selectedAccounts.value = ["all"];
+  selectedPerson.value = "all";
+  searchQuery.value = "";
+  debouncedSearch.value = "";
+  selectedCategoryTag.value = "all";
+  filterDateFrom.value = defaults.dateFrom;
+  filterDateTo.value = defaults.dateTo;
+}
 
 /** Sync filters to URL and re-fetch. */
 watch(currentFilters, (filters) => {
@@ -104,6 +204,9 @@ watch(currentFilters, (filters) => {
   if (filters.personId) query.person = String(filters.personId);
   if (filters.dateFrom) query.dateFrom = filters.dateFrom;
   if (filters.dateTo) query.dateTo = filters.dateTo;
+  if (filters.search) query.search = filters.search;
+  if (filters.categoryId) query.categoryId = String(filters.categoryId);
+  if (filters.tagId) query.tagId = String(filters.tagId);
   router.replace({ query });
   recordsStore.fetchRecords(filters);
 });
@@ -118,8 +221,24 @@ const columns: TableColumn<RecordWithRelations>[] = [
   { id: "tag", accessorKey: "tagName", header: "Tag", enableSorting: false },
   { id: "people", header: "People", enableSorting: false, size: 100 },
   { accessorKey: "note", header: "Note", enableSorting: false },
-  { accessorKey: "amount", header: "Amount", enableSorting: false, size: 150, meta: { class: { th: "text-right", td: "text-right" } } },
+  {
+    accessorKey: "amount",
+    header: ({ column }) => h(resolveComponent("UButton") as any, {
+      color: "neutral",
+      variant: "ghost",
+      label: "Amount",
+      icon: column.getIsSorted()
+        ? (column.getIsSorted() === "asc" ? "i-lucide-arrow-up-narrow-wide" : "i-lucide-arrow-down-wide-narrow")
+        : "i-lucide-arrow-up-down",
+      class: "-mx-2.5",
+      onClick: () => column.toggleSorting(column.getIsSorted() === "asc"),
+    }),
+    size: 150,
+    meta: { class: { th: "text-right", td: "text-right" } },
+  },
 ];
+
+const sorting = ref<{ id: string; desc: boolean }[]>([]);
 
 // Pin amount column to the right so it's always visible on horizontal scroll
 const columnPinning = ref({ right: ["amount"] });
@@ -225,11 +344,13 @@ onMounted(() => {
             multiple
             icon="i-lucide-wallet"
             placeholder="All accounts"
-            class="w-full sm:w-56"
+            color="neutral"
+            variant="outline"
+            :ui="{ content: 'min-w-fit' }"
             @update:model-value="onAccountFilterUpdate"
           >
             <template #default>
-              <span class="truncate">{{ accountFilterLabel }}</span>
+              <span class="truncate hidden sm:inline">{{ accountFilterLabel }}</span><span class="sm:hidden">&#8203;</span>
             </template>
             <template #item-leading="{ item }">
               <div
@@ -242,27 +363,20 @@ onMounted(() => {
             </template>
           </USelectMenu>
 
-          <UInput
-            v-model="filterDateFrom"
-            type="date"
-            placeholder="From"
-            class="w-full sm:w-40"
-          />
-
-          <UInput
-            v-model="filterDateTo"
-            type="date"
-            placeholder="To"
-            class="w-full sm:w-40"
-          />
+          <DateRangePicker v-model:date-from="filterDateFrom" v-model:date-to="filterDateTo" />
 
           <USelectMenu
             v-model="selectedPerson"
             :items="personFilterOptions"
             value-key="value"
             icon="i-lucide-users"
-            class="w-full sm:w-44"
+            color="neutral"
+            variant="outline"
+            :ui="{ content: 'min-w-fit' }"
           >
+            <template #default>
+              <span class="truncate hidden sm:inline">{{ personFilterOptions.find(p => p.value === selectedPerson)?.label ?? 'All people' }}</span><span class="sm:hidden">&#8203;</span>
+            </template>
             <template #item-leading="{ item }">
               <div
                 v-if="item.color"
@@ -273,13 +387,26 @@ onMounted(() => {
               </div>
             </template>
           </USelectMenu>
+
+          <UDropdownMenu :items="categoryTagItems" :content="{ align: 'start', class: 'w-48' }">
+            <UButton color="neutral" variant="outline" icon="i-lucide-tag" trailing-icon="i-lucide-chevron-down">
+              <span class="hidden sm:inline truncate">{{ categoryTagLabel }}</span>
+            </UButton>
+          </UDropdownMenu>
+
+          <UInput
+            v-model="searchQuery"
+            icon="i-lucide-search"
+            placeholder="Search..."
+            class="w-full"
+          />
         </template>
       </UDashboardToolbar>
     </template>
 
     <template #body>
-      <!-- Loading -->
-      <div v-if="loading && !records.length" class="flex items-center justify-center mt-[25vh]">
+      <!-- Loading (first load only — subsequent loads use table loading indicator) -->
+      <div v-if="loading && !records.length && !hasActiveFilters" class="flex items-center justify-center mt-[25vh]">
         <UIcon name="i-lucide-loader-circle" class="size-8 text-dimmed animate-spin" />
       </div>
 
@@ -291,7 +418,15 @@ onMounted(() => {
         <UButton icon="i-lucide-refresh-cw" label="Retry" class="mt-6" :loading="loading" @click="() => recordsStore.fetchRecords(currentFilters)" />
       </div>
 
-      <!-- Empty state -->
+      <!-- No results for active filters -->
+      <div v-else-if="!records.length && hasActiveFilters" class="flex flex-col items-center text-center mt-[25vh]">
+        <UIcon name="i-lucide-search-x" class="mb-4 size-16 text-dimmed/40" />
+        <h2 class="text-lg font-semibold text-highlighted">No records found</h2>
+        <p class="mt-1 text-sm text-muted">Try adjusting your filters or search terms.</p>
+        <UButton icon="i-lucide-x" label="Clear filters" variant="outline" class="mt-6" @click="clearFilters" />
+      </div>
+
+      <!-- Empty state (no records at all) -->
       <div v-else-if="!records.length" class="flex flex-col items-center text-center mt-[25vh]">
         <UIcon name="i-lucide-receipt" class="mb-4 size-16 text-dimmed/40" />
         <h2 class="text-lg font-semibold text-highlighted">No records yet</h2>
@@ -355,10 +490,12 @@ onMounted(() => {
 
         <!-- Desktop table -->
         <UTable
+          v-model:sorting="sorting"
           v-model:column-pinning="columnPinning"
           :columns="columns"
           :data="records"
           :meta="tableMeta"
+          :loading="loading || searching"
           sticky
           class="w-full overflow-x-auto hidden md:block"
           @select="onSelectRow"

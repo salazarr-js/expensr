@@ -8,6 +8,9 @@ export interface RecordFilters {
   personId?: number;
   dateFrom?: string;
   dateTo?: string;
+  search?: string;
+  categoryId?: number;
+  tagId?: number;
 }
 
 export const useRecordsStore = defineStore("records", () => {
@@ -26,6 +29,9 @@ export const useRecordsStore = defineStore("records", () => {
       if (filters?.personId) params.set("personId", String(filters.personId));
       if (filters?.dateFrom) params.set("dateFrom", filters.dateFrom);
       if (filters?.dateTo) params.set("dateTo", filters.dateTo);
+      if (filters?.search) params.set("search", filters.search);
+      if (filters?.categoryId) params.set("categoryId", String(filters.categoryId));
+      if (filters?.tagId) params.set("tagId", String(filters.tagId));
 
       const qs = params.toString();
       records.value = await api.get<RecordWithRelations[]>(qs ? `/records?${qs}` : "/records");

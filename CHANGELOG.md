@@ -3,11 +3,36 @@
 ## [Unreleased]
 
 ### Next steps
+- Batch record creation with correct datetime ordering
 - Dashboard with totals, category breakdown, period picker
+- Review mode for `??` records
 - "Who paid?" field for tracking expenses others paid on your behalf
 - Quick Record payment support (keyword trigger for settlements)
 - Custom TanStack Table for full styling control
-- Keyboard shortcut to open QuickRecordModal
+
+## 2026-03-27 — DateRangePicker, Search & Category Filter
+
+### DateRangePicker
+- Reusable component: single button + popover with preset chips + UCalendar range mode
+- Presets: Today, This week, This month, Last 3 months, This year, All time
+- 2 months on desktop, 1 on mobile. Default: "This month"
+- Replaces two separate date inputs in Records toolbar
+
+### Records Search
+- Text search across note, tag name, category name, and amounts
+- Debounced 500ms, synced to URL `?search=`
+- Amount search: typing a number matches exact amounts
+
+### Category/Tag Filter
+- Cascading UDropdownMenu: categories at top level, hover to expand tags
+- Selecting a category filters all its records; selecting a tag filters that tag only
+- API: `?categoryId` and `?tagId` params on GET /records (tag takes priority)
+
+### Records Table Improvements
+- Amount column sortable (client-side, ascending/descending toggle)
+- Loading indicator on table during search/filter changes
+- Empty state: "No records found" with "Clear filters" when filters are active vs "No records yet" when no records exist
+- Toolbar: icon-only on mobile, consistent neutral/outline styling
 
 ## 2026-03-26 — Parse Observability, Auto-save & UI Polish
 

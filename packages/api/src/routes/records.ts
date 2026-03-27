@@ -133,7 +133,7 @@ async function syncRecordPeople(
 /** GET / — list records. Filters: ?accountId=1,2 ?dateFrom ?dateTo ?personId. Newest first. */
 route.get("/", async (ctx) => {
   const db = createDb(ctx.env.DB);
-  const { accountId, dateFrom, dateTo, personId } = ctx.req.query();
+  const { accountId, dateFrom, dateTo, personId, search, categoryId, tagId } = ctx.req.query();
 
   const conditions = [];
   if (accountId) {
@@ -158,6 +158,32 @@ route.get("/", async (ctx) => {
       } else {
         return ctx.json([]);
       }
+    }
+  }
+
+  // Tag filter takes priority over category (more specific)
+  if (tagId) {
+    const tid = Number(tagId);
+    if (!isNaN(tid)) conditions.push(eq(records.tagId, tid));
+  } else if (categoryId) {
+    const cid = Number(categoryId);
+    if (!isNaN(cid)) conditions.push(eq(records.categoryId, cid));
+  }
+
+  // Text search across note, tag name, category name, and amount
+  if (search) {
+    const pattern = `%${search}%`;
+    const isNumeric = /^\d+(\.\d+)?$/.test(search.trim());
+    if (isNumeric) {
+      // Exact amount match when search is a number
+      const amount = Number(search.trim());
+      conditions.push(
+        sql`(${records.note} LIKE ${pattern} OR ${tags.name} LIKE ${pattern} OR ${categories.name} LIKE ${pattern} OR ${records.amount} = ${amount})`,
+      );
+    } else {
+      conditions.push(
+        sql`(${records.note} LIKE ${pattern} OR ${tags.name} LIKE ${pattern} OR ${categories.name} LIKE ${pattern})`,
+      );
     }
   }
 

@@ -133,7 +133,7 @@ Hono app with `.basePath("/api")`. Current routes:
 - `GET /api/people/:id` — get person with debt summary
 - `PUT /api/people/:id` — update person
 - `DELETE /api/people/:id` — delete person (clears record_people links, records stay)
-- `GET /api/records` — list records with filters (?accountId=1,2, ?dateFrom, ?dateTo, ?personId), joins account/category/tag/people
+- `GET /api/records` — list records with filters (?accountId=1,2, ?dateFrom, ?dateTo, ?personId, ?categoryId, ?tagId, ?search), joins account/category/tag/people
 - `POST /api/records` — create record (auto-appends current time, type based on category, accepts personIds[])
 - `GET /api/records/:id` — get single record with joined relations + people
 - `PUT /api/records/:id` — update record (preserves time when only date changes, syncs personIds[])
@@ -197,7 +197,9 @@ Error responses include a `code` field for machine-readable errors (e.g., `DUPLI
 - **Spending calculations**: `mySpend` field on `RecordWithRelations` — your actual spending portion. Solo records: `mySpend = amount`. Shared records: `mySpend = amount - sum(shareAmounts)`. Settlements: `mySpend = 0`. Account balance stays as cash flow (full amounts).
 - **Theme**: Light/dark/system via `UColorModeSelect` (expanded sidebar) and `UColorModeButton` (collapsed sidebar) in the sidebar footer.
 - **Icons**: Lucide icons bundled at build time via `@iconify-json/lucide` (no runtime API calls). Simple Icons require the `i-simple-icons:name` format (colon, not dash) and preloading via `src/icons.ts` which calls `addCollection` with a subset JSON (`src/icons-simple-icons.json`, ~17KB). To add new simple-icons: add the icon data to the JSON subset and reference as `i-simple-icons:icon-name`. IconPicker catalog in `src/components/IconPicker/icons.ts` — ~160 icons with bilingual search keywords (English + Spanish).
-- **Records table**: Sticky header, sticky amount column (pinned right via column pinning). Settlement rows get green bg, needsReview rows get amber bg via `tableMeta.class.tr`.
+- **Records table**: Sticky header, sticky amount column (pinned right via column pinning). Settlement rows get green bg, needsReview rows get amber bg via `tableMeta.class.tr`. Amount column sortable (client-side via TanStack Table).
+- **Records toolbar**: Account multi-select, DateRangePicker (presets + calendar), people select, category/tag cascading dropdown (UDropdownMenu with children), text search (debounced 500ms, matches note/tag/category/amount). All filters synced to URL query params. Icon-only on mobile.
+- **DateRangePicker**: Reusable component at `src/components/DateRangePicker/`. Single button trigger with preset chips (Today, Week, Month, 3M, Year, All) + UCalendar range mode. 2 months on desktop, 1 on mobile. Default: "This month". Date utilities in `src/utils/dates.ts`.
 
 ## Error Handling
 
