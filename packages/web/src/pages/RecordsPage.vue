@@ -388,7 +388,7 @@ onMounted(() => {
             </template>
           </USelectMenu>
 
-          <UDropdownMenu :items="categoryTagItems" :content="{ align: 'start', class: 'w-48' }">
+          <UDropdownMenu :items="categoryTagItems" :content="{ align: 'start' }" :ui="{ content: 'w-48' }">
             <UButton color="neutral" variant="outline" icon="i-lucide-tag" trailing-icon="i-lucide-chevron-down">
               <span class="hidden sm:inline truncate">{{ categoryTagLabel }}</span>
             </UButton>
