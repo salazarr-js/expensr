@@ -110,8 +110,6 @@ watch(currentFilters, (filters) => {
 
 // ── Table columns ───────────────────────────────────────────────────
 
-// Amount pinned right so it's always visible on horizontal scroll
-const pinRight = "sticky right-0 bg-white dark:bg-zinc-900 z-10 shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.05)]";
 const columns: TableColumn<RecordWithRelations>[] = [
   { id: "reorder", header: "", size: 60, enableSorting: false },
   { accessorKey: "date", header: "Date", enableSorting: false },
@@ -120,8 +118,22 @@ const columns: TableColumn<RecordWithRelations>[] = [
   { id: "tag", accessorKey: "tagName", header: "Tag", enableSorting: false },
   { id: "people", header: "People", enableSorting: false, size: 100 },
   { accessorKey: "note", header: "Note", enableSorting: false },
-  { accessorKey: "amount", header: "Amount", enableSorting: false, meta: { class: { th: `text-right ${pinRight}`, td: `text-right ${pinRight}` } } },
+  { accessorKey: "amount", header: "Amount", enableSorting: false, size: 150, meta: { class: { th: "text-right", td: "text-right" } } },
 ];
+
+// Pin amount column to the right so it's always visible on horizontal scroll
+const columnPinning = ref({ right: ["amount"] });
+
+/** Row background: green for settlements, amber for needs review. */
+const tableMeta = {
+  class: {
+    tr: (row: { original: RecordWithRelations }) => {
+      if (row.original.type === "settlement") return "bg-green-50 dark:bg-green-950/20";
+      if (row.original.needsReview) return "bg-amber-50 dark:bg-amber-950/20";
+      return "";
+    },
+  },
+};
 
 // ── Actions ─────────────────────────────────────────────────────────
 
@@ -295,24 +307,26 @@ onMounted(() => {
             v-for="(record, index) in records"
             :key="record.id"
             class="flex items-center gap-3 px-4 py-3 cursor-pointer active:bg-default-50"
+            :class="record.type === 'settlement' ? 'bg-green-50 dark:bg-green-950/20' : record.needsReview ? 'bg-amber-50 dark:bg-amber-950/20' : ''"
             @click="openEdit(record)"
           >
-            <!-- Category icon -->
+            <!-- Category icon (green for settlements) -->
             <div
               class="flex items-center justify-center size-9 rounded-lg shrink-0"
-              :style="{
+              :style="record.type === 'settlement' ? {} : {
                 backgroundColor: getColor(record.categoryColor)[100],
                 color: getColor(record.categoryColor)[500],
               }"
+              :class="record.type === 'settlement' ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' : ''"
             >
-              <UIcon :name="record.categoryIcon || 'i-lucide-receipt'" class="size-4" />
+              <UIcon :name="record.type === 'settlement' ? 'i-lucide-hand-coins' : (record.categoryIcon || 'i-lucide-receipt')" class="size-4" />
             </div>
 
             <!-- Info -->
             <div class="min-w-0 flex-1">
               <p class="text-sm font-medium text-highlighted truncate">
                 <UIcon v-if="record.needsReview" name="i-lucide-circle-alert" class="size-3.5 text-amber-500 align-text-bottom mr-0.5" />
-                {{ record.tagName || record.categoryName || record.note || 'Record' }}
+                {{ record.type === 'settlement' ? 'Payment' : (record.tagName || record.categoryName || record.note || 'Record') }}
               </p>
               <div class="flex items-center gap-1 text-xs text-muted truncate">
                 <span>{{ formatDate(record.date) }} · {{ record.accountName }}</span>
@@ -331,8 +345,8 @@ onMounted(() => {
 
             <!-- Amount -->
             <div class="text-right shrink-0 font-mono">
-              <p class="text-sm font-semibold" :class="record.type === 'income' ? 'text-green-600 dark:text-green-400' : 'text-highlighted'">
-                {{ record.type === 'income' ? '+' : '-' }}{{ formatMoneyParts(record.amount).integer }}<span class="text-xs text-muted">{{ formatMoneyParts(record.amount).decimal }}</span>
+              <p class="text-sm font-semibold" :class="record.type === 'income' || record.type === 'settlement' ? 'text-green-600 dark:text-green-400' : 'text-highlighted'">
+                {{ record.type === 'expense' ? '-' : '+' }}{{ formatMoneyParts(record.amount).integer }}<span class="text-xs text-muted">{{ formatMoneyParts(record.amount).decimal }}</span>
               </p>
               <p class="text-[11px] text-muted">{{ record.accountCurrency }}</p>
             </div>
@@ -341,8 +355,11 @@ onMounted(() => {
 
         <!-- Desktop table -->
         <UTable
+          v-model:column-pinning="columnPinning"
           :columns="columns"
           :data="records"
+          :meta="tableMeta"
+          sticky
           class="w-full overflow-x-auto hidden md:block"
           @select="onSelectRow"
         >
@@ -372,7 +389,14 @@ onMounted(() => {
           </template>
 
           <template #category-cell="{ row }">
-            <div v-if="row.original.categoryName" class="flex items-center gap-1.5">
+            <!-- Settlement: green payment badge -->
+            <div v-if="row.original.type === 'settlement'" class="flex items-center gap-1.5">
+              <div class="flex items-center justify-center size-5 rounded shrink-0 bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
+                <UIcon name="i-lucide-hand-coins" class="size-3" />
+              </div>
+              <span class="text-green-600 dark:text-green-400">Payment</span>
+            </div>
+            <div v-else-if="row.original.categoryName" class="flex items-center gap-1.5">
               <div
                 class="flex items-center justify-center size-5 rounded shrink-0"
                 :style="{
@@ -419,8 +443,8 @@ onMounted(() => {
 
           <template #amount-cell="{ row }">
             <div class="text-right font-mono">
-              <span :class="row.original.type === 'income' ? 'text-green-600 dark:text-green-400' : ''">
-                {{ row.original.type === 'income' ? '+' : '-' }}{{ formatMoneyParts(row.original.amount).integer }}<span class="text-muted">{{ formatMoneyParts(row.original.amount).decimal }}</span>
+              <span :class="row.original.type === 'income' || row.original.type === 'settlement' ? 'text-green-600 dark:text-green-400' : ''">
+                {{ row.original.type === 'expense' ? '-' : '+' }}{{ formatMoneyParts(row.original.amount).integer }}<span class="text-muted">{{ formatMoneyParts(row.original.amount).decimal }}</span>
               </span>
               <span class="ml-1 text-xs text-muted">{{ row.original.accountCurrency }}</span>
             </div>

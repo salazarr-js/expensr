@@ -8,14 +8,17 @@ import { useRecordsStore } from "@/stores/records";
 import { useAccountsStore } from "@/stores/accounts";
 import { useCategoriesStore } from "@/stores/categories";
 import { usePeopleStore } from "@/stores/people";
-import { ApiError } from "@/composables/useApi";
+import { useApi, ApiError } from "@/composables/useApi";
 import { getColor, APP_COLORS } from "@/utils/colors";
 import { formatMoneyParts } from "@/utils/money";
 
 const props = defineProps<{
   record?: RecordWithRelations;
   initialData?: Partial<CreateRecord>;
+  parseLogId?: number; // from QuickRecordModal — triggers feedback on save
 }>();
+
+const api = useApi();
 
 const open = defineModel<boolean>("open", { required: true });
 
@@ -53,6 +56,16 @@ const categoryOptions = computed(() => [
     color: c.color as string | null,
   })),
 ]);
+
+/** Learned keyword→tag mappings from parse feedback. Used as fallback in note→tag matching. */
+const keywordMappings = ref<{ keyword: string; tagId: number | null; tagName: string | null }[]>([]);
+async function fetchKeywordMappings() {
+  try {
+    keywordMappings.value = await api.get("/records/parse/keywords");
+  } catch {
+    keywordMappings.value = [];
+  }
+}
 
 /** Flat list of all tags across all categories, with category info for display. */
 const allTags = computed(() => {
@@ -146,20 +159,22 @@ const showSplitControls = computed(() => !!state.personIds?.length && state.amou
 /** Split mode: 'auto' (equal/weighted) or 'manual' (per-person amounts). */
 const splitMode = ref<"auto" | "manual">("auto");
 
-/** Per-person manual amounts, keyed by person ID. */
+/** Per-person manual amounts, keyed by person ID. 0 = "me" (the user). */
 const manualAmounts = reactive<Record<number, number>>({});
 
-/** Sum of manual per-person amounts. */
+/** Sum of all manual amounts including "me" (key 0). */
 const manualTotal = computed(() => Object.values(manualAmounts).reduce((sum, v) => sum + (v || 0), 0));
 
-/** Your portion in manual mode (total - sum of person amounts). */
-const manualUserPays = computed(() => Math.max(0, state.amount - manualTotal.value));
+/** Whether manual amounts exceed the record total. */
+const manualOverflow = computed(() => manualTotal.value > state.amount);
 
-/** Pre-fill manual amounts from current equal/weighted calculation. */
+/** Pre-fill manual amounts from current equal/weighted calculation, including "me". */
 function prefillManualAmounts() {
   const peopleCount = state.personIds?.length ?? 0;
   if (!peopleCount) return;
   const perShare = state.amount / (peopleCount + (state.myShares ?? 1));
+  const myShare = perShare * (state.myShares ?? 1);
+  manualAmounts[0] = Math.round(myShare * 100) / 100; // "me"
   for (const pid of state.personIds ?? []) {
     manualAmounts[pid] = Math.round(perShare * 100) / 100;
   }
@@ -225,6 +240,7 @@ watch(open, (isOpen) => {
   });
   categoriesStore.fetchAll();
   peopleStore.fetchPeople();
+  fetchKeywordMappings();
   // Reset manual split state
   splitMode.value = "auto";
   Object.keys(manualAmounts).forEach((k) => delete manualAmounts[Number(k)]);
@@ -246,9 +262,13 @@ watch(open, (isOpen) => {
     // Load manual amounts from record if split was manual
     if (props.record.splitType === "manual" && props.record.people?.length) {
       splitMode.value = "manual";
+      let othersTotal = 0;
       for (const p of props.record.people) {
         manualAmounts[p.id] = p.shareAmount;
+        othersTotal += p.shareAmount;
       }
+      // "Me" = total minus others' shares
+      manualAmounts[0] = props.record.amount - othersTotal;
     }
   } else if (props.initialData) {
     suppressTagWatch = true;
@@ -291,26 +311,36 @@ watch(() => state.tagId, (tagId) => {
   }
 });
 
-/** Debounced note → tag matching. Keeps updating while note changes, unless user manually picked a tag. */
+/** Debounced note → tag matching. Tag name match → keyword dictionary → give up. */
 const matchTagFromNote = useDebounceFn((note: string) => {
   if (state.tagId && !tagAutoMatched) return; // user manually picked — don't override
   const keywords = note.toLowerCase().split(/\s+/).filter((w) => w.length >= 3);
   if (!keywords.length) return;
-  // Iterate keywords in order (first word wins). Exact match first, then partial.
-  let match = null as typeof allTags.value[number] | null;
+
+  // 1. Tag name match — exact first, then partial
+  let matchId: number | null = null;
   for (const kw of keywords) {
-    match = allTags.value.find((t) => t.name.toLowerCase() === kw) ?? null;
-    if (match) break;
+    const exact = allTags.value.find((t) => t.name.toLowerCase() === kw);
+    if (exact) { matchId = exact.id; break; }
   }
-  if (!match) {
+  if (!matchId) {
     for (const kw of keywords) {
-      match = allTags.value.find((t) => t.name.toLowerCase().includes(kw) || kw.includes(t.name.toLowerCase())) ?? null;
-      if (match) break;
+      const partial = allTags.value.find((t) => t.name.toLowerCase().includes(kw) || kw.includes(t.name.toLowerCase()));
+      if (partial) { matchId = partial.id; break; }
     }
   }
-  if (match) {
+
+  // 2. Keyword dictionary fallback — learned from parse feedback
+  if (!matchId && keywordMappings.value.length) {
+    for (const kw of keywords) {
+      const mapped = keywordMappings.value.find((m) => m.keyword === kw);
+      if (mapped?.tagId) { matchId = mapped.tagId; break; }
+    }
+  }
+
+  if (matchId) {
     noteJustSetTag = true; // consumed by tagId watcher to keep tagAutoMatched = true
-    state.tagId = match.id;
+    state.tagId = matchId;
   }
 }, 400);
 watch(() => state.note, (note) => {
@@ -336,9 +366,7 @@ const hasErrors = computed(() => !!form.value?.errors?.length);
 /** Whether the form is in settlement mode (debt payment). */
 const isSettlement = computed(() => state.type === "settlement");
 
-function getCategoryColor(colorName: string | null | undefined) {
-  return getColor(colorName ?? null);
-}
+
 
 /** Auto-assigns type based on category, then creates or updates. */
 async function onSubmit() {
@@ -374,6 +402,13 @@ async function onSubmit() {
       await recordsStore.updateRecord(props.record.id, payload);
     } else {
       await recordsStore.createRecord(payload);
+      // Fire-and-forget feedback for keyword learning when created via parse
+      if (props.parseLogId) {
+        api.post("/records/parse/feedback", {
+          parseLogId: props.parseLogId,
+          finalResponse: payload,
+        }).catch(() => {});
+      }
     }
     open.value = false;
     useToast().add({
@@ -436,7 +471,7 @@ async function onSubmit() {
             <template #item="{ item }">
               <div
                 class="flex items-center justify-center size-5 rounded shrink-0"
-                :style="{ backgroundColor: getCategoryColor(item.color)[100], color: getCategoryColor(item.color)[500] }"
+                :style="{ backgroundColor: getColor(item.color ?? null)[100], color: getColor(item.color ?? null)[500] }"
               >
                 <UIcon :name="item.icon" class="size-3" />
               </div>
@@ -459,7 +494,7 @@ async function onSubmit() {
                 <div
                   v-if="item.color"
                   class="flex items-center justify-center size-5 rounded shrink-0"
-                  :style="{ backgroundColor: getCategoryColor(item.color)[100], color: getCategoryColor(item.color)[500] }"
+                  :style="{ backgroundColor: getColor(item.color ?? null)[100], color: getColor(item.color ?? null)[500] }"
                 >
                   <UIcon :name="item.icon" class="size-3" />
                 </div>
@@ -482,7 +517,7 @@ async function onSubmit() {
                 <div
                   v-if="item.color"
                   class="flex items-center justify-center size-5 rounded shrink-0"
-                  :style="{ backgroundColor: getCategoryColor(item.color)[100], color: getCategoryColor(item.color)[500] }"
+                  :style="{ backgroundColor: getColor(item.color ?? null)[100], color: getColor(item.color ?? null)[500] }"
                 >
                   <UIcon :name="item.icon" class="size-3" />
                 </div>
@@ -516,7 +551,7 @@ async function onSubmit() {
               <div
                 v-if="item.color"
                 class="flex items-center justify-center size-5 rounded-full shrink-0 text-[10px] font-semibold"
-                :style="{ backgroundColor: getCategoryColor(item.color)[100], color: getCategoryColor(item.color)[500] }"
+                :style="{ backgroundColor: getColor(item.color ?? null)[100], color: getColor(item.color ?? null)[500] }"
               >
                 {{ item.label.charAt(0) }}
               </div>
@@ -614,9 +649,24 @@ async function onSubmit() {
             </div>
           </template>
 
-          <!-- Manual mode: per-person amount inputs -->
+          <!-- Manual mode: per-person amount inputs including "Me" -->
           <template v-else>
             <div class="space-y-1.5">
+              <!-- "Me" row -->
+              <div class="flex items-center gap-2">
+                <span class="text-sm text-default w-24 truncate font-medium">Me</span>
+                <UInput
+                  :model-value="manualAmounts[0] ?? 0"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  size="xs"
+                  class="flex-1"
+                  @update:model-value="manualAmounts[0] = Number($event) || 0"
+                />
+                <span class="text-xs text-muted w-10">{{ selectedCurrency }}</span>
+              </div>
+              <!-- Other people rows -->
               <div
                 v-for="pid in (state.personIds ?? [])"
                 :key="pid"
@@ -635,19 +685,14 @@ async function onSubmit() {
                 <span class="text-xs text-muted w-10">{{ selectedCurrency }}</span>
               </div>
             </div>
+            <!-- Total vs record amount -->
             <div class="flex items-center justify-between text-xs">
-              <span :class="manualTotal > state.amount ? 'text-error' : 'text-muted'">
-                Total: <span class="font-bold" :class="manualTotal > state.amount ? '' : 'text-highlighted'">{{ formatMoneyParts(manualTotal).integer }}{{ formatMoneyParts(manualTotal).decimal }}</span> {{ selectedCurrency }}
+              <span :class="manualOverflow ? 'text-error' : 'text-muted'">
+                Total: <span class="font-bold" :class="manualOverflow ? '' : 'text-highlighted'">{{ formatMoneyParts(manualTotal).integer }}{{ formatMoneyParts(manualTotal).decimal }}</span>
+                / {{ formatMoneyParts(state.amount).integer }}{{ formatMoneyParts(state.amount).decimal }} {{ selectedCurrency }}
               </span>
-              <span class="text-muted">
-                You pay
-                <span
-                  class="font-bold"
-                  :class="manualUserPays > manualTotal / (state.personIds?.length || 1) ? 'text-red-600 dark:text-red-400' : manualUserPays < manualTotal / (state.personIds?.length || 1) ? 'text-teal-600 dark:text-teal-400' : 'text-highlighted'"
-                >
-                  {{ formatMoneyParts(manualUserPays).integer }}{{ formatMoneyParts(manualUserPays).decimal }}
-                </span>
-                {{ selectedCurrency }}
+              <span v-if="manualTotal !== state.amount && !manualOverflow" class="text-amber-600 dark:text-amber-400">
+                {{ formatMoneyParts(state.amount - manualTotal).integer }}{{ formatMoneyParts(state.amount - manualTotal).decimal }} remaining
               </span>
             </div>
           </template>
@@ -663,7 +708,7 @@ async function onSubmit() {
       <UButton
         :label="isSettlement ? 'Record payment' : (record ? 'Save changes' : 'Create record')"
         :loading="loading"
-        :disabled="hasErrors || !form?.dirty || (isSettlement && !state.personIds?.length)"
+        :disabled="hasErrors || (!form?.dirty && splitMode !== 'manual') || (isSettlement && !state.personIds?.length) || (splitMode === 'manual' && manualTotal !== state.amount)"
         @click="form?.submit()"
       />
     </template>

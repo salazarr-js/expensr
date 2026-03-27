@@ -7,6 +7,10 @@ export const RECORD_TYPES = ["expense", "income", "settlement"] as const;
 export const SPLIT_TYPES = ["equal", "weighted", "manual"] as const;
 export type SplitType = (typeof SPLIT_TYPES)[number];
 
+/** How the parse resolved the tag: deterministic (name/keyword) vs probabilistic (AI). */
+export const RESOLVED_BY = ["name_match", "keyword", "ai", "none"] as const;
+export type ResolvedBy = (typeof RESOLVED_BY)[number];
+
 /** Union of RECORD_TYPES values. */
 export type RecordType = (typeof RECORD_TYPES)[number];
 
@@ -37,6 +41,7 @@ export interface RecordWithRelations extends FinancialRecord {
   categoryIcon: string | null;
   tagName: string | null;
   people: { id: number; name: string; shareAmount: number }[];
+  mySpend: number; // your actual spending portion (amount minus others' shares, 0 for settlements)
 }
 
 /** Validation for creating a record. Shared by frontend forms and API. */
@@ -86,12 +91,13 @@ export interface ParsedRecord {
   splitType: SplitType;
   type: RecordType;
   needsReview: boolean;
+  resolvedBy: ResolvedBy; // which tier matched the tag
+  parseLogId: number; // reference to parse_logs row for feedback
 }
 
-/** Parse feedback: original AI output vs user's final correction. */
+/** Parse feedback: references the log row and sends what the user actually saved. */
 export const parseRecordFeedbackSchema = z.object({
-  promptText: z.string().min(1),
-  aiResponse: z.record(z.string(), z.unknown()),
+  parseLogId: z.number(),
   finalResponse: z.record(z.string(), z.unknown()),
 });
 

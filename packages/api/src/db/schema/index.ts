@@ -4,5 +4,5 @@ export { tags } from "./tags";
 export { people } from "./people";
 export { records } from "./records";
 export { recordPeople } from "./recordPeople";
-export { parseCorrections } from "./parseCorrections";
+export { parseLogs } from "./parseLogs";
 export { keywordMappings } from "./keywordMappings";

@@ -159,9 +159,9 @@ People you share expenses with. Multi-person per record (junction table `record_
 - [x] UI: [Expense][Payment] toggle in form + "Payment" shortcut on People page
 - [x] Person selector: single-select, closes on pick, required
 
-### Next steps (not yet implemented)
-- [ ] **Parse logs + feedback wiring** — log every parse call, wire up keyword learning loop. See [07-parse-logs/](07-parse-logs/)
-- [ ] **Spending calculations** — shared records count as `amount / (people + myShares) * myShares` in totals/charts instead of full amount. Your real spend, not cash flow.
+### Next steps
+- [x] **Parse logs + feedback wiring** — parse_logs table, resolvedBy tracking, feedback from QuickRecordModal → keyword dictionary. See [07-parse-logs/](07-parse-logs/)
+- [x] **Spending calculations** — `mySpend` on RecordWithRelations (amount minus others' shares, 0 for settlements)
 - [ ] **Dashboard widgets** — total debt others owe you, settlement history, how much others spent on you vs you on them
 
 ---
@@ -227,10 +227,10 @@ Shipped. See [05-smart-parse/](05-smart-parse/) for full algorithm.
 - [x] Amounts always absolute (type handles direction)
 - [x] `??`/`???` needsReview markers, DD/MM/YY date parsing
 - [x] QuickRecordModal — natural language input, opens form pre-filled with parse results
-- [x] `keyword_mappings` + `parse_corrections` tables
-- [ ] Person detection in parse (pending People feature)
+- [x] `keyword_mappings` + `parse_logs` tables (replaced `parse_corrections`)
+- [x] Person detection in parse
 - [ ] Keyboard shortcut to open QuickRecordModal
-- [ ] Auto-save for high-confidence matches (after training phase)
+- [x] Auto-save for high-confidence matches (name_match + keyword, toast with Edit action)
 
 ## 7. Smart Categorization ✅
 

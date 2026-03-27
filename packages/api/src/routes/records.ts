@@ -2,16 +2,9 @@ import { Hono } from "hono";
 import { eq, and, gte, lte, desc, asc, gt, lt, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { createRecordSchema, updateRecordSchema, reorderRecordSchema, parseRecordSchema, parseRecordFeedbackSchema } from "@slzr/expensr-shared";
-import type { ParsedRecord } from "@slzr/expensr-shared";
+import type { ParsedRecord, ResolvedBy } from "@slzr/expensr-shared";
 import { createDb } from "../db";
-import { records } from "../db/schema";
-import { accounts } from "../db/schema";
-import { categories } from "../db/schema";
-import { tags } from "../db/schema";
-import { people } from "../db/schema";
-import { recordPeople } from "../db/schema";
-import { parseCorrections } from "../db/schema";
-import { keywordMappings } from "../db/schema";
+import { records, accounts, categories, tags, people, recordPeople, parseLogs, keywordMappings } from "../db/schema";
 import { parseId } from "../utils";
 
 const route = new Hono<{ Bindings: CloudflareBindings }>();
@@ -97,6 +90,17 @@ async function attachPeople<T extends { id: number }>(
   return rows.map((r) => ({ ...r, people: byRecord.get(r.id) ?? [] }));
 }
 
+/** Compute user's actual spending portion per record. Settlements = 0, shared = amount minus others' shares. */
+function computeMySpend<T extends { amount: number; type: string; people: { shareAmount: number }[] }>(
+  rows: T[],
+): (T & { mySpend: number })[] {
+  return rows.map((r) => {
+    if (r.type === "settlement") return { ...r, mySpend: 0 };
+    const othersTotal = r.people.reduce((sum, p) => sum + p.shareAmount, 0);
+    return { ...r, mySpend: r.amount - othersTotal };
+  });
+}
+
 /** Sync record_people links and pre-calculate share_amount per person. */
 async function syncRecordPeople(
   db: ReturnType<typeof createDb>,
@@ -162,7 +166,7 @@ route.get("/", async (ctx) => {
     ? await query.where(and(...conditions)).orderBy(desc(records.date), desc(records.id))
     : await query.orderBy(desc(records.date), desc(records.id));
 
-  return ctx.json(await attachPeople(db, rows));
+  return ctx.json(computeMySpend(await attachPeople(db, rows)));
 });
 
 /** POST / — create record. Appends current time if only date given. */
@@ -277,17 +281,22 @@ function extractKeywords(text: string): string[] {
 }
 
 /** Match text against account aliases (exact) then names (partial). Aliases take priority. */
-function matchAccount(
+function matchAccount<T extends { name: string; aliases: string | null }>(
   text: string,
-  allAccounts: { id: number; name: string; currency: string; aliases: string | null; isDefault: boolean }[],
-): { id: number; name: string; currency: string; aliases: string | null; isDefault: boolean } | null {
+  allAccounts: T[],
+): T | null {
   const lower = text.toLowerCase();
   // Exact alias match first (e.g. "usd" → Galicia USD)
   const aliasMatch = allAccounts.find((a) => a.aliases?.split(",").includes(lower));
   if (aliasMatch) return aliasMatch;
-  // Bidirectional partial name match (e.g. "galicia" ↔ "Galicia ARS")
-  return allAccounts.find((a) => a.name.toLowerCase().includes(lower)
-    || lower.includes(a.name.toLowerCase())) ?? null;
+  // Partial name match — require search term to be a significant portion of the name
+  // to avoid "ml" matching "MercadoLibre" while "galicia" still matches "Galicia ARS"
+  return allAccounts.find((a) => {
+    const nameLower = a.name.toLowerCase();
+    if (nameLower.includes(lower) && lower.length >= nameLower.length * 0.4) return true;
+    if (lower.includes(nameLower)) return true;
+    return false;
+  }) ?? null;
 }
 
 /**
@@ -332,8 +341,14 @@ route.post("/parse", async (ctx) => {
       .from(tags)
       .leftJoin(categories, eq(tags.categoryId, categories.id))
       .orderBy(tags.name),
-    db.select({ id: accounts.id, name: accounts.name, currency: accounts.currency, aliases: accounts.aliases, isDefault: accounts.isDefault })
+    db.select({
+        id: accounts.id, name: accounts.name, currency: accounts.currency,
+        aliases: accounts.aliases, isDefault: accounts.isDefault,
+        recordCount: sql<number>`count(${records.id})`.as("recordCount"),
+      })
       .from(accounts)
+      .leftJoin(records, eq(accounts.id, records.accountId))
+      .groupBy(accounts.id)
       .orderBy(accounts.name),
     db.select({ id: categories.id, name: categories.name })
       .from(categories)
@@ -374,13 +389,17 @@ route.post("/parse", async (ctx) => {
     }
   }
 
-  // Default: explicit isDefault → most records (first in usage-sorted list)
+  // Default: explicit isDefault → most-used account (highest record count)
   if (!resolvedAccount && allAccounts.length) {
-    resolvedAccount = allAccounts.find((a) => a.isDefault) ?? allAccounts[0];
+    resolvedAccount = allAccounts.find((a) => a.isDefault)
+      ?? [...allAccounts].sort((a, b) => b.recordCount - a.recordCount)[0];
   }
 
   // --- Tag resolution: tag name match → keyword map → AI fallback ---
   let resolvedTagId: number | null = null;
+  let resolvedBy: ResolvedBy = "none";
+  let aiCalled = false;
+  let aiSucceeded = false;
 
   // 1. Tag name match — exact first, then partial (contains)
   if (keywords.length) {
@@ -396,21 +415,26 @@ route.post("/parse", async (ctx) => {
         if (partial) { resolvedTagId = partial.id; break; }
       }
     }
+    if (resolvedTagId) resolvedBy = "name_match";
   }
 
   // 2. Keyword dictionary lookup
   if (!resolvedTagId) {
     const kwTag = sorted.find((m) => m.tagId);
-    if (kwTag) resolvedTagId = kwTag.tagId;
+    if (kwTag) {
+      resolvedTagId = kwTag.tagId;
+      resolvedBy = "keyword";
+    }
   }
 
-  const matchedTag = resolvedTagId ? allTags.find((t) => t.id === resolvedTagId) ?? null : null;
+  let matchedTag = resolvedTagId ? allTags.find((t) => t.id === resolvedTagId) ?? null : null;
   let matchedCategory = matchedTag?.categoryId
-    ? allCategories.find((c) => c.id === matchedTag.categoryId) ?? null
+    ? allCategories.find((c) => c.id === matchedTag!.categoryId) ?? null
     : null;
 
   // 3. AI fallback — only when name + keywords didn't resolve a tag
   if (!matchedTag && note) {
+    aiCalled = true;
     // Include learned keyword→tag dictionary in the prompt so AI can leverage it
     const allMappings = await db.select().from(keywordMappings).orderBy(desc(keywordMappings.usageCount));
     const tagMap = new Map(allTags.map((t) => [t.id, t.name]));
@@ -463,6 +487,9 @@ Output format: {"tagName":string|null,"type":"expense"|"income"}`;
           const aiTag = allTags.find((t) => t.name.toLowerCase() === aiResult.tagName!.toLowerCase());
           if (aiTag) {
             resolvedTagId = aiTag.id;
+            matchedTag = aiTag;
+            aiSucceeded = true;
+            resolvedBy = "ai";
             matchedCategory = aiTag.categoryId
               ? allCategories.find((c) => c.id === aiTag.categoryId) ?? null
               : null;
@@ -473,8 +500,6 @@ Output format: {"tagName":string|null,"type":"expense"|"income"}`;
       // AI failed — continue without tag, user will pick in the form
     }
   }
-
-  const finalTag = resolvedTagId ? allTags.find((t) => t.id === resolvedTagId) ?? null : null;
 
   // Bump usage_count for matched keywords (fire-and-forget, ranks future lookups)
   const usedIds = sorted.filter((m) => m.tagId || m.accountId).map((m) => m.id);
@@ -504,10 +529,10 @@ Output format: {"tagName":string|null,"type":"expense"|"income"}`;
     if (calculated >= 1) myShares = calculated;
   }
 
-  const result: ParsedRecord = {
+  const result: Omit<ParsedRecord, "parseLogId"> = {
     amount,
-    tagId: finalTag?.id ?? null,
-    tagName: finalTag?.name ?? null,
+    tagId: matchedTag?.id ?? null,
+    tagName: matchedTag?.name ?? null,
     categoryId: matchedCategory?.id ?? null,
     categoryName: matchedCategory?.name ?? null,
     accountId: resolvedAccount?.id ?? null,
@@ -520,9 +545,54 @@ Output format: {"tagName":string|null,"type":"expense"|"income"}`;
     splitType: myShares > 1 ? "weighted" : "equal",
     type: matchedCategory?.name === "Income" ? "income" : "expense",
     needsReview,
+    resolvedBy,
   };
 
-  return ctx.json(result);
+  // Log every parse call for observability and feedback wiring
+  const log = await db.insert(parseLogs).values({
+    inputText: parsed.data.text,
+    resolvedBy,
+    tagMatched: !!matchedTag,
+    accountMatched: !!resolvedAccount,
+    peopleCount: matchedPeople.length,
+    aiCalled,
+    aiSucceeded: aiCalled ? aiSucceeded : null,
+    parseResult: JSON.stringify(result),
+  }).returning().get();
+
+  return ctx.json({ ...result, parseLogId: log.id });
+});
+
+/** GET /parse/keywords — learned keyword→tag mappings for form auto-matching. */
+route.get("/parse/keywords", async (ctx) => {
+  const db = createDb(ctx.env.DB);
+  const rows = await db
+    .select({
+      keyword: keywordMappings.keyword,
+      tagId: keywordMappings.tagId,
+      tagName: tags.name,
+    })
+    .from(keywordMappings)
+    .innerJoin(tags, eq(keywordMappings.tagId, tags.id))
+    .orderBy(desc(keywordMappings.usageCount));
+  return ctx.json(rows);
+});
+
+/** GET /parse/stats — aggregate parse observability metrics. */
+route.get("/parse/stats", async (ctx) => {
+  const db = createDb(ctx.env.DB);
+  const stats = await db.select({
+    total: sql<number>`count(*)`,
+    nameMatch: sql<number>`count(case when ${parseLogs.resolvedBy} = 'name_match' then 1 end)`,
+    keyword: sql<number>`count(case when ${parseLogs.resolvedBy} = 'keyword' then 1 end)`,
+    ai: sql<number>`count(case when ${parseLogs.resolvedBy} = 'ai' then 1 end)`,
+    none: sql<number>`count(case when ${parseLogs.resolvedBy} = 'none' then 1 end)`,
+    aiCalls: sql<number>`count(case when ${parseLogs.aiCalled} then 1 end)`,
+    aiSuccess: sql<number>`count(case when ${parseLogs.aiSucceeded} then 1 end)`,
+    corrected: sql<number>`count(case when ${parseLogs.wasCorrected} then 1 end)`,
+    saved: sql<number>`count(${parseLogs.finalResult})`,
+  }).from(parseLogs).get();
+  return ctx.json(stats);
 });
 
 /** GET /:id */
@@ -534,7 +604,7 @@ route.get("/:id", async (ctx) => {
   const row = await recordsWithRelations(db).where(eq(records.id, id)).get();
 
   if (!row) return ctx.json({ error: "Record not found" }, 404);
-  const [withPeople] = await attachPeople(db, [row]);
+  const [withPeople] = computeMySpend(await attachPeople(db, [row]));
   return ctx.json(withPeople);
 });
 
@@ -606,7 +676,7 @@ route.put("/:id", async (ctx) => {
 });
 
 /**
- * POST /parse/feedback — store correction, build keyword dictionary.
+ * POST /parse/feedback — update log row with final result, build keyword dictionary.
  * Only maps keywords for 1-2 word notes (brands). Multi-word notes are too ambiguous.
  * Parens account keywords are always mapped.
  */
@@ -619,16 +689,25 @@ route.post("/parse/feedback", async (ctx) => {
   }
 
   const db = createDb(ctx.env.DB);
-  const { promptText, aiResponse, finalResponse } = parsed.data;
+  const { parseLogId, finalResponse } = parsed.data;
 
-  await db.insert(parseCorrections).values({
-    promptText,
-    aiResponse: JSON.stringify(aiResponse),
-    finalResponse: JSON.stringify(finalResponse),
-  });
+  // Fetch the log row to get original input text and parse result
+  const logRow = await db.select().from(parseLogs).where(eq(parseLogs.id, parseLogId)).get();
+  if (!logRow) return ctx.json({ error: "Parse log not found" }, 404);
 
-  // Re-run extraction to get keywords from the original prompt
-  const { text: t1 } = extractNeedsReview(promptText);
+  // Compare original vs final to determine if user corrected the parse
+  const original = JSON.parse(logRow.parseResult) as Record<string, unknown>;
+  const wasCorrected = original.tagId !== finalResponse.tagId
+    || original.accountId !== finalResponse.accountId;
+
+  // Update log row with feedback
+  await db.update(parseLogs).set({
+    finalResult: JSON.stringify(finalResponse),
+    wasCorrected,
+  }).where(eq(parseLogs.id, parseLogId));
+
+  // Re-run extraction to get keywords from the original input
+  const { text: t1 } = extractNeedsReview(logRow.inputText);
   const { text: t2, accountText } = extractParensAccount(t1);
   const { text: t3 } = extractDate(t2);
   const { text: noteText } = extractAmount(t3);
