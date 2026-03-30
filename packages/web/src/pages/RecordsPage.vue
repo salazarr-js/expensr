@@ -13,8 +13,10 @@ import { formatMoneyParts } from "@/utils/money";
 import { getColor } from "@/utils/colors";
 import { RecordFormModal } from "@/components/RecordFormModal";
 import { QuickRecordModal } from "@/components/QuickRecordModal";
+import { BatchRecordModal } from "@/components/BatchRecordModal";
 import { DateRangePicker } from "@/components/DateRangePicker";
 import { useAlertDialog } from "@/composables/useAlertDialog";
+import { useApi } from "@/composables/useApi";
 import { getDefaultRange } from "@/utils/dates";
 
 const route = useRoute();
@@ -24,25 +26,35 @@ const accountsStore = useAccountsStore();
 const categoriesStore = useCategoriesStore();
 const peopleStore = usePeopleStore();
 const alert = useAlertDialog();
+const api = useApi();
 
 const { records, loading, error } = storeToRefs(recordsStore);
+
+// Review count for the badge
+const reviewCount = ref(0);
+async function fetchReviewCount() {
+  try { reviewCount.value = (await api.get<{ count: number }>("/records/review/count")).count; }
+  catch { reviewCount.value = 0; }
+}
 const { accounts } = storeToRefs(accountsStore);
 const { categories, tagsByCategory } = storeToRefs(categoriesStore);
 const { people } = storeToRefs(peopleStore);
 
 const showFormModal = ref(false);
 const showQuickRecord = ref(false);
+const showBatchModal = ref(false);
 const selectedRecord = ref<RecordWithRelations | undefined>();
 
 // ── Filters (synced to URL query params) ────────────────────────────
 
-// Default to "This month" when no URL params
+// Default to "This month" when no URL date params. Empty string = "all time" (explicit clear).
 const defaults = getDefaultRange();
+const hasDateParams = "dateFrom" in route.query || "dateTo" in route.query;
 const filterDateFrom = ref<string | undefined>(
-  route.query.dateFrom ? String(route.query.dateFrom) : defaults.dateFrom,
+  hasDateParams ? (String(route.query.dateFrom || "") || undefined) : defaults.dateFrom,
 );
 const filterDateTo = ref<string | undefined>(
-  route.query.dateTo ? String(route.query.dateTo) : defaults.dateTo,
+  hasDateParams ? (String(route.query.dateTo || "") || undefined) : defaults.dateTo,
 );
 const searchQuery = ref(route.query.search ? String(route.query.search) : "");
 const debouncedSearch = ref(searchQuery.value);
@@ -175,14 +187,32 @@ const currentFilters = computed<RecordFilters>(() => {
     search: debouncedSearch.value || undefined,
     categoryId: filterCategoryId.value,
     tagId: filterTagId.value,
+    needsReview: filterNeedsReview.value || undefined,
   };
 });
 
-/** Whether any non-default filter is active (account, person, search, or non-default date). */
+// Needs review filter — activated via URL param or review button
+const filterNeedsReview = ref(route.query.needsReview === "true");
+
+/** Toggle review filter — clears date range when activating to show all review records. */
+function toggleReviewFilter() {
+  filterNeedsReview.value = !filterNeedsReview.value;
+  if (filterNeedsReview.value) {
+    // Clear date filter to show all review records across all dates
+    filterDateFrom.value = undefined;
+    filterDateTo.value = undefined;
+  } else {
+    // Restore default date range
+    filterDateFrom.value = defaults.dateFrom;
+    filterDateTo.value = defaults.dateTo;
+  }
+}
+
+/** Whether any non-default filter is active. */
 const hasActiveFilters = computed(() => {
   const f = currentFilters.value;
   const d = defaults;
-  return !!(f.accountIds?.length || f.personId || f.search || f.categoryId || f.tagId
+  return !!(f.accountIds?.length || f.personId || f.search || f.categoryId || f.tagId || f.needsReview
     || (f.dateFrom !== d.dateFrom) || (f.dateTo !== d.dateTo));
 });
 
@@ -193,6 +223,7 @@ function clearFilters() {
   searchQuery.value = "";
   debouncedSearch.value = "";
   selectedCategoryTag.value = "all";
+  filterNeedsReview.value = false;
   filterDateFrom.value = defaults.dateFrom;
   filterDateTo.value = defaults.dateTo;
 }
@@ -207,6 +238,7 @@ watch(currentFilters, (filters) => {
   if (filters.search) query.search = filters.search;
   if (filters.categoryId) query.categoryId = String(filters.categoryId);
   if (filters.tagId) query.tagId = String(filters.tagId);
+  if (filters.needsReview) query.needsReview = "true";
   router.replace({ query });
   recordsStore.fetchRecords(filters);
 });
@@ -316,7 +348,11 @@ onMounted(() => {
   categoriesStore.fetchAll();
   peopleStore.fetchPeople();
   recordsStore.fetchRecords(currentFilters.value);
+  fetchReviewCount();
 });
+
+// Refresh review count when records change (after create/update/delete)
+watch(records, fetchReviewCount);
 </script>
 
 <template>
@@ -328,6 +364,16 @@ onMounted(() => {
         </template>
 
         <template #right>
+          <UTooltip v-if="reviewCount > 0" :text="filterNeedsReview ? 'Show all records' : `${reviewCount} records need review`">
+            <UButton
+              icon="i-lucide-circle-alert"
+              :variant="filterNeedsReview ? 'solid' : 'soft'"
+              color="warning"
+              @click="toggleReviewFilter"
+            >
+              {{ reviewCount }}
+            </UButton>
+          </UTooltip>
           <UButton icon="i-lucide-plus" label="New record" variant="outline" @click="openCreate" />
           <UTooltip text="Quick record (AI)">
             <UButton icon="i-lucide-sparkles" @click="showQuickRecord = true" />
@@ -466,14 +512,18 @@ onMounted(() => {
               <div class="flex items-center gap-1 text-xs text-muted truncate">
                 <span>{{ formatDate(record.date) }} · {{ record.accountName }}</span>
                 <div v-if="record.people?.length" class="flex items-center -space-x-1 ml-1">
-                  <div
+                  <UTooltip
                     v-for="person in record.people"
                     :key="person.id"
-                    class="flex items-center justify-center size-4 rounded-full text-[8px] font-semibold ring-1 ring-white dark:ring-zinc-900"
-                    :style="{ backgroundColor: getColor(getPersonColor(person.id))[100], color: getColor(getPersonColor(person.id))[500] }"
+                    :text="person.name"
                   >
-                    {{ person.name.charAt(0) }}
-                  </div>
+                    <div
+                      class="flex items-center justify-center size-4 rounded-full text-[8px] font-semibold ring-1 ring-white dark:ring-zinc-900"
+                      :style="{ backgroundColor: getColor(getPersonColor(person.id))[100], color: getColor(getPersonColor(person.id))[500] }"
+                    >
+                      {{ person.name.charAt(0) }}
+                    </div>
+                  </UTooltip>
                 </div>
               </div>
             </div>
@@ -558,15 +608,18 @@ onMounted(() => {
 
           <template #people-cell="{ row }">
             <div v-if="row.original.people?.length" class="flex items-center -space-x-1">
-              <div
+              <UTooltip
                 v-for="person in row.original.people"
                 :key="person.id"
-                class="flex items-center justify-center size-6 rounded-full text-[10px] font-semibold ring-2 ring-white dark:ring-zinc-900"
-                :style="{ backgroundColor: getColor(getPersonColor(person.id))[100], color: getColor(getPersonColor(person.id))[500] }"
-                :title="person.name"
+                :text="person.name"
               >
-                {{ person.name.charAt(0) }}
-              </div>
+                <div
+                  class="flex items-center justify-center size-6 rounded-full text-[10px] font-semibold ring-2 ring-white dark:ring-zinc-900"
+                  :style="{ backgroundColor: getColor(getPersonColor(person.id))[100], color: getColor(getPersonColor(person.id))[500] }"
+                >
+                  {{ person.name.charAt(0) }}
+                </div>
+              </UTooltip>
             </div>
             <span v-else class="text-muted">—</span>
           </template>
@@ -591,6 +644,7 @@ onMounted(() => {
     </template>
   </UDashboardPanel>
 
-  <RecordFormModal v-model:open="showFormModal" :record="selectedRecord" @delete="deleteRecord" />
+  <RecordFormModal v-model:open="showFormModal" :record="selectedRecord" @delete="deleteRecord" @batch="showBatchModal = true" />
   <QuickRecordModal v-model:open="showQuickRecord" />
+  <BatchRecordModal v-model:open="showBatchModal" />
 </template>

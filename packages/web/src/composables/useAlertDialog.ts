@@ -4,6 +4,8 @@ import type { AlertDialogColor } from "@/components/AlertDialog";
 interface AlertDialogOptions {
   title?: string;
   message?: string;
+  /** HTML content shown below the message. */
+  description?: string;
   /** Optional list of items displayed as chips below the message. */
   chips?: string[];
   icon?: string;

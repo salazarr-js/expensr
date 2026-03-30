@@ -3,12 +3,55 @@
 ## [Unreleased]
 
 ### Next steps
-- Batch record creation with correct datetime ordering
 - Dashboard with totals, category breakdown, period picker
-- Review mode for `??` records
 - "Who paid?" field for tracking expenses others paid on your behalf
 - Quick Record payment support (keyword trigger for settlements)
 - Custom TanStack Table for full styling control
+
+## 2026-03-30 — Batch Create, Review Mode & Keywords
+
+### Batch Create
+- Spreadsheet-style modal with date groups, Note → Tag → Amount columns
+- Account selector shared across all records
+- Tag auto-matches from note (name match + keyword dictionary)
+- Unmatched rows parsed via AI before save, saved as needsReview if no tag
+- Form state persisted in localStorage until successful save
+- Arrow key navigation between cells, row reordering
+- Accessible from "Batch" button in New Record modal footer
+- `POST /records/batch` API with sequential datetime per date group
+
+### Quick Record Batch Mode
+- Single/Batch toggle in QuickRecordModal
+- Multi-line textarea: one record per line, parse all at once
+- Review parsed results with status badges, save all via batch API
+
+### Review Mode
+- NeedsReview records show amber background on records page
+- Review count badge (warning) in Records navbar, toggles needsReview filter
+- Typing `??` in note auto-checks needsReview, removing `??` unchecks
+- Assigning a tag auto-clears needsReview
+- Keyword → tag mapping learned when review is resolved
+- `GET /records/review/count` + `?needsReview=true` filter
+
+### Keywords Page
+- `/dashboard/keywords` — manage keyword → tag mappings
+- Tag cards with colored headers, inline keyword chips
+- Inline add per tag + modal for new keywords with tag picker
+- Delete with confirmation showing usage count
+- Search filter across keywords and tag names
+- Keywords not stored when matching a tag name (redundant) or from needsReview records
+- `POST /parse/keywords` + `DELETE /parse/keywords/:id` API endpoints
+
+### Keyword Learning Improvements
+- Account mappings removed from keywords (accounts use aliases only)
+- No keyword learning from needsReview records
+- No redundant keywords that match tag names
+- Keywords learned when editing a record from needsReview → resolved
+
+### Other
+- People tooltips on record circles (mobile + desktop)
+- AlertDialog now supports HTML `description` prop
+- Tag → category auto-assign retries if categories haven't loaded yet
 
 ## 2026-03-27 — DateRangePicker, Search & Category Filter
 

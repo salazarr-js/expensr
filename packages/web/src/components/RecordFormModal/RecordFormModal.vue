@@ -258,6 +258,7 @@ watch(open, (isOpen) => {
       personIds: props.record.people?.map((p) => p.id) ?? [],
       myShares: props.record.myShares ?? 1,
       note: props.record.note,
+      needsReview: props.record.needsReview,
     });
     // Load manual amounts from record if split was manual
     if (props.record.splitType === "manual" && props.record.people?.length) {
@@ -304,10 +305,19 @@ watch(() => state.tagId, (tagId) => {
   }
 
   if (!tagId) return;
-  const tag = allTags.value.find((t) => t.id === tagId);
-  if (tag?.categoryId) {
-    suppressCategoryWatch = true;
-    state.categoryId = tag.categoryId;
+  // Find tag in allTags — if categories haven't loaded yet, watch for them
+  const assignCategory = () => {
+    const tag = allTags.value.find((t) => t.id === tagId);
+    if (tag?.categoryId) {
+      suppressCategoryWatch = true;
+      state.categoryId = tag.categoryId;
+      return true;
+    }
+    return false;
+  };
+  if (!assignCategory() && !allTags.value.length) {
+    // Categories not loaded yet — retry once when they load
+    const stop = watch(allTags, () => { assignCategory(); stop(); }, { once: true });
   }
 });
 
@@ -345,6 +355,8 @@ const matchTagFromNote = useDebounceFn((note: string) => {
 }, 400);
 watch(() => state.note, (note) => {
   if (note) {
+    // Auto-toggle needsReview based on ?? in the note
+    state.needsReview = note.includes("??");
     matchTagFromNote(note);
   } else if (tagAutoMatched) {
     // Note cleared — remove auto-matched tag + its auto-assigned category
@@ -356,7 +368,7 @@ watch(() => state.note, (note) => {
   }
 });
 
-const emit = defineEmits<{ delete: [record: RecordWithRelations] }>();
+const emit = defineEmits<{ delete: [record: RecordWithRelations]; batch: [] }>();
 
 const form = ref<{ submit: () => Promise<void>; errors: { message: string }[]; dirty: boolean }>();
 const loading = ref(false);
@@ -385,11 +397,14 @@ async function onSubmit() {
     const hasPeople = !!state.personIds?.length;
     const isManual = hasPeople && splitMode.value === "manual";
 
+    // Auto-clear needsReview when a tag is assigned
+    const resolvedTagId = isSettlement.value ? null : (state.tagId || null);
     const payload: CreateRecord = {
       ...state,
       type,
       categoryId: isSettlement.value ? null : (state.categoryId || null),
-      tagId: isSettlement.value ? null : (state.tagId || null),
+      tagId: resolvedTagId,
+      needsReview: resolvedTagId ? false : state.needsReview,
       personIds: hasPeople ? state.personIds : undefined,
       myShares: hasPeople && !isManual && !isSettlement.value ? (state.myShares ?? 1) : undefined,
       personShares: isManual
@@ -532,6 +547,8 @@ async function onSubmit() {
         <UFormField label="Note" name="note">
           <UTextarea :model-value="state.note ?? undefined" placeholder="Optional note..." :rows="2" class="w-full" @update:model-value="state.note = $event || null" />
         </UFormField>
+
+        <UCheckbox v-model="state.needsReview" label="Needs review" color="warning" />
 
         <UFormField :label="isSettlement ? 'Person' : 'People'" name="personIds" :required="isSettlement">
           <USelectMenu
@@ -704,11 +721,12 @@ async function onSubmit() {
 
     <template #footer>
       <UButton v-if="record" label="Delete" icon="i-lucide-trash-2" variant="outline" color="error" @click="emit('delete', record)" />
+      <UButton v-if="!record" icon="i-lucide-table" variant="outline" color="neutral" label="Batch" @click="open = false; emit('batch')" />
       <UButton label="Cancel" variant="ghost" color="neutral" class="ml-auto" @click="open = false" />
       <UButton
         :label="isSettlement ? 'Record payment' : (record ? 'Save changes' : 'Create record')"
         :loading="loading"
-        :disabled="hasErrors || (!form?.dirty && splitMode !== 'manual') || (isSettlement && !state.personIds?.length) || (splitMode === 'manual' && manualTotal !== state.amount)"
+        :disabled="hasErrors || (!form?.dirty && splitMode !== 'manual' && state.needsReview === props.record?.needsReview) || (isSettlement && !state.personIds?.length) || (splitMode === 'manual' && manualTotal !== state.amount)"
         @click="form?.submit()"
       />
     </template>

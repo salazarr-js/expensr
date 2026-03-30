@@ -130,10 +130,17 @@ async function syncRecordPeople(
   }
 }
 
+/** GET /review/count — count of records needing review. */
+route.get("/review/count", async (ctx) => {
+  const db = createDb(ctx.env.DB);
+  const result = await db.select({ count: sql<number>`count(*)` }).from(records).where(eq(records.needsReview, true)).get();
+  return ctx.json({ count: result?.count ?? 0 });
+});
+
 /** GET / — list records. Filters: ?accountId=1,2 ?dateFrom ?dateTo ?personId. Newest first. */
 route.get("/", async (ctx) => {
   const db = createDb(ctx.env.DB);
-  const { accountId, dateFrom, dateTo, personId, search, categoryId, tagId } = ctx.req.query();
+  const { accountId, dateFrom, dateTo, personId, search, categoryId, tagId, needsReview } = ctx.req.query();
 
   const conditions = [];
   if (accountId) {
@@ -170,6 +177,11 @@ route.get("/", async (ctx) => {
     if (!isNaN(cid)) conditions.push(eq(records.categoryId, cid));
   }
 
+  // Filter by needs review
+  if (needsReview === "true") {
+    conditions.push(eq(records.needsReview, true));
+  }
+
   // Text search across note, tag name, category name, and amount
   if (search) {
     const pattern = `%${search}%`;
@@ -195,6 +207,37 @@ route.get("/", async (ctx) => {
   return ctx.json(computeMySpend(await attachPeople(db, rows)));
 });
 
+/** Derive split type from create/update payload. */
+function deriveSplitType(
+  personShares?: { personId: number; amount: number }[],
+  personIds?: number[],
+  type?: string,
+  myShares?: number,
+): string {
+  if (personShares?.length || (type === "settlement" && personIds?.length === 1)) return "manual";
+  if (myShares && myShares > 1) return "weighted";
+  return "equal";
+}
+
+/** Sync record_people after insert based on split mode. */
+async function syncPeopleAfterInsert(
+  db: ReturnType<typeof createDb>,
+  row: { id: number; amount: number; myShares: number },
+  personIds?: number[],
+  personShares?: { personId: number; amount: number }[],
+  type?: string,
+) {
+  if (personShares?.length) {
+    const manualAmounts = new Map<number, number>(personShares.map((s) => [s.personId, s.amount]));
+    await syncRecordPeople(db, row.id, personShares.map((s) => s.personId), row.amount, row.myShares, manualAmounts);
+  } else if (type === "settlement" && personIds?.length === 1) {
+    const manualAmounts = new Map<number, number>([[personIds[0], row.amount]]);
+    await syncRecordPeople(db, row.id, personIds, row.amount, 1, manualAmounts);
+  } else if (personIds?.length) {
+    await syncRecordPeople(db, row.id, personIds, row.amount, row.myShares);
+  }
+}
+
 /** POST / — create record. Appends current time if only date given. */
 route.post("/", async (ctx) => {
   const body = await ctx.req.json();
@@ -207,13 +250,7 @@ route.post("/", async (ctx) => {
   const db = createDb(ctx.env.DB);
   const { personIds, personShares, ...data } = parsed.data;
 
-  // Determine split type from input
-  let splitType = "equal";
-  if (personShares?.length || (data.type === "settlement" && personIds?.length === 1)) {
-    splitType = "manual";
-  } else if (data.myShares && data.myShares > 1) {
-    splitType = "weighted";
-  }
+  const splitType = deriveSplitType(personShares, personIds, data.type, data.myShares);
 
   // Settlements require exactly one person
   if (data.type === "settlement" && (!personIds?.length || personIds.length !== 1)) {
@@ -221,21 +258,60 @@ route.post("/", async (ctx) => {
   }
 
   const [row] = await db.insert(records).values({ ...data, splitType, date: ensureDatetime(data.date) }).returning();
-
-  if (personShares?.length) {
-    // Manual mode: use provided per-person amounts
-    const manualAmounts = new Map(personShares.map((s) => [s.personId, s.amount]));
-    const ids = personShares.map((s) => s.personId);
-    await syncRecordPeople(db, row.id, ids, row.amount, row.myShares, manualAmounts);
-  } else if (data.type === "settlement" && personIds?.length === 1) {
-    // Settlement: person's share = full amount
-    const manualAmounts = new Map([[personIds[0], row.amount]]);
-    await syncRecordPeople(db, row.id, personIds, row.amount, 1, manualAmounts);
-  } else if (personIds?.length) {
-    // Equal/weighted: auto-calculate
-    await syncRecordPeople(db, row.id, personIds, row.amount, row.myShares);
-  }
+  await syncPeopleAfterInsert(db, row, personIds, personShares, data.type);
   return ctx.json(row, 201);
+});
+
+/** POST /batch — create multiple records. Assigns sequential times within each date for correct ordering. */
+route.post("/batch", async (ctx) => {
+  const body = await ctx.req.json();
+  if (!Array.isArray(body) || !body.length) {
+    return ctx.json({ error: "Expected non-empty array" }, 400);
+  }
+
+  const db = createDb(ctx.env.DB);
+  const created: typeof records.$inferSelect[] = [];
+  const errors: { index: number; error: string }[] = [];
+
+  // Group by date to assign sequential times within each date
+  type ParsedCreate = z.infer<typeof createRecordSchema>;
+  const byDate = new Map<string, { index: number; data: ParsedCreate }[]>();
+  for (let i = 0; i < body.length; i++) {
+    const parsed = createRecordSchema.safeParse(body[i]);
+    if (!parsed.success) {
+      errors.push({ index: i, error: "Validation failed" });
+      continue;
+    }
+    const dateOnly = parsed.data.date.split("T")[0];
+    const group = byDate.get(dateOnly) ?? [];
+    group.push({ index: i, data: parsed.data });
+    byDate.set(dateOnly, group);
+  }
+
+  // Process each date group — assign times spaced 1 minute apart starting at noon
+  for (const [dateOnly, items] of byDate) {
+    for (let j = 0; j < items.length; j++) {
+      const { index, data } = items[j];
+      const { personIds, personShares, ...rest } = data;
+
+      // Space records 1 minute apart starting at 12:00:00
+      const hh = String(12 + Math.floor(j / 60)).padStart(2, "0");
+      const mm = String(j % 60).padStart(2, "0");
+      const datetime = `${dateOnly}T${hh}:${mm}:00`;
+
+      const splitType = deriveSplitType(personShares, personIds, rest.type, rest.myShares);
+
+      try {
+        const [row] = await db.insert(records).values({ ...rest, splitType, date: datetime }).returning();
+        await syncPeopleAfterInsert(db, row, personIds, personShares, rest.type);
+        created.push(row);
+      } catch {
+        errors.push({ index, error: "Insert failed" });
+      }
+    }
+  }
+
+  return ctx.json({ created: created.length, errors }, errors.length ? 207 : 201);
 });
 
 // --- Smart parse: token extractors (pure, no DB) ---
@@ -405,13 +481,6 @@ route.post("/parse", async (ctx) => {
         resolvedAccount = match;
         break;
       }
-    }
-  }
-
-  if (!resolvedAccount) {
-    const kwAccountId = sorted.find((m) => m.accountId)?.accountId ?? null;
-    if (kwAccountId) {
-      resolvedAccount = allAccounts.find((a) => a.id === kwAccountId) ?? null;
     }
   }
 
@@ -589,19 +658,61 @@ Output format: {"tagName":string|null,"type":"expense"|"income"}`;
   return ctx.json({ ...result, parseLogId: log.id });
 });
 
-/** GET /parse/keywords — learned keyword→tag mappings for form auto-matching. */
+/** GET /parse/keywords — learned keyword→tag mappings with tag icon and category color. */
 route.get("/parse/keywords", async (ctx) => {
   const db = createDb(ctx.env.DB);
   const rows = await db
     .select({
+      id: keywordMappings.id,
       keyword: keywordMappings.keyword,
       tagId: keywordMappings.tagId,
       tagName: tags.name,
+      tagIcon: tags.icon,
+      categoryColor: categories.color,
+      usageCount: keywordMappings.usageCount,
     })
     .from(keywordMappings)
     .innerJoin(tags, eq(keywordMappings.tagId, tags.id))
+    .leftJoin(categories, eq(tags.categoryId, categories.id))
     .orderBy(desc(keywordMappings.usageCount));
   return ctx.json(rows);
+});
+
+/** DELETE /parse/keywords/:id — remove a keyword mapping. */
+route.delete("/parse/keywords/:id", async (ctx) => {
+  const id = parseId(ctx.req.param("id"));
+  if (isNaN(id)) return ctx.json({ error: "Invalid ID" }, 400);
+  const db = createDb(ctx.env.DB);
+  await db.delete(keywordMappings).where(eq(keywordMappings.id, id));
+  return ctx.json({ ok: true });
+});
+
+/** POST /parse/keywords — manually create a keyword→tag mapping. */
+route.post("/parse/keywords", async (ctx) => {
+  const body = await ctx.req.json();
+  const schema = z.object({ keyword: z.string().min(2).max(50), tagId: z.number() });
+  const parsed = schema.safeParse(body);
+  if (!parsed.success) return ctx.json({ error: z.treeifyError(parsed.error) }, 400);
+
+  const db = createDb(ctx.env.DB);
+  const keyword = parsed.data.keyword.toLowerCase().trim();
+
+  // Reject keywords that match a tag name (redundant with tag name matching)
+  const allTagNames = await db.select({ name: tags.name }).from(tags);
+  if (allTagNames.some((t) => t.name.toLowerCase() === keyword)) {
+    return ctx.json({ error: `"${keyword}" matches a tag name — tag name matching already handles it`, code: "REDUNDANT_KEYWORD" }, 400);
+  }
+
+  // Check if keyword already exists
+  const existing = await db.select().from(keywordMappings).where(eq(keywordMappings.keyword, keyword)).get();
+  if (existing) {
+    // Update existing to new tag
+    await db.update(keywordMappings).set({ tagId: parsed.data.tagId, updatedAt: new Date() }).where(eq(keywordMappings.id, existing.id));
+    return ctx.json({ ...existing, tagId: parsed.data.tagId });
+  }
+
+  const [row] = await db.insert(keywordMappings).values({ keyword, tagId: parsed.data.tagId }).returning();
+  return ctx.json(row, 201);
 });
 
 /** GET /parse/stats — aggregate parse observability metrics. */
@@ -646,6 +757,9 @@ route.put("/:id", async (ctx) => {
   }
 
   const db = createDb(ctx.env.DB);
+
+  // Fetch old state to detect needsReview → resolved transition
+  const oldRecord = await db.select({ needsReview: records.needsReview, tagId: records.tagId, note: records.note }).from(records).where(eq(records.id, id)).get();
 
   const { personIds, personShares, ...updates } = { ...parsed.data, updatedAt: new Date() };
 
@@ -698,6 +812,20 @@ route.put("/:id", async (ctx) => {
   }
   // Manual records: don't recalculate when amount changes (amounts are explicit)
 
+  // Learn keyword → tag when a needsReview record gets resolved (tag assigned, review cleared)
+  // Skip keywords that match a tag name — tag name matching already handles those
+  if (oldRecord?.needsReview && !row.needsReview && row.tagId && row.note) {
+    const keywords = extractKeywords(row.note);
+    if (keywords.length && keywords.length <= 2) {
+      const allTagNames = await db.select({ name: tags.name }).from(tags);
+      const tagNameSet = new Set(allTagNames.map((t) => t.name.toLowerCase()));
+      for (const keyword of keywords) {
+        if (tagNameSet.has(keyword)) continue;
+        await upsertKeywordMapping(db, keyword, { tagId: row.tagId });
+      }
+    }
+  }
+
   return ctx.json(row);
 });
 
@@ -732,45 +860,38 @@ route.post("/parse/feedback", async (ctx) => {
     wasCorrected,
   }).where(eq(parseLogs.id, parseLogId));
 
-  // Re-run extraction to get keywords from the original input
-  const { text: t1 } = extractNeedsReview(logRow.inputText);
-  const { text: t2, accountText } = extractParensAccount(t1);
-  const { text: t3 } = extractDate(t2);
-  const { text: noteText } = extractAmount(t3);
-  const keywords = extractKeywords(noteText);
-
+  // Skip keyword learning for needsReview records — incomplete data shouldn't train the dictionary
+  const needsReview = (finalResponse as Record<string, unknown>).needsReview as boolean | undefined;
   const tagId = (finalResponse as Record<string, unknown>).tagId as number | null;
-  const accountId = (finalResponse as Record<string, unknown>).accountId as number | null;
 
-  const shouldMapTag = tagId && keywords.length <= 2;
-  const accountKeywords = accountText ? extractKeywords(accountText) : [];
+  if (!needsReview && tagId) {
+    // Re-run extraction to get keywords from the original input
+    const { text: t1 } = extractNeedsReview(logRow.inputText);
+    const { text: t2 } = extractParensAccount(t1);
+    const { text: t3 } = extractDate(t2);
+    const { text: noteText } = extractAmount(t3);
+    const keywords = extractKeywords(noteText);
 
-  if (shouldMapTag) {
-    for (const keyword of keywords) {
-      await upsertKeywordMapping(db, keyword, { tagId });
-    }
-  }
-
-  if (accountId && accountKeywords.length) {
-    for (const keyword of accountKeywords) {
-      await upsertKeywordMapping(db, keyword, { accountId });
-    }
-  }
-
-  if (accountId && !accountText && keywords.length <= 2) {
-    for (const keyword of keywords) {
-      await upsertKeywordMapping(db, keyword, { accountId });
+    // Only map keywords for short notes (1-2 words) to avoid ambiguous associations
+    // Skip keywords that match a tag name — tag name matching already handles those
+    if (keywords.length <= 2) {
+      const allTagNames = await db.select({ name: tags.name }).from(tags);
+      const tagNameSet = new Set(allTagNames.map((t) => t.name.toLowerCase()));
+      for (const keyword of keywords) {
+        if (tagNameSet.has(keyword)) continue; // redundant with tag name matching
+        await upsertKeywordMapping(db, keyword, { tagId });
+      }
     }
   }
 
   return ctx.json({ ok: true });
 });
 
-/** Upsert keyword mapping. Merges tagId/accountId and bumps usageCount on existing. */
+/** Upsert keyword → tag mapping. Bumps usageCount on existing. */
 async function upsertKeywordMapping(
   db: ReturnType<typeof createDb>,
   keyword: string,
-  mapping: { tagId?: number | null; accountId?: number | null },
+  mapping: { tagId: number },
 ) {
   const existing = await db
     .select()
@@ -782,8 +903,7 @@ async function upsertKeywordMapping(
     await db
       .update(keywordMappings)
       .set({
-        ...(mapping.tagId ? { tagId: mapping.tagId } : {}),
-        ...(mapping.accountId ? { accountId: mapping.accountId } : {}),
+        tagId: mapping.tagId,
         usageCount: existing.usageCount + 1,
         updatedAt: new Date(),
       })
@@ -791,8 +911,7 @@ async function upsertKeywordMapping(
   } else {
     await db.insert(keywordMappings).values({
       keyword,
-      tagId: mapping.tagId ?? null,
-      accountId: mapping.accountId ?? null,
+      tagId: mapping.tagId,
     });
   }
 }

@@ -7,6 +7,8 @@ const props = withDefaults(
   defineProps<{
     title?: string;
     message?: string;
+    /** HTML content shown below the message (supports <b>, <br>, etc.). */
+    description?: string;
     /** Optional list of items displayed as chips below the message. */
     chips?: string[];
     icon?: string;
@@ -75,6 +77,7 @@ async function confirm() {
         <div>
           <h3 v-if="title" class="text-base font-semibold text-highlighted">{{ title }}</h3>
           <p class="text-sm text-muted mt-1">{{ message }}</p>
+          <p v-if="description" class="text-xs text-muted mt-2" v-html="description" />
           <div v-if="chips?.length" class="mt-3 flex flex-wrap justify-center gap-1.5">
             <UBadge v-for="chip in chips" :key="chip" :label="chip" variant="subtle" :color="color" size="sm" />
           </div>

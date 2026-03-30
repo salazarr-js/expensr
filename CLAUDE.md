@@ -50,10 +50,10 @@ packages/
   web/                 # Vue 3 SPA + Cloudflare deployment seat
     src/layouts/       # Layout components (DashboardLayout, BaseLayout)
     src/pages/         # Page components
-    src/components/    # Custom components (IconPicker, ColorPicker, AlertDialog, AccountFormModal, CategoryFormModal, PersonFormModal, RecordFormModal, QuickRecordModal)
+    src/components/    # Custom components (IconPicker, ColorPicker, AlertDialog, AccountFormModal, CategoryFormModal, PersonFormModal, RecordFormModal, QuickRecordModal, BatchRecordModal, DateRangePicker)
     src/composables/   # Composables (useApi, useAlertDialog)
     src/stores/        # Pinia stores (accounts, categories, people, records)
-    src/utils/         # Utilities (colors, money)
+    src/utils/         # Utilities (colors, money, dates)
     src/router/        # Vue Router config (nested routes per layout)
     server/            # CF Worker bridge (imports Hono app)
   legacy/              # Archived (ignored)
@@ -91,6 +91,7 @@ To add a new layout: create `src/layouts/NewLayout.vue` with `<RouterView />`, a
 - `/dashboard/accounts` — Accounts
 - `/dashboard/categories` — Categories
 - `/dashboard/people` — People
+- `/dashboard/keywords` — Keyword → tag mappings management
 - `/dashboard/settings` — Settings
 - `/dashboard/*` — 404 with sidebar (DashboardNotFound)
 - `/*` — 404 without layout (NotFound)
@@ -133,18 +134,22 @@ Hono app with `.basePath("/api")`. Current routes:
 - `GET /api/people/:id` — get person with debt summary
 - `PUT /api/people/:id` — update person
 - `DELETE /api/people/:id` — delete person (clears record_people links, records stay)
-- `GET /api/records` — list records with filters (?accountId=1,2, ?dateFrom, ?dateTo, ?personId, ?categoryId, ?tagId, ?search), joins account/category/tag/people
+- `GET /api/records` — list records with filters (?accountId=1,2, ?dateFrom, ?dateTo, ?personId, ?categoryId, ?tagId, ?search, ?needsReview=true), joins account/category/tag/people
+- `GET /api/records/review/count` — count of records needing review
 - `POST /api/records` — create record (auto-appends current time, type based on category, accepts personIds[])
 - `GET /api/records/:id` — get single record with joined relations + people
 - `PUT /api/records/:id` — update record (preserves time when only date changes, syncs personIds[])
 - `DELETE /api/records/:id` — delete record (cascade cleans record_people)
 - `POST /api/records/reorder` — reorder record via datetime adjustment ({id, afterId?, beforeId?})
 - `POST /api/records/parse` — smart parse: direct tag name match → keyword dictionary → AI fallback (Workers AI). Returns ParsedRecord with `resolvedBy` + `parseLogId`.
-- `POST /api/records/parse/feedback` — update parse log with final result + was_corrected, upsert keyword mappings
-- `GET /api/records/parse/keywords` — learned keyword→tag mappings for form auto-matching
+- `POST /api/records/batch` — batch create records with sequential datetime assignment per date group
+- `POST /api/records/parse/feedback` — update parse log with final result + was_corrected, upsert keyword mappings (tag only, skips needsReview)
+- `GET /api/records/parse/keywords` — learned keyword→tag mappings (with tag icon + category color)
+- `POST /api/records/parse/keywords` — manually create a keyword→tag mapping
+- `DELETE /api/records/parse/keywords/:id` — delete a keyword mapping
 - `GET /api/records/parse/stats` — aggregate parse observability metrics (total, byResolution, aiCalls, correctionRate)
 
-**Smart Parse architecture:** Three-tier tag resolution: (1) tag name match — exact then partial/contains: "uber" → Uber, "super" → Supermercado, "farm" → Farmacia (instant, no DB lookup), (2) `keyword_mappings` dictionary — learned word→tag/account associations from feedback (e.g. "carrefour" → Supermercado), (3) Workers AI fallback with keyword dictionary as context. Account resolution: aliases (exact) → name match (partial, min 40% of name length) → keyword map → default (explicit `isDefault` or most-used account by record count). Accounts support user-defined aliases for shorthand in parse (e.g. "galicia" → Galicia ARS, "ml" → MercadoLibre). Amounts always absolute — type field handles direction.
+**Smart Parse architecture:** Three-tier tag resolution: (1) tag name match — exact then partial/contains: "uber" → Uber, "super" → Supermercado, "farm" → Farmacia (instant, no DB lookup), (2) `keyword_mappings` dictionary — learned word→tag associations from feedback (e.g. "carrefour" → Supermercado). Keywords that match a tag name are not stored (redundant). Keywords not learned from needsReview records. (3) Workers AI fallback with keyword dictionary as context. Account resolution: aliases (exact) → name match (partial, min 40% of name length) → default (explicit `isDefault` or most-used account by record count). Accounts support user-defined aliases for shorthand in parse (e.g. "galicia" → Galicia ARS, "ml" → MercadoLibre). Amounts always absolute — type field handles direction.
 
 **Parse logging:** Every parse call inserts a `parse_logs` row tracking: input text, `resolvedBy` (name_match/keyword/ai/none), tag/account matched, AI called/succeeded, was_corrected (set on feedback). Feedback references `parseLogId` to update the log and build keyword mappings.
 
@@ -197,9 +202,13 @@ Error responses include a `code` field for machine-readable errors (e.g., `DUPLI
 - **Spending calculations**: `mySpend` field on `RecordWithRelations` — your actual spending portion. Solo records: `mySpend = amount`. Shared records: `mySpend = amount - sum(shareAmounts)`. Settlements: `mySpend = 0`. Account balance stays as cash flow (full amounts).
 - **Theme**: Light/dark/system via `UColorModeSelect` (expanded sidebar) and `UColorModeButton` (collapsed sidebar) in the sidebar footer.
 - **Icons**: Lucide icons bundled at build time via `@iconify-json/lucide` (no runtime API calls). Simple Icons require the `i-simple-icons:name` format (colon, not dash) and preloading via `src/icons.ts` which calls `addCollection` with a subset JSON (`src/icons-simple-icons.json`, ~17KB). To add new simple-icons: add the icon data to the JSON subset and reference as `i-simple-icons:icon-name`. IconPicker catalog in `src/components/IconPicker/icons.ts` — ~160 icons with bilingual search keywords (English + Spanish).
-- **Records table**: Sticky header, sticky amount column (pinned right via column pinning). Settlement rows get green bg, needsReview rows get amber bg via `tableMeta.class.tr`. Amount column sortable (client-side via TanStack Table).
-- **Records toolbar**: Account multi-select, DateRangePicker (presets + calendar), people select, category/tag cascading dropdown (UDropdownMenu with children), text search (debounced 500ms, matches note/tag/category/amount). All filters synced to URL query params. Icon-only on mobile.
+- **Records table**: Sticky header, sticky amount column (pinned right via column pinning). Settlement rows get green bg, needsReview rows get amber bg via `tableMeta.class.tr`. Amount column sortable (client-side via TanStack Table). People circles have UTooltip with full name.
+- **Records toolbar**: Account multi-select, DateRangePicker (presets + calendar), people select, category/tag cascading dropdown (UDropdownMenu with children), text search (debounced 500ms, matches note/tag/category/amount). All filters synced to URL query params. Icon-only on mobile. `?needsReview=true` filter supported.
+- **Review mode**: Records with `needsReview` show amber background. Review count badge (warning soft/solid toggle) in Records navbar. Click filters to needsReview-only records (clears date range to show all). Count refreshes on records change. Editing a record and assigning a tag auto-clears needsReview. Typing `??` in note auto-checks needsReview checkbox (and unchecks when removed). When a needsReview record is resolved (tag assigned + review cleared), keyword → tag mapping is learned.
 - **DateRangePicker**: Reusable component at `src/components/DateRangePicker/`. Single button trigger with preset chips (Today, Week, Month, 3M, Year, All) + UCalendar range mode. 2 months on desktop, 1 on mobile. Default: "This month". Date utilities in `src/utils/dates.ts`.
+- **Batch create**: `BatchRecordModal` — spreadsheet-style grid with date groups. Account selector at top (shared). Rows: Note → Tag → Amount. Tag auto-matches from note (name match + keyword dictionary). Unmatched rows get parsed via API before save. Records without tags saved as needsReview. Form state persisted in localStorage until successful save. Accessible from "Batch" button in RecordFormModal footer (new records only).
+- **QuickRecord batch mode**: Toggle between Single and Batch in QuickRecordModal. Batch: multi-line textarea, parse all lines, review results, save all via batch API. Desktop: Enter parses, Shift+Enter newline.
+- **Keywords page**: `/dashboard/keywords` — CRUD for keyword → tag mappings. Grid of tag cards with colored headers. Inline add per tag, delete with confirmation (shows usage count). Top-level add via modal. Search filter. Keywords not stored when they match a tag name (redundant) or from needsReview records.
 
 ## Error Handling
 

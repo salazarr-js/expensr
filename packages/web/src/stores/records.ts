@@ -11,6 +11,7 @@ export interface RecordFilters {
   search?: string;
   categoryId?: number;
   tagId?: number;
+  needsReview?: boolean;
 }
 
 export const useRecordsStore = defineStore("records", () => {
@@ -32,6 +33,7 @@ export const useRecordsStore = defineStore("records", () => {
       if (filters?.search) params.set("search", filters.search);
       if (filters?.categoryId) params.set("categoryId", String(filters.categoryId));
       if (filters?.tagId) params.set("tagId", String(filters.tagId));
+      if (filters?.needsReview) params.set("needsReview", "true");
 
       const qs = params.toString();
       records.value = await api.get<RecordWithRelations[]>(qs ? `/records?${qs}` : "/records");
@@ -70,5 +72,12 @@ export const useRecordsStore = defineStore("records", () => {
     await fetchRecords();
   }
 
-  return { records, loading, error, fetchRecords, createRecord, updateRecord, deleteRecord, reorderRecord };
+  /** Creates multiple records at once. Returns count of created records. */
+  async function batchCreateRecords(data: CreateRecord[]) {
+    const result = await api.post<{ created: number; errors: { index: number; error: string }[] }>("/records/batch", data);
+    await fetchRecords();
+    return result;
+  }
+
+  return { records, loading, error, fetchRecords, createRecord, updateRecord, deleteRecord, reorderRecord, batchCreateRecords };
 });

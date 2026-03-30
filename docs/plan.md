@@ -281,14 +281,17 @@ Covered by Smart Parse. Tags already belong to categories — selecting a tag au
 
 ---
 
-## 11. Review Mode
+## 11. Review Mode ✅
 
-- [ ] `GET /api/records/review` — records missing tag or category
-- [ ] Review queue UI: step through one by one
-- [ ] Quick actions: assign tag, category, skip
-- [ ] Badge count in nav
+- [x] `GET /api/records/review/count` — count of needsReview records
+- [x] `GET /api/records?needsReview=true` — filter to review records
+- [x] Review badge (warning) in Records navbar with count, toggles filter
+- [x] Amber row background for needsReview records
+- [x] NeedsReview checkbox in create/edit form, auto-toggled by `??` in note
+- [x] Tag assignment auto-clears needsReview
+- [x] Keyword learning on review resolution (tag assigned + review cleared)
 
-**Test:** Create partial record (amount only). Shows in review. Assign tag + category, leaves queue.
+**Test:** Create record with `??`. Shows amber. Click review badge → filters. Edit, assign tag → needsReview clears, keyword learned.
 
 ---
 
