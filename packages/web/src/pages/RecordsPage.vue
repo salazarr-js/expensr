@@ -98,18 +98,24 @@ const categoryTagItems = computed(() => {
         : undefined,
     };
   });
-  return [[allItem], catItems];
+  const uncategorizedItem = {
+    label: "Uncategorized",
+    icon: "i-lucide-circle-dashed",
+    onSelect: () => { selectedCategoryTag.value = "cat:none"; },
+  };
+  return [[allItem], [...catItems, uncategorizedItem]];
 });
 
-// Init from URL: ?categoryId=5 → "cat:5", ?tagId=42 → "tag:42"
+// Init from URL: ?categoryId=5 → "cat:5", ?categoryId=none → "cat:none", ?tagId=42 → "tag:42"
 const selectedCategoryTag = ref(
   route.query.tagId ? `tag:${route.query.tagId}`
     : route.query.categoryId ? `cat:${route.query.categoryId}`
       : "all",
 );
 
-const filterCategoryId = computed(() => {
+const filterCategoryId = computed<number | "none" | undefined>(() => {
   const val = selectedCategoryTag.value;
+  if (val === "cat:none") return "none";
   return val.startsWith("cat:") ? Number(val.slice(4)) : undefined;
 });
 
@@ -122,6 +128,7 @@ const filterTagId = computed(() => {
 const categoryTagLabel = computed(() => {
   const val = selectedCategoryTag.value;
   if (val === "all") return "All categories";
+  if (val === "cat:none") return "Uncategorized";
   if (val.startsWith("cat:")) {
     const cat = categories.value.find((c) => c.id === Number(val.slice(4)));
     return cat?.name ?? "Category";
@@ -243,6 +250,26 @@ watch(currentFilters, (filters) => {
   recordsStore.fetchRecords(filters);
 });
 
+// ── Footer totals — only show when all records share the same currency ────
+
+const footerCurrency = computed(() => {
+  if (!records.value.length) return null;
+  const currencies = new Set(records.value.map((r) => r.accountCurrency));
+  return currencies.size === 1 ? [...currencies][0]! : null;
+});
+
+const footerTotals = computed(() => {
+  if (!footerCurrency.value) return null;
+  let expenses = 0;
+  let income = 0;
+  for (const r of records.value) {
+    if (r.type === "expense") expenses += r.mySpend;
+    else if (r.type === "income") income += r.amount;
+    // settlements excluded (mySpend = 0)
+  }
+  return { expenses, income, net: income - expenses, currency: footerCurrency.value };
+});
+
 // ── Table columns ───────────────────────────────────────────────────
 
 const columns: TableColumn<RecordWithRelations>[] = [
@@ -305,7 +332,7 @@ function onSelectRow(_e: Event, row: { original: RecordWithRelations }) {
 async function deleteRecord(record: RecordWithRelations) {
   const confirmed = await alert.destructive({
     title: "Delete this record?",
-    message: `${record.amount} on ${record.date}`,
+    message: `${formatMoneyParts(record.amount).integer} ${record.accountCurrency} · ${formatDate(record.date)}${record.note ? ` · ${record.note}` : ""}`,
     onConfirm: () => recordsStore.deleteRecord(record.id),
   });
   if (confirmed) {
@@ -640,6 +667,28 @@ watch(records, fetchReviewCount);
             </div>
           </template>
         </UTable>
+
+        <!-- Footer totals — only when all records share the same currency -->
+        <div v-if="footerTotals" class="border-t border-default px-4 py-3 flex items-center justify-end">
+          <div class="text-right">
+            <!-- Primary: Expenses total (biggest, boldest) -->
+            <div class="flex items-center justify-end gap-2">
+              <span class="text-xs text-muted">Expenses</span>
+              <span class="text-lg font-mono font-bold text-highlighted">
+                -{{ formatMoneyParts(footerTotals.expenses).integer }}<span class="text-sm text-muted">{{ formatMoneyParts(footerTotals.expenses).decimal }}</span>
+              </span>
+              <span class="text-xs text-muted">{{ footerTotals.currency }}</span>
+            </div>
+            <!-- Secondary: Income (if any) -->
+            <div v-if="footerTotals.income > 0" class="flex items-center justify-end gap-2">
+              <span class="text-xs text-muted">Income</span>
+              <span class="text-sm font-mono font-semibold text-green-600 dark:text-green-400">
+                +{{ formatMoneyParts(footerTotals.income).integer }}<span class="text-xs text-muted">{{ formatMoneyParts(footerTotals.income).decimal }}</span>
+              </span>
+              <span class="text-xs text-muted">{{ footerTotals.currency }}</span>
+            </div>
+          </div>
+        </div>
       </template>
     </template>
   </UDashboardPanel>

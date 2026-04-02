@@ -134,7 +134,7 @@ Hono app with `.basePath("/api")`. Current routes:
 - `GET /api/people/:id` — get person with debt summary
 - `PUT /api/people/:id` — update person
 - `DELETE /api/people/:id` — delete person (clears record_people links, records stay)
-- `GET /api/records` — list records with filters (?accountId=1,2, ?dateFrom, ?dateTo, ?personId, ?categoryId, ?tagId, ?search, ?needsReview=true), joins account/category/tag/people
+- `GET /api/records` — list records with filters (?accountId=1,2, ?dateFrom, ?dateTo, ?personId, ?categoryId, ?categoryId=none for uncategorized, ?tagId, ?search, ?needsReview=true), joins account/category/tag/people
 - `GET /api/records/review/count` — count of records needing review
 - `POST /api/records` — create record (auto-appends current time, type based on category, accepts personIds[])
 - `GET /api/records/:id` — get single record with joined relations + people
@@ -209,6 +209,11 @@ Error responses include a `code` field for machine-readable errors (e.g., `DUPLI
 - **Batch create**: `BatchRecordModal` — spreadsheet-style grid with date groups. Account selector at top (shared). Rows: Note → Tag → Amount. Tag auto-matches from note (name match + keyword dictionary). Unmatched rows get parsed via API before save. Records without tags saved as needsReview. Form state persisted in localStorage until successful save. Accessible from "Batch" button in RecordFormModal footer (new records only).
 - **QuickRecord batch mode**: Toggle between Single and Batch in QuickRecordModal. Batch: multi-line textarea, parse all lines, review results, save all via batch API. Desktop: Enter parses, Shift+Enter newline.
 - **Keywords page**: `/dashboard/keywords` — CRUD for keyword → tag mappings. Grid of tag cards with colored headers. Inline add per tag, delete with confirmation (shows usage count). Top-level add via modal. Search filter. Keywords not stored when they match a tag name (redundant) or from needsReview records.
+- **Dashboard**: Period-aware spending overview. DateRangePicker in navbar (default: this month). Spending summary cards grouped by currency with income. Previous period comparison (% change). Currency selector for multi-currency users. Daily spending bar chart (teal below avg, rose above, dashed avg line, tap-to-reveal tooltips on mobile, scrollable). Category breakdown: interactive SVG donut chart + bar list with % and period change, click navigates to records filtered by category (including "Uncategorized" via `?categoryId=none`). Accounts widget with balance + currency + spending performance vs previous period. Debts summary (people with non-zero balance, totals). Recent records (last 5 in period). All filters synced to URL query params (`?dateFrom`, `?dateTo`, `?currency`) for back-navigation preservation.
+- **Uncategorized filter**: `?categoryId=none` on records API returns records with null categoryId, excluding settlements (which never have a category by design). Available in records toolbar dropdown and dashboard category breakdown.
+- **Records footer totals**: When all visible records share a single currency, footer shows expense total + income total.
+- **NeedsReview auto-compute**: RecordFormModal auto-sets `needsReview: true` when `??` in note OR no tag assigned. Tag assignment clears it (unless `??` present). QuickRecordModal marks untagged records as needsReview on save.
+- **Batch tag editing**: QuickRecordModal batch results have inline USelectMenu for tag reassignment with colored category icons.
 
 ## Error Handling
 

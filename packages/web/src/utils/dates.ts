@@ -109,6 +109,19 @@ export function formatRangeLabel(dateFrom?: string, dateTo?: string): string {
   return `Until ${fmt(dateTo!)}`;
 }
 
+/** Compute the previous period of the same length, ending the day before the current starts. */
+export function getPreviousPeriod(dateFrom: string, dateTo: string): { dateFrom: string; dateTo: string } {
+  const from = new Date(dateFrom + "T12:00:00");
+  const to = new Date(dateTo + "T12:00:00");
+  const days = Math.round((to.getTime() - from.getTime()) / 86400000);
+  const prevTo = new Date(from.getTime() - 86400000); // day before current start
+  const prevFrom = new Date(prevTo.getTime() - days * 86400000);
+  return {
+    dateFrom: prevFrom.toISOString().slice(0, 10),
+    dateTo: prevTo.toISOString().slice(0, 10),
+  };
+}
+
 /** Returns "This month" range as ISO strings. Default for records page. */
 export function getDefaultRange(): { dateFrom: string; dateTo: string } {
   const range = DATE_PRESETS.find((p) => p.key === "month")!.range()!;

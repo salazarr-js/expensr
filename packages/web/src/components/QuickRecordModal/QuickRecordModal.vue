@@ -1,16 +1,35 @@
 <script setup lang="ts">
-import { ref, watch, computed } from "vue";
+import { ref, watch, computed, nextTick } from "vue";
+import { storeToRefs } from "pinia";
 import type { ParsedRecord, CreateRecord, RecordWithRelations } from "@slzr/expensr-shared";
 import { useAccountsStore } from "@/stores/accounts";
+import { useCategoriesStore } from "@/stores/categories";
 import { useRecordsStore } from "@/stores/records";
 import { useApi, ApiError } from "@/composables/useApi";
+import { getColor } from "@/utils/colors";
 import { RecordFormModal } from "@/components/RecordFormModal";
 
 const open = defineModel<boolean>("open", { required: true });
 
 const accountsStore = useAccountsStore();
+const categoriesStore = useCategoriesStore();
 const recordsStore = useRecordsStore();
 const api = useApi();
+
+const { categories, tagsByCategory } = storeToRefs(categoriesStore);
+
+/** Tag options for batch result editing. */
+const batchTagOptions = computed(() => {
+  const opts: { label: string; value: number; icon: string; color: string | null; suffix: string }[] = [
+    { label: "None", value: 0, icon: "i-lucide-x", color: null, suffix: "" },
+  ];
+  for (const cat of categories.value) {
+    for (const tag of tagsByCategory.value[cat.id] ?? []) {
+      opts.push({ label: tag.name, value: tag.id, icon: tag.icon || "i-lucide-hash", color: cat.color, suffix: cat.name });
+    }
+  }
+  return opts;
+});
 
 // ── Mode toggle ─────────────────────────────────────────────────────
 
@@ -42,7 +61,29 @@ watch(open, (isOpen) => {
   parsing.value = false;
   batchResults.value = [];
   accountsStore.fetchAccountsByUsage();
+  categoriesStore.fetchAll();
 });
+
+/** Update tag on a batch result. */
+function updateBatchTag(index: number, tagId: number) {
+  const result = batchResults.value[index];
+  if (!result) return;
+  if (tagId === 0) {
+    result.tagId = null;
+    result.tagName = null;
+    result.categoryId = null;
+    result.categoryName = null;
+  } else {
+    result.tagId = tagId;
+    const opt = batchTagOptions.value.find((t) => t.value === tagId);
+    result.tagName = opt?.label ?? null;
+    // Find category from tag
+    for (const cat of categories.value) {
+      const tag = (tagsByCategory.value[cat.id] ?? []).find((t) => t.id === tagId);
+      if (tag) { result.categoryId = cat.id; result.categoryName = cat.name; break; }
+    }
+  }
+}
 
 // ── Single mode logic ───────────────────────────────────────────────
 
@@ -127,7 +168,10 @@ async function parseSingle() {
     if (canAutoSave(result)) {
       await autoSave(result);
     } else {
-      prefillData.value = buildPayload(result);
+      const payload = buildPayload(result);
+      // No tag resolved → mark for review by default
+      if (!payload.tagId) payload.needsReview = true;
+      prefillData.value = payload;
       lastParseLogId.value = result.parseLogId;
       open.value = false;
       showEditModal.value = true;
@@ -177,7 +221,11 @@ async function saveBatch() {
   if (!valid.length) return;
   batchSaving.value = true;
   try {
-    const payloads = valid.map(buildPayload);
+    const payloads = valid.map((r) => {
+      const p = buildPayload(r);
+      if (!p.tagId) p.needsReview = true; // no tag → needs review
+      return p;
+    });
     const result = await recordsStore.batchCreateRecords(payloads);
     useToast().add({
       title: `${result.created} records created`,
@@ -201,6 +249,16 @@ async function saveBatch() {
   }
 }
 
+// Focus the input when switching modes
+watch(mode, () => {
+  nextTick(() => {
+    // Find the visible input/textarea inside the modal body
+    const modal = document.querySelector("[data-quick-modal]");
+    const el = modal?.querySelector<HTMLElement>("input:not([type=hidden]), textarea");
+    el?.focus();
+  });
+});
+
 /** Handle keyboard: Enter to send in single mode. In batch textarea, Enter is newline naturally. */
 function onTextareaKeydown(e: KeyboardEvent) {
   // Desktop: Shift+Enter = newline (default), Enter alone = parse
@@ -218,7 +276,7 @@ function onEditModalClose() {
 </script>
 
 <template>
-  <UModal v-model:open="open" title="Quick Record">
+  <UModal v-model:open="open" title="Quick Record" data-quick-modal>
     <template #body>
       <!-- Mode toggle -->
       <div class="flex items-center gap-2 mb-3">
@@ -244,6 +302,7 @@ function onEditModalClose() {
         <form @submit.prevent="parseSingle">
           <UInput
             v-model="text"
+
             placeholder='uber muniz 3500 (galicia)'
             size="lg"
             autofocus
@@ -259,6 +318,7 @@ function onEditModalClose() {
         <UTextarea
           v-if="!batchResults.length"
           v-model="batchText"
+          data-quick-input
           placeholder="uber 3500 (galicia)&#10;padel 8000 angy wilmer&#10;sushi 15000&#10;netflix 5000"
           :rows="5"
           autoresize
@@ -287,7 +347,28 @@ function onEditModalClose() {
               />
               <span class="font-mono text-xs w-16 text-right">{{ result.amount?.toLocaleString() ?? '—' }}</span>
               <span class="truncate flex-1 text-xs">{{ result.note ?? result.input }}</span>
-              <span class="text-xs text-muted truncate w-20">{{ result.tagName ?? '?' }}</span>
+              <USelectMenu
+                :model-value="result.tagId ?? 0"
+                :items="batchTagOptions"
+                value-key="value"
+                size="xs"
+                variant="ghost"
+                :ui="{ content: 'min-w-fit' }"
+                class="w-24"
+                @update:model-value="updateBatchTag(i, $event as number)"
+              >
+                <template #item="{ item }">
+                  <div
+                    v-if="item.color"
+                    class="flex items-center justify-center size-4 rounded shrink-0"
+                    :style="{ backgroundColor: getColor(item.color ?? null)[100], color: getColor(item.color ?? null)[500] }"
+                  >
+                    <UIcon :name="item.icon" class="size-2.5" />
+                  </div>
+                  <UIcon v-else :name="item.icon" class="size-3.5 shrink-0 text-muted" />
+                  <span class="text-xs">{{ item.label }}</span>
+                </template>
+              </USelectMenu>
               <span class="text-xs text-muted truncate w-20">{{ result.accountName ?? '?' }}</span>
               <UButton icon="i-lucide-x" size="xs" variant="ghost" color="neutral" @click="removeBatchResult(i)" />
             </div>

@@ -162,7 +162,7 @@ People you share expenses with. Multi-person per record (junction table `record_
 ### Next steps
 - [x] **Parse logs + feedback wiring** — parse_logs table, resolvedBy tracking, feedback from QuickRecordModal → keyword dictionary. See [07-parse-logs/](07-parse-logs/)
 - [x] **Spending calculations** — `mySpend` on RecordWithRelations (amount minus others' shares, 0 for settlements)
-- [ ] **Dashboard widgets** — total debt others owe you, settlement history, how much others spent on you vs you on them
+- [x] **Dashboard widgets** — debts summary with totals (owed to you / you owe), account performance, category breakdown
 
 ---
 
@@ -254,20 +254,24 @@ Covered by Smart Parse. Tags already belong to categories — selecting a tag au
 
 ---
 
-## 9. Dashboard
+## 9. Dashboard ✅
 
-### API
-- [ ] `GET /api/dashboard?period=month&date=YYYY-MM` — totals per account, category breakdown, recent records
+No dedicated API endpoint — frontend fetches records for current + previous period and computes everything client-side.
 
 ### Web
-- [ ] Account balances overview
-- [ ] Spending totals grouped by currency
-- [ ] Category breakdown
-- [ ] Recent records widget
-- [ ] Debts summary (people with outstanding shared records)
-- [ ] Period picker (month/quarter/year) + comparison toggle
+- [x] Spending summary cards grouped by currency (expense totals + income)
+- [x] Previous period comparison (% change, fetches prior period records)
+- [x] Currency selector (toggle between currencies when multiple exist)
+- [x] Daily spending bar chart (teal/rose coloring, avg line, responsive labels, tap tooltips on mobile)
+- [x] Category breakdown: interactive SVG donut + bar list with %, period change, click → records
+- [x] Uncategorized filter (`?categoryId=none`, excludes settlements)
+- [x] Account balances overview with spending performance vs previous period
+- [x] Debts summary (people with non-zero balance, totals, links to filtered records)
+- [x] Recent records widget (last 5 in period)
+- [x] DateRangePicker in navbar (presets: Today, Week, Month, 3M, Year, All)
+- [x] All filters synced to URL query params for back-navigation preservation
 
-**Test:** Add records across categories and people. Dashboard totals match. Switch period, numbers update.
+**Test:** Change date range. Click category → records filtered. Press back → dashboard restores. Check multi-currency toggle. Tap bars on mobile.
 
 ---
 

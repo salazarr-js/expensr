@@ -9,7 +9,7 @@ export interface RecordFilters {
   dateFrom?: string;
   dateTo?: string;
   search?: string;
-  categoryId?: number;
+  categoryId?: number | "none";
   tagId?: number;
   needsReview?: boolean;
 }

@@ -37,6 +37,7 @@ let suppressTagWatch = false;
 let suppressCategoryWatch = false;
 let tagAutoMatched = false; // note watcher is driving the tag — can keep updating
 let noteJustSetTag = false; // consumed by tagId watcher to distinguish note vs manual change
+let suppressReviewWatch = false; // suppress during form init
 
 const accountOptions = computed(() =>
   accounts.value.map((a) => ({
@@ -232,6 +233,7 @@ watch(open, (isOpen) => {
   if (!isOpen) return;
   tagAutoMatched = false;
   noteJustSetTag = false;
+  suppressReviewWatch = true;
   // Fetch data, then set default account to most-used for new records
   accountsStore.fetchAccountsByUsage().then(() => {
     if (!props.record && !props.initialData && accounts.value.length) {
@@ -321,6 +323,18 @@ watch(() => state.tagId, (tagId) => {
   }
 });
 
+/** Auto-compute needsReview: true if ?? in note OR no tag. Tag clears it (unless ?? present). */
+watch([() => state.tagId, () => state.note], () => {
+  if (suppressReviewWatch) { suppressReviewWatch = false; return; }
+  const hasDoubleQuestion = state.note?.includes("??") ?? false;
+  const hasTag = !!state.tagId;
+  // ?? always means needs review, even with a tag
+  // No tag means needs review (unless user manually unchecks)
+  // Tag assigned without ?? means resolved
+  if (hasDoubleQuestion) { state.needsReview = true; }
+  else if (hasTag) { state.needsReview = false; }
+});
+
 /** Debounced note → tag matching. Tag name match → keyword dictionary → give up. */
 const matchTagFromNote = useDebounceFn((note: string) => {
   if (state.tagId && !tagAutoMatched) return; // user manually picked — don't override
@@ -355,8 +369,6 @@ const matchTagFromNote = useDebounceFn((note: string) => {
 }, 400);
 watch(() => state.note, (note) => {
   if (note) {
-    // Auto-toggle needsReview based on ?? in the note
-    state.needsReview = note.includes("??");
     matchTagFromNote(note);
   } else if (tagAutoMatched) {
     // Note cleared — remove auto-matched tag + its auto-assigned category
@@ -404,7 +416,7 @@ async function onSubmit() {
       type,
       categoryId: isSettlement.value ? null : (state.categoryId || null),
       tagId: resolvedTagId,
-      needsReview: resolvedTagId ? false : state.needsReview,
+      needsReview: state.needsReview,
       personIds: hasPeople ? state.personIds : undefined,
       myShares: hasPeople && !isManual && !isSettlement.value ? (state.myShares ?? 1) : undefined,
       personShares: isManual

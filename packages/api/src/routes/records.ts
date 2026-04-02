@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { eq, and, gte, lte, desc, asc, gt, lt, inArray, sql } from "drizzle-orm";
+import { eq, ne, and, gte, lte, desc, asc, gt, lt, inArray, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import { createRecordSchema, updateRecordSchema, reorderRecordSchema, parseRecordSchema, parseRecordFeedbackSchema } from "@slzr/expensr-shared";
 import type { ParsedRecord, ResolvedBy } from "@slzr/expensr-shared";
@@ -75,14 +75,22 @@ async function attachPeople<T extends { id: number }>(
 ): Promise<(T & { people: { id: number; name: string; shareAmount: number }[] })[]> {
   if (!rows.length) return rows.map((r) => ({ ...r, people: [] }));
   const recordIds = rows.map((r) => r.id);
-  const links = await db
-    .select({ recordId: recordPeople.recordId, personId: people.id, personName: people.name, shareAmount: recordPeople.shareAmount })
-    .from(recordPeople)
-    .innerJoin(people, eq(recordPeople.personId, people.id))
-    .where(inArray(recordPeople.recordId, recordIds));
+
+  // SQLite has a variable limit (~100). Batch the IN clause to avoid exceeding it.
+  const BATCH_SIZE = 80;
+  const allLinks: { recordId: number; personId: number; personName: string; shareAmount: number }[] = [];
+  for (let i = 0; i < recordIds.length; i += BATCH_SIZE) {
+    const chunk = recordIds.slice(i, i + BATCH_SIZE);
+    const links = await db
+      .select({ recordId: recordPeople.recordId, personId: people.id, personName: people.name, shareAmount: recordPeople.shareAmount })
+      .from(recordPeople)
+      .innerJoin(people, eq(recordPeople.personId, people.id))
+      .where(inArray(recordPeople.recordId, chunk));
+    allLinks.push(...links);
+  }
 
   const byRecord = new Map<number, { id: number; name: string; shareAmount: number }[]>();
-  for (const link of links) {
+  for (const link of allLinks) {
     const list = byRecord.get(link.recordId) ?? [];
     list.push({ id: link.personId, name: link.personName, shareAmount: link.shareAmount });
     byRecord.set(link.recordId, list);
@@ -168,10 +176,14 @@ route.get("/", async (ctx) => {
     }
   }
 
-  // Tag filter takes priority over category (more specific)
+  // Tag filter takes priority over category (more specific). "none" = uncategorized records.
   if (tagId) {
     const tid = Number(tagId);
     if (!isNaN(tid)) conditions.push(eq(records.tagId, tid));
+  } else if (categoryId === "none") {
+    // Uncategorized expenses — exclude settlements (they never have a category by design)
+    conditions.push(isNull(records.categoryId));
+    conditions.push(ne(records.type, "settlement"));
   } else if (categoryId) {
     const cid = Number(categoryId);
     if (!isNaN(cid)) conditions.push(eq(records.categoryId, cid));

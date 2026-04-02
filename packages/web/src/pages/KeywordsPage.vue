@@ -55,10 +55,10 @@ onMounted(() => {
 });
 
 const tagOptions = computed(() => {
-  const opts: { label: string; value: number }[] = [];
+  const opts: { label: string; value: number; icon: string; color: string | null; suffix: string }[] = [];
   for (const cat of categories.value) {
     for (const tag of tagsByCategory.value[cat.id] ?? []) {
-      opts.push({ label: `${tag.name} (${cat.name})`, value: tag.id });
+      opts.push({ label: tag.name, value: tag.id, icon: tag.icon || "i-lucide-hash", color: cat.color, suffix: cat.name });
     }
   }
   return opts;
@@ -273,13 +273,26 @@ function startInlineAdd(tagName: string) {
     <template #body>
       <div class="space-y-4">
         <UFormField label="Tag" required>
-          <USelectMenu v-model="addFormTagId" :items="tagOptions" value-key="value" placeholder="Select tag" class="w-full" />
+          <USelectMenu v-model="addFormTagId" :items="tagOptions" value-key="value" placeholder="Select tag" class="w-full">
+            <template #item="{ item }">
+              <div
+                v-if="item.color"
+                class="flex items-center justify-center size-5 rounded shrink-0"
+                :style="{ backgroundColor: getColor(item.color ?? null)[100], color: getColor(item.color ?? null)[500] }"
+              >
+                <UIcon :name="item.icon" class="size-3" />
+              </div>
+              <UIcon v-else :name="item.icon" class="size-4 shrink-0 text-muted" />
+              <span>{{ item.label }}</span>
+              <span v-if="item.suffix" class="ml-auto text-xs text-muted">{{ item.suffix }}</span>
+            </template>
+          </USelectMenu>
         </UFormField>
         <UFormField label="Keyword" required>
           <UInput v-model="addFormKeyword" placeholder="e.g. sushi, rappi, carrefour..." class="w-full" />
         </UFormField>
         <p v-if="addFormTagId && addFormKeyword.trim()" class="text-sm text-muted">
-          Typing <b class="text-highlighted">"{{ addFormKeyword.trim() }}"</b> will match to <b class="text-highlighted">{{ tagOptions.find(t => t.value === addFormTagId)?.label ?? '' }}</b>
+          Typing <b class="text-highlighted">"{{ addFormKeyword.trim() }}"</b> will match to <b class="text-highlighted">{{ tagOptions.find(t => t.value === addFormTagId)?.label }}</b> <span class="text-muted">({{ tagOptions.find(t => t.value === addFormTagId)?.suffix }})</span>
         </p>
       </div>
     </template>
