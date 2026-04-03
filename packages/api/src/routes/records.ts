@@ -326,6 +326,43 @@ route.post("/batch", async (ctx) => {
   return ctx.json({ created: created.length, errors }, errors.length ? 207 : 201);
 });
 
+/** POST /quick — parse + auto-save in one call. For iPhone Shortcuts / external automation. */
+route.post("/quick", async (ctx) => {
+  const body = await ctx.req.json();
+  const parsed = parseRecordSchema.safeParse(body);
+  if (!parsed.success) return ctx.json({ error: "Invalid input", details: z.treeifyError(parsed.error) }, 400);
+
+  const db = createDb(ctx.env.DB);
+  const result = await doParse(parsed.data.text, db, ctx.env.AI, (p) => ctx.executionCtx.waitUntil(p));
+  const parseLogId = await logParse(db, parsed.data.text, result);
+  const { parsed: p } = result;
+
+  if (!p.amount || !p.accountId) {
+    return ctx.json({ saved: false, reason: "missing_fields", parsed: { ...p, parseLogId } }, 200);
+  }
+
+  const needsReview = p.needsReview || !p.tagId;
+  const personIds = p.personIds.length ? p.personIds : undefined;
+  const splitType = deriveSplitType(undefined, personIds, p.type, p.myShares);
+
+  const [row] = await db.insert(records).values({
+    type: p.type,
+    amount: p.amount,
+    date: ensureDatetime(p.date ?? new Date().toISOString().slice(0, 10)),
+    accountId: p.accountId,
+    tagId: p.tagId,
+    categoryId: p.categoryId,
+    note: p.note,
+    needsReview,
+    myShares: p.myShares,
+    splitType,
+  }).returning();
+
+  await syncPeopleAfterInsert(db, row, personIds, undefined, p.type);
+
+  return ctx.json({ saved: true, record: row, parsed: { ...p, parseLogId } }, 201);
+});
+
 // --- Smart parse: token extractors (pure, no DB) ---
 
 /** Strip ??/??? markers. Single ? is ignored. */
@@ -413,23 +450,23 @@ function matchAccount<T extends { name: string; aliases: string | null }>(
   }) ?? null;
 }
 
-/**
- * POST /parse — smart parse natural language → structured record.
- * Account: (parens) → note words → keyword map → default.
- * Tag: keyword map → AI fallback. See docs/smart-parse.md.
- */
-route.post("/parse", async (ctx) => {
-  const body = await ctx.req.json();
-  const parsed = parseRecordSchema.safeParse(body);
+/** Core parse result with AI observability fields for logging. */
+interface ParseResult {
+  parsed: Omit<ParsedRecord, "parseLogId">;
+  aiCalled: boolean;
+  aiSucceeded: boolean;
+}
 
-  if (!parsed.success) {
-    return ctx.json({ error: z.treeifyError(parsed.error) }, 400);
-  }
-
-  const db = createDb(ctx.env.DB);
-
-  // Extraction order matters: each step strips its match, remainder becomes the note
-  let text = parsed.data.text;
+/** Smart parse: natural language → structured record fields.
+ *  Account: (parens) → note words → keyword map → default.
+ *  Tag: name match → keyword map → AI fallback. */
+async function doParse(
+  inputText: string,
+  db: ReturnType<typeof createDb>,
+  ai: { run: (...args: any[]) => Promise<any> } | null,
+  waitUntil?: (promise: Promise<any>) => void,
+): Promise<ParseResult> {
+  let text = inputText;
 
   // Extract /N (total shares) before other parsing — e.g. "102000 padel angy /5"
   let totalSharesHint: number | null = null;
@@ -477,26 +514,20 @@ route.post("/parse", async (ctx) => {
 
   if (accountText) {
     resolvedAccount = matchAccount(accountText, allAccounts);
-    // Parens didn't match any account — put text back into note
     if (!resolvedAccount) {
       note = note ? `${note} ${accountText}` : accountText;
     }
   }
 
-  // Note word match — checks aliases then names via matchAccount
   if (!resolvedAccount && note) {
     const noteWords = note.toLowerCase().split(/\s+/);
     for (const word of noteWords) {
       if (word.length < 2) continue;
       const match = matchAccount(word, allAccounts);
-      if (match) {
-        resolvedAccount = match;
-        break;
-      }
+      if (match) { resolvedAccount = match; break; }
     }
   }
 
-  // Default: explicit isDefault → most-used account (highest record count)
   if (!resolvedAccount && allAccounts.length) {
     resolvedAccount = allAccounts.find((a) => a.isDefault)
       ?? [...allAccounts].sort((a, b) => b.recordCount - a.recordCount)[0];
@@ -510,12 +541,10 @@ route.post("/parse", async (ctx) => {
 
   // 1. Tag name match — exact first, then partial (contains)
   if (keywords.length) {
-    // Exact match takes priority: "uber" → Uber
     for (const kw of keywords) {
       const exact = allTags.find((t) => t.name.toLowerCase() === kw);
       if (exact) { resolvedTagId = exact.id; break; }
     }
-    // Partial: "super" → Supermercado, "mercado" → Supermercado
     if (!resolvedTagId) {
       for (const kw of keywords) {
         const partial = allTags.find((t) => t.name.toLowerCase().includes(kw) || kw.includes(t.name.toLowerCase()));
@@ -540,17 +569,13 @@ route.post("/parse", async (ctx) => {
     : null;
 
   // 3. AI fallback — only when name + keywords didn't resolve a tag
-  if (!matchedTag && note) {
+  if (!matchedTag && note && ai) {
     aiCalled = true;
-    // Include learned keyword→tag dictionary in the prompt so AI can leverage it
     const allMappings = await db.select().from(keywordMappings).orderBy(desc(keywordMappings.usageCount));
     const tagMap = new Map(allTags.map((t) => [t.id, t.name]));
 
     const dictionaryEntries = allMappings
-      .map((m) => {
-        if (m.tagId) return `${m.keyword}→${tagMap.get(m.tagId) || "?"}`;
-        return null;
-      })
+      .map((m) => m.tagId ? `${m.keyword}→${tagMap.get(m.tagId) || "?"}` : null)
       .filter(Boolean);
 
     const dictionarySection = dictionaryEntries.length
@@ -558,10 +583,7 @@ route.post("/parse", async (ctx) => {
       : "";
 
     const tagList = allTags.map((t) => `${t.name}(${t.categoryName})`).join(",");
-    const incomeTags = allTags
-      .filter((t) => t.categoryName === "Income")
-      .map((t) => t.name)
-      .join(",");
+    const incomeTags = allTags.filter((t) => t.categoryName === "Income").map((t) => t.name).join(",");
 
     const systemPrompt = `Match this expense description to a tag. Return ONLY valid JSON, no explanation.
 
@@ -576,7 +598,6 @@ ${dictionarySection}
 Output format: {"tagName":string|null,"type":"expense"|"income"}`;
 
     try {
-      const ai = ctx.env.AI;
       const response = await ai.run("@cf/meta/llama-3.1-8b-instruct-fp8", {
         messages: [
           { role: "system", content: systemPrompt },
@@ -586,7 +607,6 @@ Output format: {"tagName":string|null,"type":"expense"|"income"}`;
       });
 
       const responseText = response.response ?? "";
-      // AI may wrap JSON in extra text — extract the first {...} block
       const jsonMatch = responseText.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const aiResult = JSON.parse(jsonMatch[0]) as { tagName?: string; type?: string };
@@ -604,21 +624,21 @@ Output format: {"tagName":string|null,"type":"expense"|"income"}`;
         }
       }
     } catch {
-      // AI failed — continue without tag, user will pick in the form
+      // AI failed — continue without tag
     }
   }
 
-  // Bump usage_count for matched keywords (fire-and-forget, ranks future lookups)
+  // Bump usage_count for matched keywords (fire-and-forget)
   const usedIds = sorted.filter((m) => m.tagId || m.accountId).map((m) => m.id);
-  if (usedIds.length) {
-    ctx.executionCtx.waitUntil(
+  if (usedIds.length && waitUntil) {
+    waitUntil(
       db.update(keywordMappings)
         .set({ usageCount: sql`usage_count + 1`, updatedAt: new Date() })
         .where(inArray(keywordMappings.id, usedIds))
     );
   }
 
-  // --- Person detection: match note keywords against people names ---
+  // --- Person detection ---
   const matchedPeople: { id: number; name: string }[] = [];
   if (keywords.length && allPeople.length) {
     for (const person of allPeople) {
@@ -629,45 +649,67 @@ Output format: {"tagName":string|null,"type":"expense"|"income"}`;
     }
   }
 
-  // Calculate myShares from /N hint: myShares = totalShares - matchedPeople
   let myShares = 1;
   if (totalSharesHint && matchedPeople.length) {
     const calculated = totalSharesHint - matchedPeople.length;
     if (calculated >= 1) myShares = calculated;
   }
 
-  const result: Omit<ParsedRecord, "parseLogId"> = {
-    amount,
-    tagId: matchedTag?.id ?? null,
-    tagName: matchedTag?.name ?? null,
-    categoryId: matchedCategory?.id ?? null,
-    categoryName: matchedCategory?.name ?? null,
-    accountId: resolvedAccount?.id ?? null,
-    accountName: resolvedAccount?.name ?? null,
-    note,
-    date,
-    personIds: matchedPeople.map((p) => p.id),
-    personNames: matchedPeople.map((p) => p.name),
-    myShares,
-    splitType: myShares > 1 ? "weighted" : "equal",
-    type: matchedCategory?.name === "Income" ? "income" : "expense",
-    needsReview,
-    resolvedBy,
+  return {
+    parsed: {
+      amount,
+      tagId: matchedTag?.id ?? null,
+      tagName: matchedTag?.name ?? null,
+      categoryId: matchedCategory?.id ?? null,
+      categoryName: matchedCategory?.name ?? null,
+      accountId: resolvedAccount?.id ?? null,
+      accountName: resolvedAccount?.name ?? null,
+      note,
+      date,
+      personIds: matchedPeople.map((p) => p.id),
+      personNames: matchedPeople.map((p) => p.name),
+      myShares,
+      splitType: myShares > 1 ? "weighted" : "equal",
+      type: matchedCategory?.name === "Income" ? "income" : "expense",
+      needsReview,
+      resolvedBy,
+    },
+    aiCalled,
+    aiSucceeded,
   };
+}
 
-  // Log every parse call for observability and feedback wiring
+/** Logs a parse call for observability and feedback wiring. */
+async function logParse(
+  db: ReturnType<typeof createDb>,
+  inputText: string,
+  result: ParseResult,
+): Promise<number> {
+  const { parsed, aiCalled, aiSucceeded } = result;
   const log = await db.insert(parseLogs).values({
-    inputText: parsed.data.text,
-    resolvedBy,
-    tagMatched: !!matchedTag,
-    accountMatched: !!resolvedAccount,
-    peopleCount: matchedPeople.length,
+    inputText,
+    resolvedBy: parsed.resolvedBy,
+    tagMatched: !!parsed.tagId,
+    accountMatched: !!parsed.accountId,
+    peopleCount: parsed.personIds.length,
     aiCalled,
     aiSucceeded: aiCalled ? aiSucceeded : null,
-    parseResult: JSON.stringify(result),
+    parseResult: JSON.stringify(parsed),
   }).returning().get();
+  return log.id;
+}
 
-  return ctx.json({ ...result, parseLogId: log.id });
+/** POST /parse — smart parse natural language → structured record. */
+route.post("/parse", async (ctx) => {
+  const body = await ctx.req.json();
+  const parsed = parseRecordSchema.safeParse(body);
+  if (!parsed.success) return ctx.json({ error: z.treeifyError(parsed.error) }, 400);
+
+  const db = createDb(ctx.env.DB);
+  const result = await doParse(parsed.data.text, db, ctx.env.AI, (p) => ctx.executionCtx.waitUntil(p));
+  const parseLogId = await logParse(db, parsed.data.text, result);
+
+  return ctx.json({ ...result.parsed, parseLogId });
 });
 
 /** GET /parse/keywords — learned keyword→tag mappings with tag icon and category color. */

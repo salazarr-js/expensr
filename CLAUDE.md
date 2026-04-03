@@ -148,6 +148,7 @@ Hono app with `.basePath("/api")`. Current routes:
 - `GET /api/records/parse/keywords` — learned keyword→tag mappings (with tag icon + category color)
 - `POST /api/records/parse/keywords` — manually create a keyword→tag mapping
 - `DELETE /api/records/parse/keywords/:id` — delete a keyword mapping
+- `POST /api/records/quick` — parse + auto-save in one call (for iPhone Shortcuts / automation). Returns `{saved, record, parsed, needsReview}`. Saves with needsReview if no tag resolved.
 - `GET /api/records/parse/stats` — aggregate parse observability metrics (total, byResolution, aiCalls, correctionRate)
 
 **Smart Parse architecture:** Three-tier tag resolution: (1) tag name match — exact then partial/contains: "uber" → Uber, "super" → Supermercado, "farm" → Farmacia (instant, no DB lookup), (2) `keyword_mappings` dictionary — learned word→tag associations from feedback (e.g. "carrefour" → Supermercado). Keywords that match a tag name are not stored (redundant). Keywords not learned from needsReview records. (3) Workers AI fallback with keyword dictionary as context. Account resolution: aliases (exact) → name match (partial, min 40% of name length) → default (explicit `isDefault` or most-used account by record count). Accounts support user-defined aliases for shorthand in parse (e.g. "galicia" → Galicia ARS, "ml" → MercadoLibre). Amounts always absolute — type field handles direction.
