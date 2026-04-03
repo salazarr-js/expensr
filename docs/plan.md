@@ -333,7 +333,19 @@ No dedicated API endpoint — frontend fetches records for current + previous pe
 
 ---
 
-## 14. Polish & Deploy
+## 14. PWA ✅
+
+- [x] Web manifest (`public/manifest.webmanifest`) — name, icons, standalone display, teal theme
+- [x] Service worker (`public/sw.js`) — cache-first for static assets, network-first for navigation, API calls excluded
+- [x] App icons: 192x192, 512x512 (+ maskable), apple-touch-icon 180x180
+- [x] Meta tags: theme-color, apple-mobile-web-app-capable, description
+- [x] Service worker registration in `main.ts`
+
+**Test:** Open on mobile → browser shows "Install app" prompt. Install → opens standalone. Works offline for cached pages.
+
+---
+
+## 15. Polish & Deploy
 
 - [ ] Responsive design (mobile-first)
 - [ ] Loading states, error handling, empty states
