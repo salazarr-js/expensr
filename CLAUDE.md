@@ -9,6 +9,7 @@ Expensr — Modern personal expense tracker. Frictionless recording, multi-curre
 - **NEVER commit, push, or deploy without explicit user request.** Always stop and let the user review the code first.
 - The user will run `/simplify` manually before committing.
 - Only run `git commit`, `git push`, `pnpm deploy:cf`, or `pnpm db:migrate:remote` when the user explicitly asks.
+- **Even if the user says "commit push and deploy" in one message, ALWAYS pause after showing the diff summary and wait for the user to review and run `/simplify` first.** Never chain commit+push+deploy without a review step in between.
 
 ## Ignore
 

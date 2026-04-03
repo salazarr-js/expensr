@@ -20,5 +20,5 @@ app.mount('#app')
 
 // Register service worker for PWA installability
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js')
+  navigator.serviceWorker.register('/sw.js').catch(() => {})
 }

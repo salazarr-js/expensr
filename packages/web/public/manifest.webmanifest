@@ -2,6 +2,7 @@
   "name": "Expensr",
   "short_name": "Expensr",
   "description": "Personal expense tracker with smart categorization",
+  "id": "/dashboard",
   "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#ffffff",
