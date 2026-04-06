@@ -13,3 +13,13 @@
   /* 1800px — extra-wide breakpoint for 5-column grids */
   --breakpoint-3xl: 112.5rem;
 }
+
+/* SortableJS drag-and-drop visual feedback */
+.sortable-ghost {
+  opacity: 0.15;
+}
+.sortable-chosen {
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.2);
+  border-radius: 0.5rem;
+  transition: box-shadow 0.2s, border-radius 0.2s;
+}

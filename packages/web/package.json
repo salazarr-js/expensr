@@ -22,8 +22,10 @@
 		"@nuxt/ui": "^4.5.1",
 		"@slzr/expensr-api": "workspace:*",
 		"@vueuse/core": "^14.2.1",
+		"@vueuse/integrations": "^14.2.1",
 		"fuse.js": "^7.1.0",
 		"pinia": "^3.0.4",
+		"sortablejs": "^1.15.7",
 		"tailwindcss": "^4.2.1",
 		"vue": "^3.5.29",
 		"vue-router": "^5.0.3"
@@ -35,6 +37,7 @@
 		"@iconify-json/simple-icons": "^1.2.73",
 		"@slzr/expensr-shared": "workspace:*",
 		"@types/node": "catalog:",
+		"@types/sortablejs": "^1.15.9",
 		"@vitejs/plugin-vue": "^6.0.4",
 		"typescript": "catalog:",
 		"vite": "^7.3.1",

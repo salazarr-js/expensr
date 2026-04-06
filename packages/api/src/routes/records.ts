@@ -330,7 +330,7 @@ route.post("/batch", async (ctx) => {
 route.post("/quick", async (ctx) => {
   const body = await ctx.req.json();
   const parsed = parseRecordSchema.safeParse(body);
-  if (!parsed.success) return ctx.json({ error: "Invalid input", details: z.treeifyError(parsed.error) }, 400);
+  if (!parsed.success) return ctx.json({ message: "Invalid input. Try: 'coffee 500' or 'uber 3500 (galicia)'" }, 400);
 
   const db = createDb(ctx.env.DB);
   const result = await doParse(parsed.data.text, db, ctx.env.AI, (p) => ctx.executionCtx.waitUntil(p));
@@ -338,7 +338,8 @@ route.post("/quick", async (ctx) => {
   const { parsed: p } = result;
 
   if (!p.amount || !p.accountId) {
-    return ctx.json({ saved: false, reason: "missing_fields", parsed: { ...p, parseLogId } }, 200);
+    const missing = !p.amount ? "amount" : "account";
+    return ctx.json({ message: `Couldn't detect ${missing}. Try: 'coffee 500'` }, 200);
   }
 
   const needsReview = p.needsReview || !p.tagId;
@@ -360,7 +361,19 @@ route.post("/quick", async (ctx) => {
 
   await syncPeopleAfterInsert(db, row, personIds, undefined, p.type);
 
-  return ctx.json({ saved: true, record: row, parsed: { ...p, parseLogId } }, 201);
+  // Human-readable response for Shortcuts notifications
+  const amount = p.amount.toLocaleString("es-AR");
+  const tag = p.tagName ?? "untagged";
+  const account = p.accountName ?? "default";
+  const review = needsReview ? " (needs review)" : "";
+  const people = p.personNames.length ? ` · split with ${p.personNames.join(", ")}` : "";
+  const date = row.date.split("T")[0];
+  const origin = new URL(ctx.req.url).origin;
+
+  return ctx.json({
+    message: `${amount} · ${tag} · ${account}${people}${review}`,
+    url: `${origin}/dashboard/records?dateFrom=${date}&dateTo=${date}`,
+  }, 201);
 });
 
 // --- Smart parse: token extractors (pure, no DB) ---

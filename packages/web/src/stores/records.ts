@@ -19,21 +19,24 @@ export const useRecordsStore = defineStore("records", () => {
   const loading = ref(false);
   const error = ref(false);
   const api = useApi();
+  let lastFilters: RecordFilters | undefined;
 
-  /** Loads records from the API with optional filters. */
+  /** Loads records from the API. Omit filters to re-use the last-used filters. */
   async function fetchRecords(filters?: RecordFilters) {
+    if (filters !== undefined) lastFilters = filters;
+    const f = lastFilters;
     loading.value = true;
     error.value = false;
     try {
       const params = new URLSearchParams();
-      if (filters?.accountIds?.length) params.set("accountId", filters.accountIds.join(","));
-      if (filters?.personId) params.set("personId", String(filters.personId));
-      if (filters?.dateFrom) params.set("dateFrom", filters.dateFrom);
-      if (filters?.dateTo) params.set("dateTo", filters.dateTo);
-      if (filters?.search) params.set("search", filters.search);
-      if (filters?.categoryId) params.set("categoryId", String(filters.categoryId));
-      if (filters?.tagId) params.set("tagId", String(filters.tagId));
-      if (filters?.needsReview) params.set("needsReview", "true");
+      if (f?.accountIds?.length) params.set("accountId", f.accountIds.join(","));
+      if (f?.personId) params.set("personId", String(f.personId));
+      if (f?.dateFrom) params.set("dateFrom", f.dateFrom);
+      if (f?.dateTo) params.set("dateTo", f.dateTo);
+      if (f?.search) params.set("search", f.search);
+      if (f?.categoryId) params.set("categoryId", String(f.categoryId));
+      if (f?.tagId) params.set("tagId", String(f.tagId));
+      if (f?.needsReview) params.set("needsReview", "true");
 
       const qs = params.toString();
       records.value = await api.get<RecordWithRelations[]>(qs ? `/records?${qs}` : "/records");

@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, h, resolveComponent } from "vue";
+import { ref, computed, watch, onMounted, onUnmounted, nextTick, h, resolveComponent } from "vue";
 import { useDebounceFn } from "@vueuse/core";
+import Sortable from "sortablejs";
 import { storeToRefs } from "pinia";
 import { useRoute, useRouter } from "vue-router";
 import type { RecordWithRelations } from "@slzr/expensr-shared";
@@ -273,7 +274,7 @@ const footerTotals = computed(() => {
 // ── Table columns ───────────────────────────────────────────────────
 
 const columns: TableColumn<RecordWithRelations>[] = [
-  { id: "reorder", header: "", size: 60, enableSorting: false },
+  { id: "reorder", header: "", size: 40, enableSorting: false },
   { accessorKey: "date", header: "Date", enableSorting: false },
   { accessorKey: "accountName", header: "Account", enableSorting: false },
   { id: "category", accessorKey: "categoryName", header: "Category", enableSorting: false },
@@ -341,21 +342,88 @@ async function deleteRecord(record: RecordWithRelations) {
   }
 }
 
-/** Move a record up (earlier in the list = swap with the previous record). */
-async function moveUp(index: number) {
-  const record = records.value[index];
-  const prev = records.value[index - 1];
-  if (!record || !prev) return;
-  await recordsStore.reorderRecord(record.id, { beforeId: prev.id });
+// Drag-and-drop reordering via SortableJS (desktop table + mobile cards)
+let desktopSortable: Sortable | null = null;
+let mobileSortable: Sortable | null = null;
+let isReordering = false;
+let justDragged = false;
+let dragClearTimer: ReturnType<typeof setTimeout>;
+
+/** Shared onEnd handler — revert DOM, optimistic update, sync with server. */
+async function onSortEnd(evt: Sortable.SortableEvent) {
+  const { oldIndex, newIndex } = evt;
+  if (oldIndex == null || newIndex == null || oldIndex === newIndex) return;
+
+  clearTimeout(dragClearTimer);
+  justDragged = true;
+  dragClearTimer = setTimeout(() => { justDragged = false; }, 100);
+
+  const movedRecord = records.value[oldIndex]!;
+  const target = newIndex > oldIndex
+    ? { afterId: records.value[newIndex]!.id }
+    : { beforeId: records.value[newIndex]!.id };
+
+  // Revert DOM move — let Vue handle rendering
+  const { item } = evt;
+  const parent = item.parentNode!;
+  const ref = parent.children[evt.oldIndex! < evt.newIndex! ? evt.oldIndex! : evt.oldIndex! + 1] ?? null;
+  parent.insertBefore(item, ref);
+
+  // Optimistic update
+  const arr = [...records.value];
+  const [moved] = arr.splice(oldIndex, 1);
+  arr.splice(newIndex, 0, moved!);
+  records.value = arr;
+
+  isReordering = true;
+  try {
+    await recordsStore.reorderRecord(movedRecord.id, target);
+  } finally {
+    isReordering = false;
+  }
 }
 
-/** Move a record down (later in the list = swap with the next record). */
-async function moveDown(index: number) {
-  const record = records.value[index];
-  const next = records.value[index + 1];
-  if (!record || !next) return;
-  await recordsStore.reorderRecord(record.id, { afterId: next.id });
+/** Tap handler for mobile cards — skips edit if a drag just ended. */
+function onCardClick(record: RecordWithRelations) {
+  if (!justDragged) openEdit(record);
 }
+
+function initSortable() {
+  // Desktop: drag via handle
+  const tbody = document.querySelector(".records-tbody") as HTMLElement | null;
+  if (tbody) {
+    if (desktopSortable) desktopSortable.destroy();
+    desktopSortable = Sortable.create(tbody, {
+      handle: ".drag-handle",
+      animation: 150,
+      ghostClass: "sortable-ghost",
+      onEnd: onSortEnd,
+    });
+  }
+
+  // Mobile: long press to drag
+  const mobileList = document.querySelector(".records-mobile-list") as HTMLElement | null;
+  if (mobileList) {
+    if (mobileSortable) mobileSortable.destroy();
+    mobileSortable = Sortable.create(mobileList, {
+      delay: 200,
+      delayOnTouchOnly: true,
+      animation: 150,
+      chosenClass: "sortable-chosen",
+      ghostClass: "sortable-ghost",
+      onEnd: onSortEnd,
+    });
+  }
+}
+
+// Re-init sortable after Vue patches the DOM
+watch(records, async () => { await nextTick(); initSortable(); });
+
+onUnmounted(() => {
+  desktopSortable?.destroy();
+  mobileSortable?.destroy();
+  clearTimeout(dragClearTimer);
+});
 
 function getPersonColor(personId: number): string | null {
   return people.value.find((p) => p.id === personId)?.color ?? null;
@@ -378,8 +446,8 @@ onMounted(() => {
   fetchReviewCount();
 });
 
-// Refresh review count when records change (after create/update/delete)
-watch(records, fetchReviewCount);
+// Refresh review count when records change (after create/update/delete, not reorder)
+watch(records, () => { if (!isReordering) fetchReviewCount(); });
 </script>
 
 <template>
@@ -510,13 +578,13 @@ watch(records, fetchReviewCount);
       <!-- Records: card list on mobile, table on md+ -->
       <template v-else>
         <!-- Mobile card list -->
-        <div class="md:hidden divide-y divide-zinc-200 dark:divide-zinc-800">
+        <div class="records-mobile-list md:hidden divide-y divide-zinc-200 dark:divide-zinc-800">
           <div
             v-for="(record, index) in records"
             :key="record.id"
             class="flex items-center gap-3 px-4 py-3 cursor-pointer active:bg-default-50"
             :class="record.type === 'settlement' ? 'bg-green-50 dark:bg-green-950/20' : record.needsReview ? 'bg-amber-50 dark:bg-amber-950/20' : ''"
-            @click="openEdit(record)"
+            @click="onCardClick(record)"
           >
             <!-- Category icon (green for settlements) -->
             <div
@@ -534,10 +602,10 @@ watch(records, fetchReviewCount);
             <div class="min-w-0 flex-1">
               <p class="text-sm font-medium text-highlighted truncate">
                 <UIcon v-if="record.needsReview" name="i-lucide-circle-alert" class="size-3.5 text-amber-500 align-text-bottom mr-0.5" />
-                {{ record.type === 'settlement' ? 'Payment' : (record.tagName || record.categoryName || record.note || 'Record') }}
+                {{ record.type === 'settlement' ? 'Payment' : (record.note || record.tagName || 'Record') }}
               </p>
               <div class="flex items-center gap-1 text-xs text-muted truncate">
-                <span>{{ formatDate(record.date) }} · {{ record.accountName }}</span>
+                <span>{{ formatDate(record.date) }}<template v-if="record.note && record.tagName"> · {{ record.tagName }}</template> · {{ record.accountName }}</span>
                 <div v-if="record.people?.length" class="flex items-center -space-x-1 ml-1">
                   <UTooltip
                     v-for="person in record.people"
@@ -573,29 +641,13 @@ watch(records, fetchReviewCount);
           :data="records"
           :meta="tableMeta"
           :loading="loading || searching"
+          :ui="{ tbody: 'records-tbody' }"
           sticky
           class="w-full overflow-x-auto hidden md:block"
           @select="onSelectRow"
         >
-          <template #reorder-cell="{ row }">
-            <div class="flex items-center gap-0.5" @click.stop>
-              <UButton
-                icon="i-lucide-chevron-up"
-                variant="ghost"
-                color="neutral"
-                size="xs"
-                :disabled="row.index === 0"
-                @click="moveUp(row.index)"
-              />
-              <UButton
-                icon="i-lucide-chevron-down"
-                variant="ghost"
-                color="neutral"
-                size="xs"
-                :disabled="row.index === records.length - 1"
-                @click="moveDown(row.index)"
-              />
-            </div>
+          <template #reorder-cell>
+            <UIcon name="i-lucide-grip-vertical" class="drag-handle size-4 text-muted cursor-grab active:cursor-grabbing" @click.stop />
           </template>
 
           <template #date-cell="{ row }">
