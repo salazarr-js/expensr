@@ -1047,6 +1047,49 @@ route.post("/reorder", async (ctx) => {
 });
 
 /** DELETE /:id */
+/** POST /batch/update — partial update multiple records at once. */
+route.post("/batch/update", async (ctx) => {
+  const body = await ctx.req.json();
+  if (!Array.isArray(body) || !body.length) {
+    return ctx.json({ error: "Expected non-empty array of {id, ...fields}" }, 400);
+  }
+
+  const db = createDb(ctx.env.DB);
+  let updated = 0;
+
+  for (const item of body) {
+    const { id, ...fields } = item;
+    if (typeof id !== "number") continue;
+
+    // Only allow safe fields to be updated inline
+    const set: Record<string, unknown> = { updatedAt: new Date() };
+    if (fields.tagId !== undefined) set.tagId = fields.tagId;
+    if (fields.categoryId !== undefined) set.categoryId = fields.categoryId;
+    if (fields.note !== undefined) set.note = fields.note;
+    if (fields.amount !== undefined) set.amount = fields.amount;
+    if (fields.accountId !== undefined) set.accountId = fields.accountId;
+    if (fields.needsReview !== undefined) set.needsReview = fields.needsReview;
+
+    if (Object.keys(set).length <= 1) continue; // only updatedAt, no real changes
+    await db.update(records).set(set).where(eq(records.id, id));
+    updated++;
+  }
+
+  return ctx.json({ updated });
+});
+
+/** POST /batch/delete — delete multiple records by IDs. */
+route.post("/batch/delete", async (ctx) => {
+  const body = await ctx.req.json();
+  const ids = body?.ids;
+  if (!Array.isArray(ids) || !ids.length || !ids.every((id: unknown) => typeof id === "number")) {
+    return ctx.json({ error: "Expected { ids: number[] }" }, 400);
+  }
+  const db = createDb(ctx.env.DB);
+  const deleted = await db.delete(records).where(inArray(records.id, ids)).returning();
+  return ctx.json({ deleted: deleted.length });
+});
+
 route.delete("/:id", async (ctx) => {
   const id = parseId(ctx.req.param("id"));
   if (isNaN(id)) return ctx.json({ error: "Invalid ID" }, 400);

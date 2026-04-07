@@ -41,6 +41,9 @@ const { accounts } = storeToRefs(accountsStore);
 const { categories, tagsByCategory } = storeToRefs(categoriesStore);
 const { people } = storeToRefs(peopleStore);
 
+// Keyword mappings for note→tag matching in spreadsheet mode
+const keywordMappings = ref<{ keyword: string; tagId: number | null }[]>([]);
+
 const showFormModal = ref(false);
 const showQuickRecord = ref(false);
 const showBatchModal = ref(false);
@@ -271,10 +274,187 @@ const footerTotals = computed(() => {
   return { expenses, income, net: income - expenses, currency: footerCurrency.value };
 });
 
+// ── Spreadsheet mode — inline editing + inline delete ───────────────
+
+const spreadsheetMode = ref(false);
+const pendingChanges = ref<Map<number, Record<string, unknown>>>(new Map());
+let flushTimer: ReturnType<typeof setTimeout>;
+
+/** Flat list of all tags for note→tag matching. */
+const allTags = computed(() => {
+  const result: { id: number; name: string; categoryId: number }[] = [];
+  for (const cat of categories.value) {
+    for (const tag of tagsByCategory.value[cat.id] ?? []) {
+      result.push({ id: tag.id, name: tag.name, categoryId: cat.id });
+    }
+  }
+  return result;
+});
+
+/** Match a note string to a tag via name match → keyword dictionary. */
+function matchTagFromNote(note: string): number | null {
+  const keywords = note.toLowerCase().split(/\s+/).filter((w) => w.length >= 3);
+  if (!keywords.length) return null;
+  // 1. Exact tag name match
+  for (const kw of keywords) {
+    const exact = allTags.value.find((t) => t.name.toLowerCase() === kw);
+    if (exact) return exact.id;
+  }
+  // 2. Partial tag name match
+  for (const kw of keywords) {
+    const partial = allTags.value.find((t) => t.name.toLowerCase().includes(kw) || kw.includes(t.name.toLowerCase()));
+    if (partial) return partial.id;
+  }
+  // 3. Keyword dictionary fallback
+  for (const kw of keywords) {
+    const mapped = keywordMappings.value.find((m) => m.keyword === kw);
+    if (mapped?.tagId) return mapped.tagId;
+  }
+  return null;
+}
+
+/** Tag options for inline dropdown. */
+const tagOptions = computed(() => {
+  const opts: { label: string; value: number; icon: string; color: string | null; suffix: string }[] = [];
+  for (const cat of categories.value) {
+    for (const tag of tagsByCategory.value[cat.id] ?? []) {
+      opts.push({ label: tag.name, value: tag.id, icon: tag.icon || "i-lucide-hash", color: cat.color, suffix: cat.name });
+    }
+  }
+  return opts;
+});
+
+/** Account options for inline dropdown. */
+const accountOptions = computed(() =>
+  accounts.value.map((a) => ({ label: a.name, value: a.id, icon: a.icon, color: a.color })),
+);
+
+async function toggleSpreadsheetMode() {
+  spreadsheetMode.value = !spreadsheetMode.value;
+  pendingChanges.value.clear();
+  // Fetch keyword mappings when entering spreadsheet mode (for note→tag matching)
+  if (spreadsheetMode.value) {
+    try { keywordMappings.value = await api.get("/records/parse/keywords"); } catch { /* non-critical */ }
+  }
+}
+
+/** Exit spreadsheet mode — confirm if pending changes exist. */
+async function exitSpreadsheetMode() {
+  if (!spreadsheetMode.value) return;
+  if (pendingChanges.value.size) {
+    document.removeEventListener("keydown", onKeydown);
+    const confirmed = await alert.warning({
+      title: "Exit edit mode?",
+      message: `${pendingChanges.value.size} unsaved change${pendingChanges.value.size > 1 ? "s" : ""} will be lost.`,
+      confirmLabel: "Exit",
+    });
+    document.addEventListener("keydown", onKeydown);
+    if (!confirmed) return;
+  }
+  toggleSpreadsheetMode();
+}
+
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === "Escape" && spreadsheetMode.value) {
+    e.preventDefault();
+    requestAnimationFrame(() => exitSpreadsheetMode());
+  }
+}
+onMounted(() => document.addEventListener("keydown", onKeydown));
+onUnmounted(() => document.removeEventListener("keydown", onKeydown));
+
+/** Queue a field change for a record. Auto-flushes after 1s idle. */
+function queueChange(recordId: number, field: string, value: unknown) {
+  const existing = pendingChanges.value.get(recordId) ?? {};
+  existing[field] = value;
+  pendingChanges.value.set(recordId, existing);
+  const record = records.value.find((r) => r.id === recordId);
+  if (record) (record as any)[field] = value;
+
+  // Auto-set category when tag changes
+  if (field === "tagId" && typeof value === "number") {
+    const tag = allTags.value.find((t) => t.id === value);
+    if (tag) {
+      const cat = categories.value.find((c) => c.id === tag.categoryId);
+      existing.categoryId = tag.categoryId;
+      if (record) { (record as any).categoryId = tag.categoryId; (record as any).categoryName = cat?.name ?? null; (record as any).tagName = tag.name; }
+    }
+  }
+
+  // Auto-match tag from note when note changes
+  if (field === "note" && typeof value === "string" && record) {
+    const matchedTagId = matchTagFromNote(value);
+    if (matchedTagId) queueChange(recordId, "tagId", matchedTagId);
+  }
+
+  clearTimeout(flushTimer);
+  flushTimer = setTimeout(flushChanges, 1000);
+}
+
+/** Flush all pending changes to the API. */
+async function flushChanges() {
+  if (!pendingChanges.value.size) return;
+  const updates = [...pendingChanges.value.entries()].map(([id, fields]) => ({ id, ...fields }));
+  pendingChanges.value.clear();
+  try {
+    await recordsStore.batchUpdateRecords(updates);
+  } catch {
+    useToast().add({ title: "Failed to save changes", color: "error" });
+  }
+}
+
+/** Inline delete — immediate removal with undo toast. */
+function inlineDelete(record: RecordWithRelations) {
+  const index = records.value.findIndex((r) => r.id === record.id);
+  if (index === -1) return;
+  // Remove optimistically
+  records.value.splice(index, 1);
+  const undoTimer = setTimeout(() => {
+    recordsStore.deleteRecord(record.id);
+  }, 5000);
+  useToast().add({
+    title: `Deleted: ${record.note || record.tagName || "Record"}`,
+    color: "neutral",
+    actions: [{
+      label: "Undo",
+      onClick: () => {
+        clearTimeout(undoTimer);
+        records.value.splice(index, 0, record);
+      },
+    }],
+    duration: 5000,
+  });
+}
+
 // ── Table columns ───────────────────────────────────────────────────
 
-const columns: TableColumn<RecordWithRelations>[] = [
-  { id: "reorder", header: "", size: 40, enableSorting: false },
+const columns = computed<TableColumn<RecordWithRelations>[]>(() => [
+  {
+    id: spreadsheetMode.value ? "actions" : "reorder",
+    // Normal: icon to enter spreadsheet mode. Spreadsheet: "Done" text to exit.
+    header: spreadsheetMode.value
+      ? () => h("span", {
+          class: "text-xs text-primary cursor-pointer font-semibold hover:underline",
+          onClick: () => exitSpreadsheetMode(),
+        }, "Done")
+      : () => h(resolveComponent("UIcon") as any, {
+          name: "i-lucide-pencil-line",
+          class: "size-4 text-muted cursor-pointer hover:text-highlighted transition-colors",
+          onClick: () => toggleSpreadsheetMode(),
+        }),
+    // Normal: drag handle. Spreadsheet: delete button.
+    cell: spreadsheetMode.value
+      ? ({ row }: any) => h(resolveComponent("UButton") as any, {
+          icon: "i-lucide-x",
+          size: "xs",
+          variant: "ghost",
+          color: "error",
+          onClick: (e: Event) => { e.stopPropagation(); inlineDelete(row.original); },
+        })
+      : undefined,
+    size: 50,
+    enableSorting: false,
+  },
   { accessorKey: "date", header: "Date", enableSorting: false },
   { accessorKey: "accountName", header: "Account", enableSorting: false },
   { id: "category", accessorKey: "categoryName", header: "Category", enableSorting: false },
@@ -296,7 +476,7 @@ const columns: TableColumn<RecordWithRelations>[] = [
     size: 150,
     meta: { class: { th: "text-right", td: "text-right" } },
   },
-];
+]);
 
 const sorting = ref<{ id: string; desc: boolean }[]>([]);
 
@@ -327,7 +507,7 @@ function openEdit(record: RecordWithRelations) {
 }
 
 function onSelectRow(_e: Event, row: { original: RecordWithRelations }) {
-  openEdit(row.original);
+  if (!spreadsheetMode.value) openEdit(row.original);
 }
 
 async function deleteRecord(record: RecordWithRelations) {
@@ -423,6 +603,8 @@ onUnmounted(() => {
   desktopSortable?.destroy();
   mobileSortable?.destroy();
   clearTimeout(dragClearTimer);
+  clearTimeout(flushTimer);
+  document.removeEventListener("keydown", onKeydown);
 });
 
 function getPersonColor(personId: number): string | null {
@@ -459,20 +641,29 @@ watch(records, () => { if (!isReordering) fetchReviewCount(); });
         </template>
 
         <template #right>
-          <UTooltip v-if="reviewCount > 0" :text="filterNeedsReview ? 'Show all records' : `${reviewCount} records need review`">
-            <UButton
-              icon="i-lucide-circle-alert"
-              :variant="filterNeedsReview ? 'solid' : 'soft'"
-              color="warning"
-              @click="toggleReviewFilter"
-            >
-              {{ reviewCount }}
-            </UButton>
-          </UTooltip>
-          <UButton icon="i-lucide-plus" label="New record" variant="outline" @click="openCreate" />
-          <UTooltip text="Quick record (AI)">
-            <UButton icon="i-lucide-sparkles" @click="showQuickRecord = true" />
-          </UTooltip>
+          <!-- Spreadsheet mode indicator -->
+          <template v-if="spreadsheetMode">
+            <span v-if="pendingChanges.size" class="text-xs text-muted">{{ pendingChanges.size }} unsaved</span>
+            <UButton icon="i-lucide-save" label="Save" variant="soft" :disabled="!pendingChanges.size" @click="flushChanges" />
+            <UButton icon="i-lucide-x" label="Done" variant="ghost" color="neutral" @click="exitSpreadsheetMode" />
+          </template>
+          <!-- Normal mode actions -->
+          <template v-else>
+            <UTooltip v-if="reviewCount > 0" :text="filterNeedsReview ? 'Show all records' : `${reviewCount} records need review`">
+              <UButton
+                icon="i-lucide-circle-alert"
+                :variant="filterNeedsReview ? 'solid' : 'soft'"
+                color="warning"
+                @click="toggleReviewFilter"
+              >
+                {{ reviewCount }}
+              </UButton>
+            </UTooltip>
+            <UButton icon="i-lucide-plus" label="New record" variant="outline" @click="openCreate" />
+            <UTooltip text="Quick record (AI)">
+              <UButton icon="i-lucide-sparkles" @click="showQuickRecord = true" />
+            </UTooltip>
+          </template>
         </template>
       </UDashboardNavbar>
 
@@ -584,8 +775,17 @@ watch(records, () => { if (!isReordering) fetchReviewCount(); });
             :key="record.id"
             class="flex items-center gap-3 px-4 py-3 cursor-pointer active:bg-default-50"
             :class="record.type === 'settlement' ? 'bg-green-50 dark:bg-green-950/20' : record.needsReview ? 'bg-amber-50 dark:bg-amber-950/20' : ''"
-            @click="onCardClick(record)"
+            @click="spreadsheetMode ? undefined : onCardClick(record)"
           >
+            <!-- Inline delete in spreadsheet mode -->
+            <UButton
+              v-if="spreadsheetMode"
+              icon="i-lucide-x"
+              size="xs"
+              variant="ghost"
+              color="error"
+              @click.stop="inlineDelete(record)"
+            />
             <!-- Category icon (green for settlements) -->
             <div
               class="flex items-center justify-center size-9 rounded-lg shrink-0"
@@ -641,17 +841,32 @@ watch(records, () => { if (!isReordering) fetchReviewCount(); });
           :data="records"
           :meta="tableMeta"
           :loading="loading || searching"
-          :ui="{ tbody: 'records-tbody' }"
+          :ui="{ tbody: 'records-tbody', td: spreadsheetMode ? 'py-0.5 h-[52px]' : '' }"
           sticky
           class="w-full overflow-x-auto hidden md:block"
           @select="onSelectRow"
         >
-          <template #reorder-cell>
+          <template v-if="!spreadsheetMode" #reorder-cell>
             <UIcon name="i-lucide-grip-vertical" class="drag-handle size-4 text-muted cursor-grab active:cursor-grabbing" @click.stop />
           </template>
 
           <template #date-cell="{ row }">
             {{ formatDate(row.original.date) }}
+          </template>
+
+          <template #accountName-cell="{ row }">
+            <USelectMenu
+              v-if="spreadsheetMode"
+              :model-value="row.original.accountId"
+              :items="accountOptions"
+              value-key="value"
+              size="lg"
+              variant="ghost"
+              class="w-full"
+              @update:model-value="queueChange(row.original.id, 'accountId', $event)"
+              @click.stop
+            />
+            <span v-else>{{ row.original.accountName }}</span>
           </template>
 
           <template #category-cell="{ row }">
@@ -678,7 +893,20 @@ watch(records, () => { if (!isReordering) fetchReviewCount(); });
           </template>
 
           <template #tag-cell="{ row }">
-            <div v-if="row.original.tagName" class="flex items-center gap-1.5">
+            <!-- Spreadsheet: inline tag dropdown -->
+            <USelectMenu
+              v-if="spreadsheetMode"
+              :model-value="row.original.tagId ?? undefined"
+              :items="tagOptions"
+              value-key="value"
+              placeholder="—"
+              size="lg"
+              variant="ghost"
+              class="w-full"
+              @update:model-value="queueChange(row.original.id, 'tagId', $event)"
+              @click.stop
+            />
+            <div v-else-if="row.original.tagName" class="flex items-center gap-1.5">
               <UIcon name="i-lucide-hash" class="size-3.5 text-muted shrink-0" />
               <span>{{ row.original.tagName }}</span>
             </div>
@@ -704,14 +932,36 @@ watch(records, () => { if (!isReordering) fetchReviewCount(); });
           </template>
 
           <template #note-cell="{ row }">
-            <div class="flex items-center gap-1">
+            <!-- Spreadsheet: inline text input -->
+            <UInput
+              v-if="spreadsheetMode"
+              :model-value="row.original.note ?? ''"
+              size="lg"
+              variant="ghost"
+              placeholder="—"
+              class="w-full"
+              @update:model-value="queueChange(row.original.id, 'note', $event || null)"
+              @click.stop
+            />
+            <div v-else class="flex items-center gap-1">
               <UIcon v-if="row.original.needsReview" name="i-lucide-circle-alert" class="size-3.5 text-amber-500 shrink-0" />
               <span class="truncate max-w-48 inline-block">{{ row.original.note ?? "—" }}</span>
             </div>
           </template>
 
           <template #amount-cell="{ row }">
-            <div class="text-right font-mono">
+            <!-- Spreadsheet: inline number input -->
+            <div v-if="spreadsheetMode" class="text-right" @click.stop>
+              <UInput
+                :model-value="row.original.amount"
+                type="number"
+                size="sm"
+                variant="ghost"
+                class="w-24 text-right font-mono"
+                @update:model-value="queueChange(row.original.id, 'amount', Number($event) || row.original.amount)"
+              />
+            </div>
+            <div v-else class="text-right font-mono">
               <span :class="row.original.type === 'income' || row.original.type === 'settlement' ? 'text-green-600 dark:text-green-400' : ''">
                 {{ row.original.type === 'expense' ? '-' : '+' }}{{ formatMoneyParts(row.original.amount).integer }}<span class="text-muted">{{ formatMoneyParts(row.original.amount).decimal }}</span>
               </span>

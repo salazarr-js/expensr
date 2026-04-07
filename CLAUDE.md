@@ -148,7 +148,9 @@ Hono app with `.basePath("/api")`. Current routes:
 - `GET /api/records/parse/keywords` — learned keyword→tag mappings (with tag icon + category color)
 - `POST /api/records/parse/keywords` — manually create a keyword→tag mapping
 - `DELETE /api/records/parse/keywords/:id` — delete a keyword mapping
-- `POST /api/records/quick` — parse + auto-save in one call (for iPhone Shortcuts / automation). Returns `{saved, record, parsed, needsReview}`. Saves with needsReview if no tag resolved.
+- `POST /api/records/quick` — parse + auto-save in one call (for iPhone Shortcuts / automation). Returns `{message, url}` on success.
+- `POST /api/records/batch/update` — partial update multiple records at once (tag, category, note, amount, account, needsReview)
+- `POST /api/records/batch/delete` — delete multiple records by IDs
 - `GET /api/records/parse/stats` — aggregate parse observability metrics (total, byResolution, aiCalls, correctionRate)
 
 **Smart Parse architecture:** Three-tier tag resolution: (1) tag name match — exact then partial/contains: "uber" → Uber, "super" → Supermercado, "farm" → Farmacia (instant, no DB lookup), (2) `keyword_mappings` dictionary — learned word→tag associations from feedback (e.g. "carrefour" → Supermercado). Keywords that match a tag name are not stored (redundant). Keywords not learned from needsReview records. (3) Workers AI fallback with keyword dictionary as context. Account resolution: aliases (exact) → name match (partial, min 40% of name length) → default (explicit `isDefault` or most-used account by record count). Accounts support user-defined aliases for shorthand in parse (e.g. "galicia" → Galicia ARS, "ml" → MercadoLibre). Amounts always absolute — type field handles direction.
@@ -216,6 +218,10 @@ Error responses include a `code` field for machine-readable errors (e.g., `DUPLI
 - **Records footer totals**: When all visible records share a single currency, footer shows expense total + income total.
 - **NeedsReview auto-compute**: RecordFormModal auto-sets `needsReview: true` when `??` in note OR no tag assigned. Tag assignment clears it (unless `??` present). QuickRecordModal marks untagged records as needsReview on save.
 - **Batch tag editing**: QuickRecordModal batch results have inline USelectMenu for tag reassignment with colored category icons.
+- **Drag-and-drop reorder**: Desktop: grip handle in first column via SortableJS. Mobile: long-press (200ms) to drag cards. Optimistic update (DOM revert + array splice). Visual feedback: ghost opacity + chosen shadow/radius. Review count skipped during reorder.
+- **Spreadsheet mode**: Toggle via pencil icon in table header. Inline editable cells: tag (dropdown), note (text input), amount (number input), account (dropdown). Auto-save on blur (1s debounce via `POST /records/batch/update`). Inline delete per row with 5s undo toast. Note changes auto-match tag (name match → keyword dictionary). Esc exits (confirms if unsaved). Navbar shows unsaved count + Save + Done.
+- **Store filter persistence**: `fetchRecords()` with no args re-uses `lastFilters`. All mutations (create/update/delete/reorder/batch) preserve active filters.
+- **Quick endpoint**: `POST /api/records/quick` — parse + auto-save. Returns `{message, url}` for iPhone Shortcuts. Human-readable message + deep link to record's date.
 
 ## Error Handling
 

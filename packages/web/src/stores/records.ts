@@ -69,6 +69,18 @@ export const useRecordsStore = defineStore("records", () => {
     records.value = records.value.filter((r) => r.id !== id);
   }
 
+  /** Partial update multiple records at once (spreadsheet mode). */
+  async function batchUpdateRecords(updates: { id: number; [key: string]: unknown }[]) {
+    await api.post("/records/batch/update", updates);
+    await fetchRecords();
+  }
+
+  /** Deletes multiple records by IDs. */
+  async function batchDeleteRecords(ids: number[]) {
+    await api.post("/records/batch/delete", { ids });
+    records.value = records.value.filter((r) => !ids.includes(r.id));
+  }
+
   /** Reorder a record by placing it after or before another record. */
   async function reorderRecord(id: number, target: { afterId?: number; beforeId?: number }) {
     await api.post("/records/reorder", { id, ...target });
@@ -82,5 +94,5 @@ export const useRecordsStore = defineStore("records", () => {
     return result;
   }
 
-  return { records, loading, error, fetchRecords, createRecord, updateRecord, deleteRecord, reorderRecord, batchCreateRecords };
+  return { records, loading, error, fetchRecords, createRecord, updateRecord, batchUpdateRecords, deleteRecord, batchDeleteRecords, reorderRecord, batchCreateRecords };
 });

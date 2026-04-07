@@ -275,7 +275,25 @@ No dedicated API endpoint — frontend fetches records for current + previous pe
 
 ---
 
-## 10. Records — Advanced Views
+## 10. Records — Spreadsheet Mode
+
+**Detailed plan:** [09-spreadsheet-mode/](09-spreadsheet-mode/)
+
+Inline editing mode for the records table — edit tag, note, amount, account directly in cells without opening a modal. Auto-saves on blur with debounced batch API calls.
+
+- [ ] Mode toggle from table header icon (replaces drag handle column)
+- [ ] Inline editable cells: tag (dropdown), note (text), amount (number), account (dropdown)
+- [ ] Auto-save on blur — pending changes queue locally, flush after 1s debounce via `POST /records/batch/update`
+- [ ] Inline delete per row — immediate removal with undo toast (no confirmation modal)
+- [ ] Pending change indicator (subtle cell border)
+- [ ] Mobile: inline editable card fields
+- [ ] `POST /records/batch/update` API endpoint + `batchUpdateRecords()` store method
+
+**Test:** Toggle spreadsheet mode. Edit tag on 3 rows. Leave last cell. One API call updates all 3. Click delete icon → row gone → undo toast.
+
+---
+
+## 11. Records — Advanced Views
 
 - [ ] Account column view (records grouped by account, side-by-side)
 - [ ] Sortable table columns
@@ -358,14 +376,21 @@ No dedicated API endpoint — frontend fetches records for current + previous pe
 
 ## Future (out of scope for v1)
 
-- ~~Account ordering by usage (sort by record count, most used accounts first) — depends on records feature~~ ✅ Done (GET /api/accounts?sort=usage)
-- Note auto-complete: suggest previous notes as the user types in the record form (query distinct notes from records table, fuzzy match)
-- Records drag-and-drop reorder: replace up/down arrow buttons with drag-and-drop (e.g., vue-draggable or @dnd-kit). Reorder API already exists (`POST /api/records/reorder`), just needs a better UI
-- Category ordering by usage (sort by record count, most used categories first) — depends on records feature
-- FK cascade behavior: tag/category deletion should SET NULL on records (record stays, loses tag/category). Account deletion should be blocked if it has records. Needs schema migration with ON DELETE actions.
+- ~~Account ordering by usage~~ ✅ Done
+- ~~Records drag-and-drop reorder~~ ✅ Done (SortableJS, desktop handle + mobile long-press)
+- Credit cards: account type `credit_card` with closing date, due date, credit limit. Installment purchases (`cuotas`): total amount, number of installments, track remaining installments per record. Monthly statement estimate: sum upcoming installment charges for next billing cycle. Credit card records keep category/tag so they appear in spending charts alongside debit purchases. Payment of statement = Transfer from bank account to credit card (depends on Transfers feature). Dashboard widget: next statement estimate, remaining installments breakdown.
+- Multi-currency debt: People page should show debt per currency (join records → accounts), not a single number. Dashboard debts widget same.
+- Loans: dedicated `loan` record type — no category, pure debt, dashboard widget for total lent out. Currently workaround: expense with manual split where person owes 100%.
+- Who paid?: "Who paid?" field on records for tracking expenses others paid on your behalf.
+- Live refresh: WebSocket via Durable Object — broadcast "refresh" to connected clients when records change from another device (Shortcut, etc.). Free tier covers single-user.
+- Store caching: reference data (accounts, categories, tags, people, keywords) fetched on every modal open (5 requests). Cache with staleness check in stores instead.
+- Note auto-complete: suggest previous notes as the user types (query distinct notes, fuzzy match)
+- Category ordering by usage (sort by record count)
+- FK cascade behavior: tag/category deletion → SET NULL on records. Account deletion blocked if has records.
 - Invoice photo upload + OCR
 - Multi-user auth
 - Recurring records
 - Budget targets per category
 - Export to CSV/PDF
-- Auto-generated CHANGELOG.md from commits/features — see [00-foundation/changelog-plan.md](00-foundation/changelog-plan.md)
+- Custom TanStack Table: replace UTable for full styling control
+- Auto-generated CHANGELOG.md — see [00-foundation/changelog-plan.md](00-foundation/changelog-plan.md)
