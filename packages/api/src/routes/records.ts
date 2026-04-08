@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { eq, ne, and, gte, lte, desc, asc, gt, lt, inArray, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
-import { createRecordSchema, updateRecordSchema, reorderRecordSchema, parseRecordSchema, parseRecordFeedbackSchema } from "@slzr/expensr-shared";
+import { createRecordSchema, updateRecordSchema, reorderRecordSchema, parseRecordSchema, parseRecordFeedbackSchema, createTransferSchema } from "@slzr/expensr-shared";
 import type { ParsedRecord, ResolvedBy } from "@slzr/expensr-shared";
 import { createDb } from "../db";
 import { records, accounts, categories, tags, people, recordPeople, parseLogs, keywordMappings } from "../db/schema";
@@ -98,12 +98,34 @@ async function attachPeople<T extends { id: number }>(
   return rows.map((r) => ({ ...r, people: byRecord.get(r.id) ?? [] }));
 }
 
-/** Compute user's actual spending portion per record. Settlements = 0, shared = amount minus others' shares. */
+/** Attach linked record's account name/currency for transfers. */
+async function attachLinkedAccounts<T extends { linkedRecordId: number | null }>(
+  db: ReturnType<typeof createDb>,
+  rows: T[],
+): Promise<(T & { linkedAccountName: string | null; linkedAccountCurrency: string | null })[]> {
+  const linkedIds = rows.map((r) => r.linkedRecordId).filter(Boolean) as number[];
+  if (!linkedIds.length) return rows.map((r) => ({ ...r, linkedAccountName: null, linkedAccountCurrency: null }));
+
+  // Fetch linked records' account info
+  const linked = await db
+    .select({ id: records.id, accountName: accounts.name, accountCurrency: accounts.currency })
+    .from(records)
+    .innerJoin(accounts, eq(records.accountId, accounts.id))
+    .where(inArray(records.id, linkedIds));
+
+  const byId = new Map(linked.map((l) => [l.id, l]));
+  return rows.map((r) => {
+    const l = r.linkedRecordId ? byId.get(r.linkedRecordId) : null;
+    return { ...r, linkedAccountName: l?.accountName ?? null, linkedAccountCurrency: l?.accountCurrency ?? null };
+  });
+}
+
+/** Compute user's actual spending portion per record. Settlements/transfers = 0, shared = amount minus others' shares. */
 function computeMySpend<T extends { amount: number; type: string; people: { shareAmount: number }[] }>(
   rows: T[],
 ): (T & { mySpend: number })[] {
   return rows.map((r) => {
-    if (r.type === "settlement") return { ...r, mySpend: 0 };
+    if (r.type === "settlement" || r.type === "transfer") return { ...r, mySpend: 0 };
     const othersTotal = r.people.reduce((sum, p) => sum + p.shareAmount, 0);
     return { ...r, mySpend: r.amount - othersTotal };
   });
@@ -216,7 +238,9 @@ route.get("/", async (ctx) => {
     ? await query.where(and(...conditions)).orderBy(desc(records.date), desc(records.id))
     : await query.orderBy(desc(records.date), desc(records.id));
 
-  return ctx.json(computeMySpend(await attachPeople(db, rows)));
+  const withPeople = await attachPeople(db, rows);
+  const withLinked = await attachLinkedAccounts(db, withPeople);
+  return ctx.json(computeMySpend(withLinked));
 });
 
 /** Derive split type from create/update payload. */
@@ -324,6 +348,67 @@ route.post("/batch", async (ctx) => {
   }
 
   return ctx.json({ created: created.length, errors }, errors.length ? 207 : 201);
+});
+
+/** POST /transfer — create a linked pair of records for transfers/exchanges.
+ *  Same currency = transfer, different currency = exchange. Optional fee record. */
+route.post("/transfer", async (ctx) => {
+  const body = await ctx.req.json();
+  const parsed = createTransferSchema.safeParse(body);
+  if (!parsed.success) return ctx.json({ error: z.treeifyError(parsed.error) }, 400);
+
+  const { fromAccountId, toAccountId, amount, toAmount, date, note, feeAmount, feeAccountId } = parsed.data;
+  if (fromAccountId === toAccountId) return ctx.json({ error: "From and to accounts must be different", code: "SAME_ACCOUNT" }, 400);
+
+  const db = createDb(ctx.env.DB);
+  const datetime = ensureDatetime(date);
+
+  // Outgoing record (money leaves fromAccount)
+  const [outRecord] = await db.insert(records).values({
+    type: "transfer",
+    amount,
+    date: datetime,
+    accountId: fromAccountId,
+    note: note ?? null,
+    splitType: "equal",
+    myShares: 1,
+    needsReview: false,
+  }).returning();
+
+  // Incoming record (money arrives at toAccount)
+  const [inRecord] = await db.insert(records).values({
+    type: "transfer",
+    amount: toAmount ?? amount, // different amount for exchanges
+    date: datetime,
+    accountId: toAccountId,
+    linkedRecordId: outRecord.id,
+    note: note ?? null,
+    splitType: "equal",
+    myShares: 1,
+    needsReview: false,
+  }).returning();
+
+  // Link outgoing → incoming
+  await db.update(records).set({ linkedRecordId: inRecord.id }).where(eq(records.id, outRecord.id));
+
+  // Optional fee as a separate expense
+  let feeRecord = null;
+  if (feeAmount) {
+    const [fee] = await db.insert(records).values({
+      type: "expense",
+      amount: feeAmount,
+      date: datetime,
+      accountId: feeAccountId ?? fromAccountId,
+      linkedRecordId: outRecord.id,
+      note: note ? `Fee: ${note}` : "Transfer fee",
+      splitType: "equal",
+      myShares: 1,
+      needsReview: false,
+    }).returning();
+    feeRecord = fee;
+  }
+
+  return ctx.json({ outRecord: { ...outRecord, linkedRecordId: inRecord.id }, inRecord, feeRecord }, 201);
 });
 
 /** POST /quick — parse + auto-save in one call. For iPhone Shortcuts / external automation. */
@@ -808,8 +893,9 @@ route.get("/:id", async (ctx) => {
   const row = await recordsWithRelations(db).where(eq(records.id, id)).get();
 
   if (!row) return ctx.json({ error: "Record not found" }, 404);
-  const [withPeople] = computeMySpend(await attachPeople(db, [row]));
-  return ctx.json(withPeople);
+  const withPeople = await attachPeople(db, [row]);
+  const withLinked = await attachLinkedAccounts(db, withPeople);
+  return ctx.json(computeMySpend(withLinked)[0]);
 });
 
 /** PUT /:id — partial update. Preserves time when only date changes. */

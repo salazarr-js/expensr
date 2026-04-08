@@ -194,6 +194,17 @@ onMounted(accountsStore.fetchAccountsByUsage);
               <p class="text-2xl font-heading font-bold text-highlighted tracking-tight">
                 {{ formatMoneyParts(account.balance).integer }}<span class="text-base font-medium text-muted">{{ formatMoneyParts(account.balance).decimal }}</span>
               </p>
+              <!-- Gap indicator when real balance is set -->
+              <p
+                v-if="account.realBalance"
+                class="text-xs font-mono mt-0.5"
+                :class="Math.abs(account.realBalance - account.balance) < 1 ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'"
+              >
+                <template v-if="Math.abs(account.realBalance - account.balance) < 1">Synced</template>
+                <template v-else>
+                  Gap: {{ formatMoneyParts(Math.abs(account.realBalance - account.balance)).integer }}
+                </template>
+              </p>
             </div>
           </div>
         </UCard>

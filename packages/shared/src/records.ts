@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-/** Supported record types. More planned: transfer, exchange, fee. */
-export const RECORD_TYPES = ["expense", "income", "settlement"] as const;
+/** Supported record types. */
+export const RECORD_TYPES = ["expense", "income", "settlement", "transfer"] as const;
 
 /** Split modes for shared expenses. */
 export const SPLIT_TYPES = ["equal", "weighted", "manual"] as const;
@@ -41,7 +41,9 @@ export interface RecordWithRelations extends FinancialRecord {
   categoryIcon: string | null;
   tagName: string | null;
   people: { id: number; name: string; shareAmount: number }[];
-  mySpend: number; // your actual spending portion (amount minus others' shares, 0 for settlements)
+  mySpend: number; // your actual spending portion (amount minus others' shares, 0 for settlements/transfers)
+  linkedAccountName: string | null; // counterpart account for transfers
+  linkedAccountCurrency: string | null;
 }
 
 /** Validation for creating a record. Shared by frontend forms and API. */
@@ -61,6 +63,21 @@ export const createRecordSchema = z.object({
 
 /** Partial create schema for PATCH-style updates. */
 export const updateRecordSchema = createRecordSchema.partial();
+
+/** Transfer between accounts (same or different currency). */
+export const createTransferSchema = z.object({
+  fromAccountId: z.number({ message: "Required" }),
+  toAccountId: z.number({ message: "Required" }),
+  amount: z.number({ message: "Must be a number" }).positive("Must be positive"),
+  // For exchanges: amount received in the target currency (different from amount sent)
+  toAmount: z.number().positive().optional(),
+  date: z.string().min(1, "Required"),
+  note: z.string().max(500, "Too long").nullable().optional(),
+  // Optional fee as a separate expense record
+  feeAmount: z.number().positive().optional(),
+  feeAccountId: z.number().optional(),
+});
+export type CreateTransfer = z.infer<typeof createTransferSchema>;
 
 /** Reorder by placing a record before or after another. */
 export const reorderRecordSchema = z.object({

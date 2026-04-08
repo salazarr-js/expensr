@@ -275,21 +275,31 @@ No dedicated API endpoint — frontend fetches records for current + previous pe
 
 ---
 
-## 10. Records — Spreadsheet Mode
+## 10. Records — Spreadsheet Mode ✅
 
-**Detailed plan:** [09-spreadsheet-mode/](09-spreadsheet-mode/)
+- [x] Mode toggle from table header icon (pencil icon → "Done")
+- [x] Inline editable cells: tag (dropdown), note (text), amount (number), account (dropdown)
+- [x] Auto-save on blur — pending changes queue locally, flush after 1s debounce via `POST /records/batch/update`
+- [x] Inline delete per row — immediate removal with undo toast
+- [x] Note→tag auto-match (name match → keyword dictionary)
+- [x] `POST /records/batch/update` + `POST /records/batch/delete` API endpoints
+- [x] Drag-and-drop reorder in spreadsheet mode (handle + delete side by side)
 
-Inline editing mode for the records table — edit tag, note, amount, account directly in cells without opening a modal. Auto-saves on blur with debounced batch API calls.
+## 10b. Unified Batch Editor (Full Page)
 
-- [ ] Mode toggle from table header icon (replaces drag handle column)
-- [ ] Inline editable cells: tag (dropdown), note (text), amount (number), account (dropdown)
-- [ ] Auto-save on blur — pending changes queue locally, flush after 1s debounce via `POST /records/batch/update`
-- [ ] Inline delete per row — immediate removal with undo toast (no confirmation modal)
-- [ ] Pending change indicator (subtle cell border)
-- [ ] Mobile: inline editable card fields
-- [ ] `POST /records/batch/update` API endpoint + `batchUpdateRecords()` store method
+**Detailed plan:** [10-batch-editor/](10-batch-editor/)
 
-**Test:** Toggle spreadsheet mode. Edit tag on 3 rows. Leave last cell. One API call updates all 3. Click delete icon → row gone → undo toast.
+Full page at `/dashboard/batch` — replaces BatchRecordModal. Handles both creating new records (paste bank statement or type) and editing existing records.
+
+- [ ] Full page route `/dashboard/batch` with spreadsheet grid
+- [ ] Paste parser: bank statement text → parsed rows (date, amount, description → tag)
+- [ ] Inline editing: date, note, tag, amount, account, people, type
+- [ ] Edit mode: load existing records from filters
+- [ ] Drag-and-drop reorder via SortableJS
+- [ ] Save: creates + updates + deletes in one flow
+- [ ] Entry points: sidebar nav, Records page button
+
+**Test:** Paste bank statement. Rows parsed with dates/amounts/tags. Edit inline. Save all. Load existing records → edit → save updates.
 
 ---
 
@@ -378,6 +388,7 @@ Inline editing mode for the records table — edit tag, note, amount, account di
 
 - ~~Account ordering by usage~~ ✅ Done
 - ~~Records drag-and-drop reorder~~ ✅ Done (SortableJS, desktop handle + mobile long-press)
+- Quick record for all features: extend smart parse to handle transfers, settlements, and exchanges via natural language. Patterns: `transfer 3500 galicia → cash`, `3500 de galicia a cash`, `pago angy 5000`, `exchange 100 usd → ars 95000`. Parser detects keywords (transfer/pago/exchange/de...a...) and routes to the correct API endpoint. The `/quick` endpoint should also support these patterns for iPhone Shortcuts. All record types reachable without opening a form.
 - Credit cards: account type `credit_card` with closing date, due date, credit limit. Installment purchases (`cuotas`): total amount, number of installments, track remaining installments per record. Monthly statement estimate: sum upcoming installment charges for next billing cycle. Credit card records keep category/tag so they appear in spending charts alongside debit purchases. Payment of statement = Transfer from bank account to credit card (depends on Transfers feature). Dashboard widget: next statement estimate, remaining installments breakdown.
 - Multi-currency debt: People page should show debt per currency (join records → accounts), not a single number. Dashboard debts widget same.
 - Loans: dedicated `loan` record type — no category, pure debt, dashboard widget for total lent out. Currently workaround: expense with manual split where person owes 100%.

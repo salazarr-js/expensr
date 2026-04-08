@@ -66,6 +66,8 @@ const defaultState = (): CreateAccount => ({
   aliases: null,
   isDefault: false,
   startingBalance: 0,
+  realBalance: 0,
+  realBalanceDate: null,
 });
 
 const state = reactive<CreateAccount>(defaultState());
@@ -89,6 +91,8 @@ watch(open, (isOpen) => {
       aliases: props.account.aliases,
       isDefault: props.account.isDefault,
       startingBalance: props.account.startingBalance,
+      realBalance: props.account.realBalance,
+      realBalanceDate: props.account.realBalanceDate,
     });
   } else {
     Object.assign(state, defaultState());
@@ -210,6 +214,18 @@ async function onSubmit() {
         <UFormField name="isDefault">
           <UCheckbox v-model="state.isDefault" label="Default account" description="Used as fallback when no account is specified in quick input" />
         </UFormField>
+        <!-- Reconciliation section -->
+        <div class="border-t border-default pt-4 mt-4">
+          <h4 class="text-xs font-semibold text-muted uppercase tracking-wide mb-3">Reconciliation</h4>
+          <div class="grid grid-cols-2 gap-4">
+            <UFormField label="Real balance" name="realBalance">
+              <UInput v-model.number="state.realBalance" type="number" step="0.01" placeholder="0" class="w-full" />
+            </UFormField>
+            <UFormField label="As of" name="realBalanceDate">
+              <UInput :model-value="state.realBalanceDate ?? ''" type="date" class="w-full" @update:model-value="state.realBalanceDate = $event || null" />
+            </UFormField>
+          </div>
+        </div>
       </UForm>
     </template>
 

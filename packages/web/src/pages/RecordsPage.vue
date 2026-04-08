@@ -13,6 +13,7 @@ import { usePeopleStore } from "@/stores/people";
 import { formatMoneyParts } from "@/utils/money";
 import { getColor } from "@/utils/colors";
 import { RecordFormModal } from "@/components/RecordFormModal";
+import { TransferFormModal } from "@/components/TransferFormModal";
 import { QuickRecordModal } from "@/components/QuickRecordModal";
 import { BatchRecordModal } from "@/components/BatchRecordModal";
 import { DateRangePicker } from "@/components/DateRangePicker";
@@ -47,6 +48,7 @@ const keywordMappings = ref<{ keyword: string; tagId: number | null }[]>([]);
 const showFormModal = ref(false);
 const showQuickRecord = ref(false);
 const showBatchModal = ref(false);
+const showTransferModal = ref(false);
 const selectedRecord = ref<RecordWithRelations | undefined>();
 
 // ── Filters (synced to URL query params) ────────────────────────────
@@ -442,17 +444,20 @@ const columns = computed<TableColumn<RecordWithRelations>[]>(() => [
           class: "size-4 text-muted cursor-pointer hover:text-highlighted transition-colors",
           onClick: () => toggleSpreadsheetMode(),
         }),
-    // Normal: drag handle. Spreadsheet: delete button.
+    // Normal: drag handle via template slot. Spreadsheet: drag handle + delete button.
     cell: spreadsheetMode.value
-      ? ({ row }: any) => h(resolveComponent("UButton") as any, {
-          icon: "i-lucide-x",
-          size: "xs",
-          variant: "ghost",
-          color: "error",
-          onClick: (e: Event) => { e.stopPropagation(); inlineDelete(row.original); },
-        })
+      ? ({ row }: any) => h("div", { class: "flex items-center gap-0.5" }, [
+          h(resolveComponent("UIcon") as any, { name: "i-lucide-grip-vertical", class: "drag-handle size-4 text-muted cursor-grab active:cursor-grabbing" }),
+          h(resolveComponent("UButton") as any, {
+            icon: "i-lucide-x",
+            size: "xs",
+            variant: "ghost",
+            color: "error",
+            onClick: (e: Event) => { e.stopPropagation(); inlineDelete(row.original); },
+          }),
+        ])
       : undefined,
-    size: 50,
+    size: 60,
     enableSorting: false,
   },
   { accessorKey: "date", header: "Date", enableSorting: false },
@@ -483,11 +488,12 @@ const sorting = ref<{ id: string; desc: boolean }[]>([]);
 // Pin amount column to the right so it's always visible on horizontal scroll
 const columnPinning = ref({ right: ["amount"] });
 
-/** Row background: green for settlements, amber for needs review. */
+/** Row background: green for settlements, blue for transfers, amber for needs review. */
 const tableMeta = {
   class: {
     tr: (row: { original: RecordWithRelations }) => {
       if (row.original.type === "settlement") return "bg-green-50 dark:bg-green-950/20";
+      if (row.original.type === "transfer") return "bg-blue-50 dark:bg-blue-950/20";
       if (row.original.needsReview) return "bg-amber-50 dark:bg-amber-950/20";
       return "";
     },
@@ -659,6 +665,9 @@ watch(records, () => { if (!isReordering) fetchReviewCount(); });
                 {{ reviewCount }}
               </UButton>
             </UTooltip>
+            <UTooltip text="Transfer / Exchange">
+              <UButton icon="i-lucide-arrow-right-left" variant="ghost" color="neutral" @click="showTransferModal = true" />
+            </UTooltip>
             <UButton icon="i-lucide-plus" label="New record" variant="outline" @click="openCreate" />
             <UTooltip text="Quick record (AI)">
               <UButton icon="i-lucide-sparkles" @click="showQuickRecord = true" />
@@ -774,7 +783,7 @@ watch(records, () => { if (!isReordering) fetchReviewCount(); });
             v-for="(record, index) in records"
             :key="record.id"
             class="flex items-center gap-3 px-4 py-3 cursor-pointer active:bg-default-50"
-            :class="record.type === 'settlement' ? 'bg-green-50 dark:bg-green-950/20' : record.needsReview ? 'bg-amber-50 dark:bg-amber-950/20' : ''"
+            :class="record.type === 'settlement' ? 'bg-green-50 dark:bg-green-950/20' : record.type === 'transfer' ? 'bg-blue-50 dark:bg-blue-950/20' : record.needsReview ? 'bg-amber-50 dark:bg-amber-950/20' : ''"
             @click="spreadsheetMode ? undefined : onCardClick(record)"
           >
             <!-- Inline delete in spreadsheet mode -->
@@ -786,26 +795,34 @@ watch(records, () => { if (!isReordering) fetchReviewCount(); });
               color="error"
               @click.stop="inlineDelete(record)"
             />
-            <!-- Category icon (green for settlements) -->
+            <!-- Category icon -->
             <div
               class="flex items-center justify-center size-9 rounded-lg shrink-0"
-              :style="record.type === 'settlement' ? {} : {
+              :style="record.type === 'settlement' || record.type === 'transfer' ? {} : {
                 backgroundColor: getColor(record.categoryColor)[100],
                 color: getColor(record.categoryColor)[500],
               }"
-              :class="record.type === 'settlement' ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' : ''"
+              :class="[
+                record.type === 'settlement' ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' : '',
+                record.type === 'transfer' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : '',
+              ]"
             >
-              <UIcon :name="record.type === 'settlement' ? 'i-lucide-hand-coins' : (record.categoryIcon || 'i-lucide-receipt')" class="size-4" />
+              <UIcon :name="record.type === 'settlement' ? 'i-lucide-hand-coins' : record.type === 'transfer' ? 'i-lucide-arrow-right-left' : (record.categoryIcon || 'i-lucide-receipt')" class="size-4" />
             </div>
 
             <!-- Info -->
             <div class="min-w-0 flex-1">
               <p class="text-sm font-medium text-highlighted truncate">
                 <UIcon v-if="record.needsReview" name="i-lucide-circle-alert" class="size-3.5 text-amber-500 align-text-bottom mr-0.5" />
-                {{ record.type === 'settlement' ? 'Payment' : (record.note || record.tagName || 'Record') }}
+                {{ record.type === 'settlement' ? 'Payment' : record.type === 'transfer' ? (record.note || 'Transfer') : (record.note || record.tagName || 'Record') }}
               </p>
               <div class="flex items-center gap-1 text-xs text-muted truncate">
-                <span>{{ formatDate(record.date) }}<template v-if="record.note && record.tagName"> · {{ record.tagName }}</template> · {{ record.accountName }}</span>
+                <span>
+                  {{ formatDate(record.date) }}
+                  <template v-if="record.type === 'transfer' && record.linkedAccountName"> · → {{ record.linkedAccountName }}</template>
+                  <template v-else-if="record.note && record.tagName"> · {{ record.tagName }}</template>
+                  · {{ record.accountName }}
+                </span>
                 <div v-if="record.people?.length" class="flex items-center -space-x-1 ml-1">
                   <UTooltip
                     v-for="person in record.people"
@@ -825,8 +842,12 @@ watch(records, () => { if (!isReordering) fetchReviewCount(); });
 
             <!-- Amount -->
             <div class="text-right shrink-0 font-mono">
-              <p class="text-sm font-semibold" :class="record.type === 'income' || record.type === 'settlement' ? 'text-green-600 dark:text-green-400' : 'text-highlighted'">
-                {{ record.type === 'expense' ? '-' : '+' }}{{ formatMoneyParts(record.amount).integer }}<span class="text-xs text-muted">{{ formatMoneyParts(record.amount).decimal }}</span>
+              <p class="text-sm font-semibold" :class="[
+                record.type === 'income' || record.type === 'settlement' ? 'text-green-600 dark:text-green-400' : '',
+                record.type === 'transfer' ? 'text-blue-600 dark:text-blue-400' : '',
+                record.type === 'expense' ? 'text-highlighted' : '',
+              ]">
+                {{ record.type === 'expense' ? '-' : record.type === 'transfer' ? (record.linkedRecordId && record.linkedRecordId < record.id ? '+' : '-') : '+' }}{{ formatMoneyParts(record.amount).integer }}<span class="text-xs text-muted">{{ formatMoneyParts(record.amount).decimal }}</span>
               </p>
               <p class="text-[11px] text-muted">{{ record.accountCurrency }}</p>
             </div>
@@ -870,8 +891,19 @@ watch(records, () => { if (!isReordering) fetchReviewCount(); });
           </template>
 
           <template #category-cell="{ row }">
+            <!-- Transfer: blue badge with linked account -->
+            <div v-if="row.original.type === 'transfer'" class="flex items-center gap-1.5">
+              <div class="flex items-center justify-center size-5 rounded shrink-0 bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+                <UIcon name="i-lucide-arrow-right-left" class="size-3" />
+              </div>
+              <span class="text-blue-600 dark:text-blue-400">
+                {{ row.original.linkedAccountName
+                  ? (row.original.linkedRecordId && row.original.linkedRecordId < row.original.id ? `← ${row.original.linkedAccountName}` : `→ ${row.original.linkedAccountName}`)
+                  : 'Transfer' }}
+              </span>
+            </div>
             <!-- Settlement: green payment badge -->
-            <div v-if="row.original.type === 'settlement'" class="flex items-center gap-1.5">
+            <div v-else-if="row.original.type === 'settlement'" class="flex items-center gap-1.5">
               <div class="flex items-center justify-center size-5 rounded shrink-0 bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
                 <UIcon name="i-lucide-hand-coins" class="size-3" />
               </div>
@@ -962,8 +994,11 @@ watch(records, () => { if (!isReordering) fetchReviewCount(); });
               />
             </div>
             <div v-else class="text-right font-mono">
-              <span :class="row.original.type === 'income' || row.original.type === 'settlement' ? 'text-green-600 dark:text-green-400' : ''">
-                {{ row.original.type === 'expense' ? '-' : '+' }}{{ formatMoneyParts(row.original.amount).integer }}<span class="text-muted">{{ formatMoneyParts(row.original.amount).decimal }}</span>
+              <span :class="[
+                row.original.type === 'income' || row.original.type === 'settlement' ? 'text-green-600 dark:text-green-400' : '',
+                row.original.type === 'transfer' ? 'text-blue-600 dark:text-blue-400' : '',
+              ]">
+                {{ row.original.type === 'expense' ? '-' : row.original.type === 'transfer' ? (row.original.linkedRecordId && row.original.linkedRecordId < row.original.id ? '+' : '-') : '+' }}{{ formatMoneyParts(row.original.amount).integer }}<span class="text-muted">{{ formatMoneyParts(row.original.amount).decimal }}</span>
               </span>
               <span class="ml-1 text-xs text-muted">{{ row.original.accountCurrency }}</span>
             </div>
@@ -998,4 +1033,5 @@ watch(records, () => { if (!isReordering) fetchReviewCount(); });
   <RecordFormModal v-model:open="showFormModal" :record="selectedRecord" @delete="deleteRecord" @batch="showBatchModal = true" />
   <QuickRecordModal v-model:open="showQuickRecord" />
   <BatchRecordModal v-model:open="showBatchModal" />
+  <TransferFormModal v-model:open="showTransferModal" />
 </template>

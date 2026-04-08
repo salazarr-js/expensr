@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, nextTick, onUnmounted } from "vue";
 import { useDebounceFn, useLocalStorage } from "@vueuse/core";
+import Sortable from "sortablejs";
 import { storeToRefs } from "pinia";
 import type { DateValue } from "@internationalized/date";
 import type { Tag, CreateRecord, ParsedRecord } from "@slzr/expensr-shared";
@@ -231,12 +232,42 @@ async function confirmRemoveDateGroup(gi: number) {
   dateGroups.value.splice(gi, 1);
 }
 
-function moveRow(gi: number, ri: number, dir: -1 | 1) {
-  const rows = dateGroups.value[gi]!.rows;
-  const target = ri + dir;
-  if (target < 0 || target >= rows.length) return;
-  [rows[ri], rows[target]] = [rows[target]!, rows[ri]!];
+// Drag-and-drop reordering via SortableJS
+const sortableInstances: Sortable[] = [];
+
+function initBatchSortable() {
+  // Destroy previous instances
+  sortableInstances.forEach((s) => s.destroy());
+  sortableInstances.length = 0;
+
+  for (let gi = 0; gi < dateGroups.value.length; gi++) {
+    const el = document.querySelector(`.batch-rows-${gi}`) as HTMLElement | null;
+    if (!el) continue;
+    sortableInstances.push(Sortable.create(el, {
+      handle: ".batch-drag-handle",
+      animation: 150,
+      ghostClass: "sortable-ghost",
+      chosenClass: "sortable-chosen",
+      onEnd: (evt) => {
+        const { oldIndex, newIndex } = evt;
+        if (oldIndex == null || newIndex == null || oldIndex === newIndex) return;
+        // Revert DOM — let Vue re-render
+        const { item } = evt;
+        const parent = item.parentNode!;
+        const ref = parent.children[oldIndex < newIndex ? oldIndex : oldIndex + 1] ?? null;
+        parent.insertBefore(item, ref);
+        // Splice the reactive array
+        const rows = dateGroups.value[gi]!.rows;
+        const [moved] = rows.splice(oldIndex, 1);
+        rows.splice(newIndex, 0, moved!);
+      },
+    }));
+  }
 }
+
+// Re-init when date groups change
+watch(dateGroups, async () => { await nextTick(); initBatchSortable(); }, { deep: true });
+onUnmounted(() => sortableInstances.forEach((s) => s.destroy()));
 
 // Debounced note → tag auto-match
 const debouncedMatch = useDebounceFn((row: BatchRow) => {
@@ -430,7 +461,8 @@ function formatGroupDate(iso: string): string {
               </div>
             </div>
 
-            <!-- Data rows -->
+            <!-- Data rows (wrapper for SortableJS) -->
+            <div :class="`batch-rows-${gi}`">
             <div
               v-for="(row, ri) in group.rows"
               :key="row.id"
@@ -438,17 +470,9 @@ function formatGroupDate(iso: string): string {
               :class="ri % 2 === 1 ? 'bg-muted/5' : ''"
               @keydown="onCellKeydown"
             >
-              <!-- Row number / reorder — fixed height to prevent jump on hover -->
-              <div class="relative flex items-center justify-center h-full border-r border-default bg-muted/5 text-[10px] text-muted">
-                <span class="group-hover/row:invisible">{{ ri + 1 }}</span>
-                <div class="absolute inset-0 flex-col items-center justify-center hidden group-hover/row:flex">
-                  <button class="hover:text-default flex-1 flex items-center" :disabled="ri === 0" @click="moveRow(gi, ri, -1)">
-                    <UIcon name="i-lucide-chevron-up" class="size-3" />
-                  </button>
-                  <button class="hover:text-default flex-1 flex items-center" :disabled="ri === group.rows.length - 1" @click="moveRow(gi, ri, 1)">
-                    <UIcon name="i-lucide-chevron-down" class="size-3" />
-                  </button>
-                </div>
+              <!-- Drag handle -->
+              <div class="flex items-center justify-center h-full border-r border-default bg-muted/5">
+                <UIcon name="i-lucide-grip-vertical" class="batch-drag-handle size-3 text-muted cursor-grab active:cursor-grabbing" />
               </div>
 
               <!-- Note + mobile tag indicator -->
@@ -505,6 +529,7 @@ function formatGroupDate(iso: string): string {
                   <UButton icon="i-lucide-minus-circle" size="xs" variant="ghost" color="neutral" @click="removeRow(gi, ri)" />
                 </UTooltip>
               </div>
+            </div>
             </div>
 
             <!-- Add row for this date -->

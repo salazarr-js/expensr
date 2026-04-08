@@ -23,7 +23,9 @@ export interface Account {
   aliases: string | null;
   isDefault: boolean;
   startingBalance: number;
-  balance: number;
+  realBalance: number;
+  realBalanceDate: string | null;
+  balance: number; // tracked balance (starting + income - expenses +/- transfers)
   recordCount: number;
   createdAt: string;
   updatedAt: string;
@@ -39,6 +41,8 @@ export const createAccountSchema = z.object({
   aliases: z.string().nullable().optional(),
   isDefault: z.boolean().optional(),
   startingBalance: z.number({ message: "Must be a number" }).default(0),
+  realBalance: z.number({ message: "Must be a number" }).default(0),
+  realBalanceDate: z.string().nullable().optional(),
 });
 
 /** All fields optional — only send what changed. */

@@ -52,9 +52,18 @@ function accountsWithBalance(db: ReturnType<typeof createDb>) {
       aliases: accounts.aliases,
       isDefault: accounts.isDefault,
       startingBalance: accounts.startingBalance,
+      realBalance: accounts.realBalance,
+      realBalanceDate: accounts.realBalanceDate,
       createdAt: accounts.createdAt,
       updatedAt: accounts.updatedAt,
-      balance: sql<number>`${accounts.startingBalance} + coalesce(sum(case when ${records.type} = 'income' then ${records.amount} else -${records.amount} end), 0)`.as("balance"),
+      // Income + incoming transfers are positive, everything else negative. Settlements excluded (debt payments, not cash flow... actually they are cash flow).
+      // Transfer direction: incoming has linked_record_id < id (created second).
+      balance: sql<number>`${accounts.startingBalance} + coalesce(sum(case
+        when ${records.type} = 'income' then ${records.amount}
+        when ${records.type} = 'transfer' and ${records.linkedRecordId} < ${records.id} then ${records.amount}
+        when ${records.type} = 'transfer' then -${records.amount}
+        else -${records.amount}
+      end), 0)`.as("balance"),
       recordCount: count(records.id).as("recordCount"),
     })
     .from(accounts)

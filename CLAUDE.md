@@ -51,7 +51,7 @@ packages/
   web/                 # Vue 3 SPA + Cloudflare deployment seat
     src/layouts/       # Layout components (DashboardLayout, BaseLayout)
     src/pages/         # Page components
-    src/components/    # Custom components (IconPicker, ColorPicker, AlertDialog, AccountFormModal, CategoryFormModal, PersonFormModal, RecordFormModal, QuickRecordModal, BatchRecordModal, DateRangePicker)
+    src/components/    # Custom components (IconPicker, ColorPicker, AlertDialog, AccountFormModal, CategoryFormModal, PersonFormModal, RecordFormModal, QuickRecordModal, BatchRecordModal, TransferFormModal, DateRangePicker)
     src/composables/   # Composables (useApi, useAlertDialog)
     src/stores/        # Pinia stores (accounts, categories, people, records)
     src/utils/         # Utilities (colors, money, dates)
@@ -149,6 +149,7 @@ Hono app with `.basePath("/api")`. Current routes:
 - `POST /api/records/parse/keywords` — manually create a keyword→tag mapping
 - `DELETE /api/records/parse/keywords/:id` — delete a keyword mapping
 - `POST /api/records/quick` — parse + auto-save in one call (for iPhone Shortcuts / automation). Returns `{message, url}` on success.
+- `POST /api/records/transfer` — create linked pair (out + in) for transfers/exchanges. Optional fee record. Accepts `{fromAccountId, toAccountId, amount, toAmount?, date, note?, feeAmount?}`.
 - `POST /api/records/batch/update` — partial update multiple records at once (tag, category, note, amount, account, needsReview)
 - `POST /api/records/batch/delete` — delete multiple records by IDs
 - `GET /api/records/parse/stats` — aggregate parse observability metrics (total, byResolution, aiCalls, correctionRate)
@@ -222,6 +223,9 @@ Error responses include a `code` field for machine-readable errors (e.g., `DUPLI
 - **Spreadsheet mode**: Toggle via pencil icon in table header. Inline editable cells: tag (dropdown), note (text input), amount (number input), account (dropdown). Auto-save on blur (1s debounce via `POST /records/batch/update`). Inline delete per row with 5s undo toast. Note changes auto-match tag (name match → keyword dictionary). Esc exits (confirms if unsaved). Navbar shows unsaved count + Save + Done.
 - **Store filter persistence**: `fetchRecords()` with no args re-uses `lastFilters`. All mutations (create/update/delete/reorder/batch) preserve active filters.
 - **Quick endpoint**: `POST /api/records/quick` — parse + auto-save. Returns `{message, url}` for iPhone Shortcuts. Human-readable message + deep link to record's date.
+- **Transfers & Exchanges**: `POST /api/records/transfer` creates linked pair (out + in). Same currency = transfer, different = exchange. Optional fee record. Blue row styling in table. Direction arrows (→/←) in category column. TransferFormModal with from/to account, auto-calculated fees (sent - received = fee). Transfer button in Records navbar.
+- **Account reconciliation**: `real_balance` + `real_balance_date` fields on accounts. Set what the bank says → app shows gap vs tracked balance. "Reconciliation" section in account form. Gap indicator on cards (green "Synced" / amber "Gap: X"). Progressive backfill: add older records → gap shrinks → eventually synced.
+- **Account balance**: incoming transfers count as positive. Transfers have `mySpend = 0` (not spending).
 
 ## Error Handling
 
