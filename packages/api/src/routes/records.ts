@@ -4,7 +4,7 @@ import { z } from "zod";
 import { createRecordSchema, updateRecordSchema, reorderRecordSchema, parseRecordSchema, parseRecordFeedbackSchema, createTransferSchema } from "@slzr/expensr-shared";
 import type { ParsedRecord, ResolvedBy } from "@slzr/expensr-shared";
 import { createDb } from "../db";
-import { records, accounts, categories, tags, people, recordPeople, parseLogs, keywordMappings } from "../db/schema";
+import { records, accounts, categories, tags, people, recordPeople, parseLogs, keywordMappings, draftRecords } from "../db/schema";
 import { parseId } from "../utils";
 
 const route = new Hono<{ Bindings: CloudflareBindings }>();
@@ -411,7 +411,7 @@ route.post("/transfer", async (ctx) => {
   return ctx.json({ outRecord: { ...outRecord, linkedRecordId: inRecord.id }, inRecord, feeRecord }, 201);
 });
 
-/** POST /quick — parse + auto-save in one call. For iPhone Shortcuts / external automation. */
+/* ORIGINAL /quick — uncomment when app is ready for real use
 route.post("/quick", async (ctx) => {
   const body = await ctx.req.json();
   const parsed = parseRecordSchema.safeParse(body);
@@ -446,7 +446,6 @@ route.post("/quick", async (ctx) => {
 
   await syncPeopleAfterInsert(db, row, personIds, undefined, p.type);
 
-  // Human-readable response for Shortcuts notifications
   const amount = p.amount.toLocaleString("es-AR");
   const tag = p.tagName ?? "untagged";
   const account = p.accountName ?? "default";
@@ -459,6 +458,51 @@ route.post("/quick", async (ctx) => {
     message: `${amount} · ${tag} · ${account}${people}${review}`,
     url: `${origin}/dashboard/records?dateFrom=${date}&dateTo=${date}`,
   }, 201);
+});
+END ORIGINAL /quick */
+
+/** POST /quick — TEMPORARY: saves raw draft to draft_records for later replay. */
+route.post("/quick", async (ctx) => {
+  const body = await ctx.req.json();
+  const parsed = parseRecordSchema.safeParse(body);
+  if (!parsed.success) return ctx.json({ message: "Send text. Example: 'uber 3500' or 'cafe 500 15/04'" }, 400);
+
+  let text = parsed.data.text.trim();
+
+  const { text: afterDate, date: extractedDate } = extractDate(text);
+  text = afterDate;
+
+  const { text: afterAmount, amount } = extractAmount(text);
+  text = afterAmount.trim();
+
+  const dateTime = extractedDate ? ensureDatetime(extractedDate) : new Date().toISOString().slice(0, 19);
+
+  const db = createDb(ctx.env.DB);
+  await db.insert(draftRecords).values({
+    dateTime,
+    text: text || parsed.data.text.trim(), // fall back to original if extraction ate everything
+    amount,
+  });
+
+  const amountStr = amount ? amount.toLocaleString("es-AR") : "no amount";
+  return ctx.json({ message: `Draft: ${text || "—"} · ${amountStr} · ${extractedDate ?? "today"}` }, 201);
+});
+
+/** GET /drafts — list all draft records, newest first. */
+route.get("/drafts", async (ctx) => {
+  const db = createDb(ctx.env.DB);
+  const rows = await db.select().from(draftRecords).orderBy(desc(draftRecords.dateTime));
+  return ctx.json(rows);
+});
+
+/** DELETE /drafts/:id — delete a single draft. */
+route.delete("/drafts/:id", async (ctx) => {
+  const id = parseId(ctx.req.param("id"));
+  if (isNaN(id)) return ctx.json({ error: "Invalid ID" }, 400);
+  const db = createDb(ctx.env.DB);
+  const [row] = await db.delete(draftRecords).where(eq(draftRecords.id, id)).returning();
+  if (!row) return ctx.json({ error: "Draft not found" }, 404);
+  return ctx.json({ ok: true });
 });
 
 // --- Smart parse: token extractors (pure, no DB) ---

@@ -36,6 +36,11 @@ const items = computed<NavigationMenuItem[]>(() => [
     to: '/dashboard/keywords',
   },
   {
+    label: 'Drafts',
+    icon: 'i-lucide-notebook-pen',
+    to: '/dashboard/drafts',
+  },
+  {
     label: 'Settings',
     icon: 'i-lucide-settings',
     to: '/dashboard/settings',

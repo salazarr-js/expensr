@@ -28,6 +28,7 @@ const router = createRouter({
         { path: 'categories', name: 'categories', component: () => import('@/pages/CategoriesPage.vue') },
         { path: 'people', name: 'people', component: () => import('@/pages/PeoplePage.vue') },
         { path: 'keywords', name: 'keywords', component: () => import('@/pages/KeywordsPage.vue') },
+        { path: 'drafts', name: 'drafts', component: () => import('@/pages/DraftsPage.vue') },
         { path: 'settings', name: 'settings', component: () => import('@/pages/SettingsPage.vue') },
         { path: ':pathMatch(.*)*', name: 'dashboard-not-found', component: () => import('@/pages/DashboardNotFoundPage.vue') },
       ],
