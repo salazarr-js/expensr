@@ -4,7 +4,22 @@ Feature-driven. Each feature builds its own types, migrations, API, and UI toget
 
 Currency is user-defined on accounts (visual only). No hardcoded rates — amounts and accounts are what matter.
 
-**Storage:** Cloudflare D1 (SQLite) with Drizzle ORM (`drizzle-orm/d1`). Schema-as-TypeScript in `packages/api/src/db/schema/`. Migrations generated via `drizzle-kit` into `packages/api/drizzle/`, applied via wrangler from `packages/web/`. Default categories seeded via hand-written SQL migration (`INSERT OR IGNORE`).
+**Storage:** Cloudflare D1 (SQLite) with Drizzle ORM (`drizzle-orm/d1`). Schema-as-TypeScript in `packages/api/src/db/schema/`. Migrations generated via `drizzle-kit` into `packages/api/drizzle/`, applied via wrangler from `packages/web/`. Default categories + tags seeded via SQL migration (`0001_seed_categories.sql`).
+
+---
+
+## Real-Use Evaluation (started 2026-04-15)
+
+Build phase paused. Using the app with real data to find out what's useful. No new features — bug fixes and removals welcome.
+
+### Evaluation log
+
+| Feature | Verdict | Date | Notes |
+|---|---|---|---|
+| Categories + Tags | ✅ Solid | 2026-04-20 | 12 categories, 46 tags with icons. Seed updated with all tags. Dropped Indumentaria (dup of Ropa), added Seguros, filled all null icons. Re-seeded local + prod. |
+| Accounts — starting balance | ❌ Remove | 2026-04-15 | Replaced by checkpoint model (stashed, not yet deployed) |
+| Account reconciliation | ❌ Replace | 2026-04-15 | Replaced by checkpoints + drift detection (stashed) |
+| Draft records | 🛠 Shipped | 2026-04-20 | Temporary /quick → draft_records table + DraftsPage. For recording expenses before app is ready. |
 
 ---
 
