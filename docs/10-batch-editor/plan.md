@@ -1,7 +1,9 @@
-# Plan: Unified Batch Editor (Full Page)
+# ~~Plan: Unified Batch Editor (Full Page)~~ — SUPERSEDED
 
-## Context
-Multiple batch/edit features exist separately: BatchRecordModal (create), spreadsheet mode on RecordsPage (inline edit), QuickRecord batch (parse+create). These should merge into one unified full-page batch editor at `/dashboard/batch`.
+> **Status:** Superseded (2026-05-01). This in-app batch editor will NOT be built. Batch operations are handled by Claude Code via the `/expensr-batch` skill instead. See [12-expensr-batch-skill/](../12-expensr-batch-skill/) and [13-claude-intermediary/](../13-claude-intermediary/).
+
+## Original Context (historical)
+Multiple batch/edit features existed separately: BatchRecordModal (create), spreadsheet mode on RecordsPage (inline edit), QuickRecord batch (parse+create). All three were removed during evaluation (2026-04-21). The plan was to merge them into one page, but the decision shifted to Claude Code as the data engine instead of in-app batch UI.
 
 ## Design
 

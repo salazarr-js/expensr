@@ -4,7 +4,7 @@ import { z } from "zod";
 import { createRecordSchema, updateRecordSchema, reorderRecordSchema, parseRecordSchema, parseRecordFeedbackSchema, createTransferSchema } from "@slzr/expensr-shared";
 import type { ParsedRecord, ResolvedBy } from "@slzr/expensr-shared";
 import { createDb } from "../db";
-import { records, accounts, categories, tags, people, recordPeople, parseLogs, keywordMappings, draftRecords } from "../db/schema";
+import { records, accounts, categories, tags, people, recordPeople, parseLogs, keywordMappings } from "../db/schema";
 import { parseId } from "../utils";
 
 const route = new Hono<{ Bindings: CloudflareBindings }>();
@@ -298,7 +298,7 @@ route.post("/", async (ctx) => {
   return ctx.json(row, 201);
 });
 
-/** POST /batch — create multiple records. Assigns sequential times within each date for correct ordering. */
+/** POST /batch — create multiple records. For Claude Code bulk imports. */
 route.post("/batch", async (ctx) => {
   const body = await ctx.req.json();
   if (!Array.isArray(body) || !body.length) {
@@ -324,13 +324,11 @@ route.post("/batch", async (ctx) => {
     byDate.set(dateOnly, group);
   }
 
-  // Process each date group — assign times spaced 1 minute apart starting at noon
   for (const [dateOnly, items] of byDate) {
     for (let j = 0; j < items.length; j++) {
       const { index, data } = items[j];
       const { personIds, personShares, ...rest } = data;
 
-      // Space records 1 minute apart starting at 12:00:00
       const hh = String(12 + Math.floor(j / 60)).padStart(2, "0");
       const mm = String(j % 60).padStart(2, "0");
       const datetime = `${dateOnly}T${hh}:${mm}:00`;
@@ -348,6 +346,37 @@ route.post("/batch", async (ctx) => {
   }
 
   return ctx.json({ created: created.length, errors }, errors.length ? 207 : 201);
+});
+
+/** POST /batch/update — partial update multiple records at once. For Claude Code data enrichment. */
+route.post("/batch/update", async (ctx) => {
+  const body = await ctx.req.json();
+  if (!Array.isArray(body) || !body.length) {
+    return ctx.json({ error: "Expected non-empty array of {id, ...fields}" }, 400);
+  }
+
+  const db = createDb(ctx.env.DB);
+  let updated = 0;
+
+  for (const item of body) {
+    const { id, ...fields } = item;
+    if (typeof id !== "number") continue;
+
+    const set: Record<string, unknown> = { updatedAt: new Date() };
+    if (fields.tagId !== undefined) set.tagId = fields.tagId;
+    if (fields.categoryId !== undefined) set.categoryId = fields.categoryId;
+    if (fields.note !== undefined) set.note = fields.note;
+    if (fields.amount !== undefined) set.amount = fields.amount;
+    if (fields.accountId !== undefined) set.accountId = fields.accountId;
+    if (fields.needsReview !== undefined) set.needsReview = fields.needsReview;
+    if (fields.date !== undefined) set.date = ensureDatetime(fields.date);
+
+    if (Object.keys(set).length <= 1) continue;
+    await db.update(records).set(set).where(eq(records.id, id));
+    updated++;
+  }
+
+  return ctx.json({ updated });
 });
 
 /** POST /transfer — create a linked pair of records for transfers/exchanges.
@@ -411,7 +440,7 @@ route.post("/transfer", async (ctx) => {
   return ctx.json({ outRecord: { ...outRecord, linkedRecordId: inRecord.id }, inRecord, feeRecord }, 201);
 });
 
-/* ORIGINAL /quick — uncomment when app is ready for real use
+/** POST /quick — parse + auto-save in one call. For iPhone Shortcuts / external automation. */
 route.post("/quick", async (ctx) => {
   const body = await ctx.req.json();
   const parsed = parseRecordSchema.safeParse(body);
@@ -458,51 +487,6 @@ route.post("/quick", async (ctx) => {
     message: `${amount} · ${tag} · ${account}${people}${review}`,
     url: `${origin}/dashboard/records?dateFrom=${date}&dateTo=${date}`,
   }, 201);
-});
-END ORIGINAL /quick */
-
-/** POST /quick — TEMPORARY: saves raw draft to draft_records for later replay. */
-route.post("/quick", async (ctx) => {
-  const body = await ctx.req.json();
-  const parsed = parseRecordSchema.safeParse(body);
-  if (!parsed.success) return ctx.json({ message: "Send text. Example: 'uber 3500' or 'cafe 500 15/04'" }, 400);
-
-  let text = parsed.data.text.trim();
-
-  const { text: afterDate, date: extractedDate } = extractDate(text);
-  text = afterDate;
-
-  const { text: afterAmount, amount } = extractAmount(text);
-  text = afterAmount.trim();
-
-  const dateTime = extractedDate ? ensureDatetime(extractedDate) : new Date().toISOString().slice(0, 19);
-
-  const db = createDb(ctx.env.DB);
-  await db.insert(draftRecords).values({
-    dateTime,
-    text: text || parsed.data.text.trim(), // fall back to original if extraction ate everything
-    amount,
-  });
-
-  const amountStr = amount ? amount.toLocaleString("es-AR") : "no amount";
-  return ctx.json({ message: `Draft: ${text || "—"} · ${amountStr} · ${extractedDate ?? "today"}` }, 201);
-});
-
-/** GET /drafts — list all draft records, newest first. */
-route.get("/drafts", async (ctx) => {
-  const db = createDb(ctx.env.DB);
-  const rows = await db.select().from(draftRecords).orderBy(desc(draftRecords.dateTime));
-  return ctx.json(rows);
-});
-
-/** DELETE /drafts/:id — delete a single draft. */
-route.delete("/drafts/:id", async (ctx) => {
-  const id = parseId(ctx.req.param("id"));
-  if (isNaN(id)) return ctx.json({ error: "Invalid ID" }, 400);
-  const db = createDb(ctx.env.DB);
-  const [row] = await db.delete(draftRecords).where(eq(draftRecords.id, id)).returning();
-  if (!row) return ctx.json({ error: "Draft not found" }, 404);
-  return ctx.json({ ok: true });
 });
 
 // --- Smart parse: token extractors (pure, no DB) ---
@@ -1174,50 +1158,6 @@ route.post("/reorder", async (ctx) => {
     .returning();
 
   return ctx.json(row);
-});
-
-/** DELETE /:id */
-/** POST /batch/update — partial update multiple records at once. */
-route.post("/batch/update", async (ctx) => {
-  const body = await ctx.req.json();
-  if (!Array.isArray(body) || !body.length) {
-    return ctx.json({ error: "Expected non-empty array of {id, ...fields}" }, 400);
-  }
-
-  const db = createDb(ctx.env.DB);
-  let updated = 0;
-
-  for (const item of body) {
-    const { id, ...fields } = item;
-    if (typeof id !== "number") continue;
-
-    // Only allow safe fields to be updated inline
-    const set: Record<string, unknown> = { updatedAt: new Date() };
-    if (fields.tagId !== undefined) set.tagId = fields.tagId;
-    if (fields.categoryId !== undefined) set.categoryId = fields.categoryId;
-    if (fields.note !== undefined) set.note = fields.note;
-    if (fields.amount !== undefined) set.amount = fields.amount;
-    if (fields.accountId !== undefined) set.accountId = fields.accountId;
-    if (fields.needsReview !== undefined) set.needsReview = fields.needsReview;
-
-    if (Object.keys(set).length <= 1) continue; // only updatedAt, no real changes
-    await db.update(records).set(set).where(eq(records.id, id));
-    updated++;
-  }
-
-  return ctx.json({ updated });
-});
-
-/** POST /batch/delete — delete multiple records by IDs. */
-route.post("/batch/delete", async (ctx) => {
-  const body = await ctx.req.json();
-  const ids = body?.ids;
-  if (!Array.isArray(ids) || !ids.length || !ids.every((id: unknown) => typeof id === "number")) {
-    return ctx.json({ error: "Expected { ids: number[] }" }, 400);
-  }
-  const db = createDb(ctx.env.DB);
-  const deleted = await db.delete(records).where(inArray(records.id, ids)).returning();
-  return ctx.json({ deleted: deleted.length });
 });
 
 route.delete("/:id", async (ctx) => {

@@ -17,7 +17,11 @@
       "Bash(pkill:*)",
       "Bash(grep:*)",
       "Bash(python3:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(brew list *)",
+      "Bash(mkdir -p /Volumes/Dev/personal/expensr/docs/decisions)",
+      "Bash(cp /Users/josesalazar/.claude/projects/-Volumes-Dev-personal-expensr/memory/*.md /Volumes/Dev/personal/expensr/docs/decisions/)"
     ]
   }
 }

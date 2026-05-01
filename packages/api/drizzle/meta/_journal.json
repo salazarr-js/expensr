@@ -106,6 +106,20 @@
       "when": 1776713151221,
       "tag": "0014_premium_white_queen",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "6",
+      "when": 1776740234051,
+      "tag": "0015_demonic_ulik",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "6",
+      "when": 1777611230257,
+      "tag": "0016_yellow_tempest",
+      "breakpoints": true
     }
   ]
 }

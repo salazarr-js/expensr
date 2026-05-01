@@ -1,6 +1,6 @@
 import { ref } from "vue";
 import { defineStore } from "pinia";
-import type { Account, CreateAccount, UpdateAccount } from "@slzr/expensr-shared";
+import type { Account, CreateAccount, UpdateAccount, CreateBalance, AccountBalance, AccountBalanceWithComputed } from "@slzr/expensr-shared";
 import { useApi } from "@/composables/useApi";
 
 export const useAccountsStore = defineStore("accounts", () => {
@@ -10,7 +10,7 @@ export const useAccountsStore = defineStore("accounts", () => {
   const error = ref(false);
   const api = useApi();
 
-  /** Loads all accounts from the API, sorted by name. */
+  /** Loads all accounts with computed balance fields. */
   async function fetchAccounts() {
     loading.value = true;
     error.value = false;
@@ -24,16 +24,16 @@ export const useAccountsStore = defineStore("accounts", () => {
     }
   }
 
-  /** Loads all accounts sorted by record count (most used first). */
+  /** Loads all accounts sorted by record count. */
   async function fetchAccountsByUsage() {
     try {
       accounts.value = await api.get<Account[]>("/accounts?sort=usage");
     } catch {
-      // Fallback: if usage sort fails, at least keep whatever we have
+      // Fallback: keep whatever we have
     }
   }
 
-  /** Fetches distinct currencies across all accounts, ordered by usage count. */
+  /** Fetches distinct currencies. */
   async function fetchCurrencies() {
     loading.value = true;
     try {
@@ -45,33 +45,50 @@ export const useAccountsStore = defineStore("accounts", () => {
     }
   }
 
-  /** Creates a new account and appends it to the local list. */
+  /** Creates an account and refetches the list. */
   async function createAccount(data: CreateAccount) {
     const account = await api.post<Account>("/accounts", data);
-    if (account.isDefault) {
-      accounts.value.forEach((a) => { a.isDefault = false; });
-    }
-    accounts.value.push(account);
+    await fetchAccounts();
     return account;
   }
 
-  /** Patches an account and replaces it in the local list. */
+  /** Patches an account and refetches the list. */
   async function updateAccount(id: number, data: UpdateAccount) {
     const account = await api.put<Account>(`/accounts/${id}`, data);
-    // If this account became default, unset others locally (API already did it server-side)
-    if (account.isDefault) {
-      accounts.value.forEach((a) => { if (a.id !== id) a.isDefault = false; });
-    }
-    const index = accounts.value.findIndex((a) => a.id === id);
-    if (index !== -1) accounts.value[index] = account;
+    await fetchAccounts();
     return account;
   }
 
-  /** Deletes an account and removes it from the local list. */
+  /** Deletes an account. */
   async function deleteAccount(id: number) {
     await api.del(`/accounts/${id}`);
     accounts.value = accounts.value.filter((a) => a.id !== id);
   }
 
-  return { accounts, currencies, loading, error, fetchAccounts, fetchAccountsByUsage, fetchCurrencies, createAccount, updateAccount, deleteAccount };
+  // ── Monthly Balances ──────────────────────────────────────────────
+
+  /** Lists monthly balances for an account (newest first, with computed fields). */
+  async function fetchBalances(accountId: number): Promise<AccountBalanceWithComputed[]> {
+    return api.get<AccountBalanceWithComputed[]>(`/accounts/${accountId}/balances`);
+  }
+
+  /** Creates or updates a monthly balance (upsert by yearMonth). Refetches accounts. */
+  async function setBalance(accountId: number, data: CreateBalance) {
+    const bal = await api.post<AccountBalance>(`/accounts/${accountId}/balances`, data);
+    await fetchAccounts();
+    return bal;
+  }
+
+  /** Deletes a monthly balance. Refetches accounts. */
+  async function deleteBalance(accountId: number, balId: number) {
+    await api.del(`/accounts/${accountId}/balances/${balId}`);
+    await fetchAccounts();
+  }
+
+  return {
+    accounts, currencies, loading, error,
+    fetchAccounts, fetchAccountsByUsage, fetchCurrencies,
+    createAccount, updateAccount, deleteAccount,
+    fetchBalances, setBalance, deleteBalance,
+  };
 });

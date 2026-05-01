@@ -16,10 +16,19 @@ Build phase paused. Using the app with real data to find out what's useful. No n
 
 | Feature | Verdict | Date | Notes |
 |---|---|---|---|
-| Categories + Tags | ✅ Solid | 2026-04-20 | 12 categories, 46 tags with icons. Seed updated with all tags. Dropped Indumentaria (dup of Ropa), added Seguros, filled all null icons. Re-seeded local + prod. |
-| Accounts — starting balance | ❌ Remove | 2026-04-15 | Replaced by checkpoint model (stashed, not yet deployed) |
-| Account reconciliation | ❌ Replace | 2026-04-15 | Replaced by checkpoints + drift detection (stashed) |
-| Draft records | 🛠 Shipped | 2026-04-20 | Temporary /quick → draft_records table + DraftsPage. For recording expenses before app is ready. |
+| Categories + Tags | ✅ Solid | 2026-04-21 | 12 categories, 45 tags (all English). Merged Corner Store → Groceries. Removed Monotributo from seed (personal). Added Family. |
+| Accounts — starting balance | ❌ Removed | 2026-04-21 | Dropped column. Replaced by monthly balance model. |
+| Account reconciliation | ❌ Replaced | 2026-04-21 | Dropped real_balance/real_balance_date. Replaced by `account_balances` table with monthly snapshots + gap detection. |
+| Monthly balances (new) | 🛠 Built | 2026-04-21 | One balance per account per month (bank says X on date Y). Auto-computed initial/projected/gap. BalancesModal + BalanceFormModal + MonthPicker. Auto-reconciliation suggestion. |
+| Spreadsheet mode | ❌ Removed | 2026-04-21 | Inline editing, batch/update, batch/delete APIs all removed. ~500 lines deleted. |
+| Batch create (modal + API) | ❌ Removed | 2026-04-21 | BatchRecordModal deleted, POST /batch endpoint removed, store methods removed. Replaced by Claude Code `/expensr-batch` skill (planned). |
+| QuickRecord batch mode | ❌ Removed | 2026-04-21 | Multi-line batch toggle removed from QuickRecordModal. ~240 lines deleted. |
+| Draft records | ❌ Removed | 2026-05-01 | Was temporary. Removed — /quick restored to original parse+save. |
+| Balances UI | ⚠️ Not convinced | 2026-05-01 | Monthly balances work but UI needs rethinking. Keep for now, revisit. |
+| Records page | ⚠️ Needs rework | 2026-05-01 | Functional but not good enough. Revisit layout/UX. |
+| Dashboard | ⚠️ Needs rework | 2026-05-01 | Revisit what's actually useful. |
+| People — shared records link | ⚠️ Not convinced | 2026-05-01 | Link to shared records and payment button — not intuitive. |
+| Accounts — record link | ⚠️ Improvable | 2026-05-01 | Works but could be better. Default star is good. |
 
 ---
 
@@ -290,31 +299,9 @@ No dedicated API endpoint — frontend fetches records for current + previous pe
 
 ---
 
-## 10. Records — Spreadsheet Mode ✅
+## ~~10. Records — Spreadsheet Mode~~ ❌ Removed (2026-04-21)
 
-- [x] Mode toggle from table header icon (pencil icon → "Done")
-- [x] Inline editable cells: tag (dropdown), note (text), amount (number), account (dropdown)
-- [x] Auto-save on blur — pending changes queue locally, flush after 1s debounce via `POST /records/batch/update`
-- [x] Inline delete per row — immediate removal with undo toast
-- [x] Note→tag auto-match (name match → keyword dictionary)
-- [x] `POST /records/batch/update` + `POST /records/batch/delete` API endpoints
-- [x] Drag-and-drop reorder in spreadsheet mode (handle + delete side by side)
-
-## 10b. Unified Batch Editor (Full Page)
-
-**Detailed plan:** [10-batch-editor/](10-batch-editor/)
-
-Full page at `/dashboard/batch` — replaces BatchRecordModal. Handles both creating new records (paste bank statement or type) and editing existing records.
-
-- [ ] Full page route `/dashboard/batch` with spreadsheet grid
-- [ ] Paste parser: bank statement text → parsed rows (date, amount, description → tag)
-- [ ] Inline editing: date, note, tag, amount, account, people, type
-- [ ] Edit mode: load existing records from filters
-- [ ] Drag-and-drop reorder via SortableJS
-- [ ] Save: creates + updates + deletes in one flow
-- [ ] Entry points: sidebar nav, Records page button
-
-**Test:** Paste bank statement. Rows parsed with dates/amounts/tags. Edit inline. Save all. Load existing records → edit → save updates.
+Removed during evaluation. Inline editing, batch/update, batch/delete APIs, BatchRecordModal, QuickRecord batch mode — all deleted. ~500 lines of code removed across 6 files. Batch record creation will be handled via Claude Code `/expensr-batch` skill instead of in-app UI. See [12-expensr-batch-skill/](12-expensr-batch-skill/).
 
 ---
 

@@ -380,7 +380,7 @@ watch(() => state.note, (note) => {
   }
 });
 
-const emit = defineEmits<{ delete: [record: RecordWithRelations]; batch: [] }>();
+const emit = defineEmits<{ delete: [record: RecordWithRelations] }>();
 
 const form = ref<{ submit: () => Promise<void>; errors: { message: string }[]; dirty: boolean }>();
 const loading = ref(false);
@@ -733,7 +733,6 @@ async function onSubmit() {
 
     <template #footer>
       <UButton v-if="record" label="Delete" icon="i-lucide-trash-2" variant="outline" color="error" @click="emit('delete', record)" />
-      <UButton v-if="!record" icon="i-lucide-table" variant="outline" color="neutral" label="Batch" @click="open = false; emit('batch')" />
       <UButton label="Cancel" variant="ghost" color="neutral" class="ml-auto" @click="open = false" />
       <UButton
         :label="isSettlement ? 'Record payment' : (record ? 'Save changes' : 'Create record')"

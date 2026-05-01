@@ -6,6 +6,7 @@ import { useAccountsStore } from "@/stores/accounts";
 import { getColor } from "@/utils/colors";
 import { formatMoneyParts } from "@/utils/money";
 import { AccountFormModal } from "@/components/AccountFormModal";
+import { BalancesModal } from "@/components/BalancesModal";
 import { useAlertDialog } from "@/composables/useAlertDialog";
 
 const accountsStore = useAccountsStore();
@@ -14,6 +15,40 @@ const alert = useAlertDialog();
 
 const showFormModal = ref(false);
 const selectedAccount = ref<Account | undefined>();
+
+const showBalancesModal = ref(false);
+const balancesAccount = ref<Account | undefined>();
+
+function openBalances(account: Account) {
+  balancesAccount.value = account;
+  showBalancesModal.value = true;
+}
+
+/** Badge icon based on monthly balance status. */
+function balanceIcon(account: Account): string {
+  if (!account.monthlyBalance) return "i-lucide-anchor";
+  if (account.gap !== null && Math.abs(account.gap) > 1) return "i-lucide-alert-triangle";
+  return "i-lucide-check";
+}
+
+/** Badge color based on monthly balance status. */
+function balanceColor(account: Account): "neutral" | "warning" | "success" {
+  if (!account.monthlyBalance) return "neutral";
+  if (account.gap !== null && Math.abs(account.gap) > 1) return "warning";
+  return "success";
+}
+
+/** Badge label. */
+function balanceLabel(account: Account): string {
+  if (!account.monthlyBalance) return "Set balance";
+  const month = new Date(Number(account.monthlyBalance.yearMonth.split("-")[0]), Number(account.monthlyBalance.yearMonth.split("-")[1]) - 1, 1)
+    .toLocaleDateString(undefined, { month: "short" });
+  if (account.gap !== null && Math.abs(account.gap) > 1) {
+    return `${month} · off by ${formatMoneyParts(Math.abs(account.gap)).integer}`;
+  }
+  if (account.gap !== null) return `${month} · synced`;
+  return month;
+}
 
 const TYPE_LABELS: Record<AccountType, string> = {
   bank: "Bank",
@@ -194,17 +229,16 @@ onMounted(accountsStore.fetchAccountsByUsage);
               <p class="text-2xl font-heading font-bold text-highlighted tracking-tight">
                 {{ formatMoneyParts(account.balance).integer }}<span class="text-base font-medium text-muted">{{ formatMoneyParts(account.balance).decimal }}</span>
               </p>
-              <!-- Gap indicator when real balance is set -->
-              <p
-                v-if="account.realBalance"
-                class="text-xs font-mono mt-0.5"
-                :class="Math.abs(account.realBalance - account.balance) < 1 ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'"
+              <UButton
+                size="xs"
+                variant="soft"
+                :icon="balanceIcon(account)"
+                :color="balanceColor(account)"
+                class="mt-1"
+                @click.stop="openBalances(account)"
               >
-                <template v-if="Math.abs(account.realBalance - account.balance) < 1">Synced</template>
-                <template v-else>
-                  Gap: {{ formatMoneyParts(Math.abs(account.realBalance - account.balance)).integer }}
-                </template>
-              </p>
+                {{ balanceLabel(account) }}
+              </UButton>
             </div>
           </div>
         </UCard>
@@ -213,4 +247,5 @@ onMounted(accountsStore.fetchAccountsByUsage);
   </UDashboardPanel>
 
   <AccountFormModal v-model:open="showFormModal" :account="selectedAccount" @delete="deleteAccount" />
+  <BalancesModal v-if="balancesAccount" v-model:open="showBalancesModal" :account="balancesAccount" />
 </template>
