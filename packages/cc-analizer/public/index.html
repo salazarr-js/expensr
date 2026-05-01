@@ -26,6 +26,10 @@
           </svg>
           <span style="font-family:var(--font-display);font-weight:700;font-size:1.15rem;letter-spacing:-0.02em;color:var(--text-primary);">Finanzas</span>
         </div>
+        <!-- Statement selector -->
+        <select v-if="statements.length > 1" v-model="currentStatement" style="font-family:var(--font-body);font-size:0.82rem;font-weight:600;padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);cursor:pointer;">
+          <option v-for="s in statements" :key="s.key" :value="s.key">{{ s.label }}</option>
+        </select>
         <!-- Status badges -->
         <div style="display:flex;gap:8px;align-items:center;">
           <span class="badge badge-accent">{{ invoices.length }} invoices</span>
@@ -341,6 +345,8 @@ const { createApp, ref, computed, watch, onMounted, nextTick } = Vue;
 
 createApp({
   setup() {
+    const statements = ref([]);
+    const currentStatement = ref('');
     const transactions = ref([]);
     const invoices = ref([]);
     const saving = ref(false);
@@ -366,15 +372,31 @@ createApp({
 
     // --- data loading ---
 
-    async function load() {
+    async function loadStatements() {
+      const res = await fetch('/api/statements');
+      statements.value = await res.json();
+      if (!currentStatement.value && statements.value.length) {
+        currentStatement.value = statements.value[0].key;
+      }
+    }
+
+    async function loadData() {
+      const qs = currentStatement.value ? `?statement=${currentStatement.value}` : '';
       const [txRes, invRes] = await Promise.all([
-        fetch('/api/transactions'),
-        fetch('/api/invoices'),
+        fetch(`/api/transactions${qs}`),
+        fetch(`/api/invoices${qs}`),
       ]);
-      transactions.value = await txRes.json();
+      const txData = await txRes.json();
+      transactions.value = txData.transactions || txData;
       invoices.value = await invRes.json();
     }
 
+    async function load() {
+      await loadStatements();
+      await loadData();
+    }
+
+    watch(currentStatement, () => loadData());
     onMounted(load);
 
     // --- formatting ---
@@ -650,7 +672,8 @@ createApp({
 
     async function saveInvoice(data) {
       saving.value = true;
-      const res = await fetch('/api/invoices', {
+      const qs = currentStatement.value ? `?statement=${currentStatement.value}` : '';
+      const res = await fetch(`/api/invoices${qs}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -707,7 +730,8 @@ createApp({
     }
 
     async function removeInvoice(id) {
-      await fetch(`/api/invoices/${id}`, { method: 'DELETE' });
+      const qs = currentStatement.value ? `?statement=${currentStatement.value}` : '';
+      await fetch(`/api/invoices/${id}${qs}`, { method: 'DELETE' });
       invoices.value = invoices.value.filter(i => i.id !== id);
     }
 
@@ -716,6 +740,7 @@ createApp({
     }
 
     return {
+      statements, currentStatement,
       transactions, invoices, form, saving, lastSaved,
       txFilter, txSearch, dateInput, amountInput,
       suggestions, duplicateWarning, matchedCount,

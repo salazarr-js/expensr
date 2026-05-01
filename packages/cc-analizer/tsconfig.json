@@ -1,0 +1,7 @@
+{
+  "extends": "@slzr/expensr-shared/tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"]
+  },
+  "include": ["*.ts"]
+}

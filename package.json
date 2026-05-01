@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "pnpm --filter @slzr/expensr-web dev",
+    "dev:cc": "pnpm --filter @slzr/expensr-cc-analizer dev",
     "build": "pnpm --filter @slzr/expensr-web build",
     "preview": "pnpm --filter @slzr/expensr-web preview",
     "deploy:cf": "pnpm --filter @slzr/expensr-web deploy:cf",
@@ -28,6 +29,6 @@
   },
   "devDependencies": {
     "better-sqlite3": "catalog:",
-    "tsx": "^4.21.0"
+    "tsx": "catalog:"
   }
 }

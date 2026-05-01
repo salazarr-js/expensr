@@ -60,3 +60,12 @@ auto-imports.d.ts
 components.d.ts
 
 resumes
+
+# cc-analizer personal data
+packages/cc-analizer/data/
+
+# personal config (per-user, not shared)
+.expensr/
+
+# Claude
+.claude/settings.local.json
